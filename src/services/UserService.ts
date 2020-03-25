@@ -315,12 +315,18 @@ export default class UserService extends BaseService<User> {
 
     public async userActivitiesPlayer(requestBody: any){
         try{
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionUniqueKey = requestBody.competitionUniqueKey;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_player(?,?)",
-            [userId, competitionUniqueKey]);
-            if(result != null)
-                return result[0];
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_player(?,?,?,?)",
+            [userId, competitionUniqueKey, limit, offset]);
+            if(result != null){
+                let totalCount = result[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["activityPlayers"] = result[1];
+                return responseObject;
+            }
         }catch(error){
             throw error;
         }
@@ -328,12 +334,18 @@ export default class UserService extends BaseService<User> {
     }
     public async userActivitiesParent(requestBody: any){
         try{
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionUniqueKey = requestBody.competitionUniqueKey;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_parent(?,?)",
-            [userId, competitionUniqueKey]);
-            if(result != null)
-                return result[0];
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_parent(?,?,?,?)",
+            [userId, competitionUniqueKey, limit, offset]);
+            if(result != null){
+                let totalCount = result[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["activityParents"] = result[1];
+                return responseObject;
+            }
         }catch(error){
             throw error;
         }
@@ -342,12 +354,18 @@ export default class UserService extends BaseService<User> {
 
     public async userActivitiesScorer(requestBody: any){
         try{
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionUniqueKey = requestBody.competitionUniqueKey;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_scorer(?,?)",
-            [userId, competitionUniqueKey]);
-            if(result != null)
-                return result[0];
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_scorer(?,?,?,?)",
+            [userId, competitionUniqueKey, limit, offset]);
+            if(result != null){
+                let totalCount = result[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["activityScorer"] = result[1];
+                return responseObject;
+            }
         }catch(error){
             throw error;
         }
@@ -356,12 +374,19 @@ export default class UserService extends BaseService<User> {
 
     public async userActivitiesManager(requestBody: any){
         try{
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionUniqueKey = requestBody.competitionUniqueKey;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_manager(?,?)",
-            [userId, competitionUniqueKey]);
-            if(result != null)
-                return result[0];
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_manager(?,?,?,?)",
+            [userId, competitionUniqueKey, limit, offset]);
+            if(result != null){
+                let totalCount = result[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["activityManager"] = result[1];
+                return responseObject;
+            }
+                
         }catch(error){
             throw error;
         }
