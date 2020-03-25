@@ -96,12 +96,21 @@ async function start() {
                 // let cachedUser = fromCacheAsync(token);
                 let user = null;
                 // if (!cachedUser) {
-                const query = User.createQueryBuilder('user').andWhere(
-                    'user.email = :email and user.password = :password',
-                    {email: data[0], password: data[1]});
-                if (action.request.url == '/users/profile' && action.request.method == 'PATCH')
-                    query.addSelect("user.password");
-                user = await query.getOne();
+                    console.log("**************************************************")
+                    try{
+                        console.log("Email::" + data[0] + "Password::" + data[1]);
+                        const query = User.createQueryBuilder('user').andWhere(
+                            'user.email = :email and user.password = :password',
+                            {email: data[0], password: data[1]});
+                        if (action.request.url == '/users/profile' && action.request.method == 'PATCH')
+                            query.addSelect("user.password");
+                        user = await query.getOne();
+                    }
+                    catch(error)
+                    {
+                        console.log("&&&&&&&&&&&&&Error connecting to the User" + error);
+                    }
+               
                 // toCacheWithTtl(token, JSON.stringify(user), TEN_MIN);
                 // } else {
                 //     user = JSON.parse(cachedUser);
