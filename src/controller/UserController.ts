@@ -280,8 +280,9 @@ export class UserController extends BaseController {
     private async checkUserForFirestore(user: User) {
       user['linkedEntity'] = JSON.parse(user['linkedEntity']);
       if (isNullOrEmpty(user.firebaseUID)) {
-       // let userWithOnlyPass = await this.userService.getUserWithOnlyPass(user.id);
-      //  await this.checkFirebaseUser(user, userWithOnlyPass.password);
+        // Commenting this code will have issues in the messages chat flows
+        const userDetails = await this.userService.findUserFullDetailsById(user.id);
+        await this.checkFirebaseUser(user, userDetails.password);
       } else {
         await this.checkFirestoreDatabase(user);
       }

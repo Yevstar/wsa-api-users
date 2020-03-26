@@ -239,7 +239,7 @@ export default class UserService extends BaseService<User> {
         return query.getRawMany()
     }
 
-    public async sentMail(userData, templateObj,OrganisationName ,receiverData, password) {
+    public async sentMail( templateObj,OrganisationName ,receiverData, password) {
 
 
         let url =process.env.liveScoresWebHost;
@@ -386,14 +386,14 @@ export default class UserService extends BaseService<User> {
                 responseObject["activityManager"] = result[1];
                 return responseObject;
             }
-                
+
         }catch(error){
             throw error;
         }
 
     }
 
-  
+
     public async userRegistrationDetails(requestBody: any){
         try{
             let limit = requestBody.paging.limit;
@@ -405,7 +405,7 @@ export default class UserService extends BaseService<User> {
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-    
+
                 responseObject["registrationDetails"] = result[1];
                 return responseObject;
             }

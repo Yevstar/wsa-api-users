@@ -24,14 +24,33 @@ export class AffiliateController extends BaseController {
         try {
             if (userId) {
                 if (userId && userId == currentUser.id) {
-                   //let requestBody = Object.assign({}, requestBod);
+                    //let requestBody = Object.assign({}, requestBod);
 
-            let OrgObject= await this.organisationService.findOrgByUniquekey(requestBody.organisationId);
-                   
-                   
+                    let OrgObject = await this.organisationService.findOrgByUniquekey(requestBody.organisationId);
+
+
                     if (requestBody != null) {
+                        if (isStringNullOrEmpty(requestBody.contacts)) {
+                            requestBody.contacts = JSON.parse(requestBody.contacts);
+                            if (isArrayEmpty(requestBody.contacts)) {
+                                for (let contact of requestBody.contacts) {
+                                    let userDb = await this.userService.findByEmail(contact.email)
+                                    if (userDb) {
+                                        if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
+                                            continue;
+                                        }
+                                        else {
+                                            return response.status(212).send({
+                                                errorCode: 7,
+                                                message: 'A user with this email already exists, but the details you have entered do not match'
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         let organisation = new Organisation();
-                       // organisation.id = Number(requestBody.affiliateOrgId);
+                        // organisation.id = Number(requestBody.affiliateOrgId);
                         organisation.organisationTypeRefId = requestBody.organisationTypeRefId;
                         organisation.name = requestBody.name;
                         organisation.phoneNo = requestBody.phoneNo;
@@ -44,7 +63,7 @@ export class AffiliateController extends BaseController {
                         organisation.statusRefId = 2;
 
                         organisation.whatIsTheLowestOrgThatCanAddChild = requestBody.whatIsTheLowestOrgThatCanAddChild;
-                        if(requestBody.affiliateOrgId == "" || requestBody.affiliateOrgId== 0){   
+                        if (requestBody.affiliateOrgId == "" || requestBody.affiliateOrgId == 0) {
                             organisation.id = 0;
                             organisation.createdBy = userId;
                             organisation.organisationUniqueKey = uuidv4();
@@ -71,77 +90,86 @@ export class AffiliateController extends BaseController {
                         }
 
                         let affiliateRes = await this.affiliateService.createOrUpdate(affiliate);
-                       if(organisationLogoFile != null ){
-                        if (isPhoto(organisationLogoFile.mimetype)) {
-                         //   let organisation_logo_file = requestBody.organisationLogo ;
-                        let filename = `/organisation/logo_org_${affiliateRes.affiliateOrgId}_${timestamp()}.${fileExt(organisationLogoFile.originalname)}`;
-                        let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile);
-                            if(fileUploaded){
-                                let orgLogoModel = new OrganisationLogo();
-                                orgLogoModel.id = requestBody.organisationLogoId;
-                                orgLogoModel.organisationId = affiliateRes.affiliateOrgId;
-                                orgLogoModel.logoUrl = fileUploaded['url'];
-                                orgLogoModel.isDefault = requestBody.logoIsDefault;
-                                orgLogoModel.createdBy =userId;
-                                await this.organisationLogoService.createOrUpdate(orgLogoModel);
-                           }
+                        if (organisationLogoFile != null) {
+                            if (isPhoto(organisationLogoFile.mimetype)) {
+                                //   let organisation_logo_file = requestBody.organisationLogo ;
+                                let filename = `/organisation/logo_org_${affiliateRes.affiliateOrgId}_${timestamp()}.${fileExt(organisationLogoFile.originalname)}`;
+                                let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile);
+                                if (fileUploaded) {
+                                    let orgLogoModel = new OrganisationLogo();
+                                    orgLogoModel.id = requestBody.organisationLogoId;
+                                    orgLogoModel.organisationId = affiliateRes.affiliateOrgId;
+                                    orgLogoModel.logoUrl = fileUploaded['url'];
+                                    orgLogoModel.isDefault = requestBody.logoIsDefault;
+                                    orgLogoModel.createdBy = userId;
+                                    await this.organisationLogoService.createOrUpdate(orgLogoModel);
+                                }
+                            }
                         }
-                    }
-                        
+
                         const ureUserIdDb = await this.ureService.findByTemplateId(affiliateRes.affiliateOrgId);
                         let contactMap = new Map(); let PermissionMap = new Map();
-                        if (isStringNullOrEmpty(requestBody.contacts)) {
-                        requestBody.contacts= JSON.parse(requestBody.contacts);
-                           if(isArrayEmpty(requestBody.contacts)){
-                            for (let contact of requestBody.contacts) {
-                                let user = new User();
-                                user.id = Number(contact.userId);
-                                user.firstName = contact.firstName;
-                                user.middleName = contact.middleName;
-                                user.lastName = contact.lastName;
-                                user.mobileNumber = contact.mobileNumber;
-                                user.email = contact.email;
-                                let password = Math.random().toString(36).slice(-8);
-                                if (contact.userId == 0) {
-                                    user.createdBy = userId;
-                                    user.password = md5(password);
-                                } else {
-                                    user.updatedBy = userId;
-                                    user.updatedOn = new Date();
+                        // if (isStringNullOrEmpty(requestBody.contacts)) {
+                        //     console.log("@@@@@@-----1")
+                        //     requestBody.contacts = JSON.parse(requestBody.contacts);
+                            if (isArrayEmpty(requestBody.contacts)) {
+                                for (let contact of requestBody.contacts) {
+                                    let userDb = await this.userService.findByEmail(contact.email)
+                                    if (userDb == null) {
+                                        let user = new User();
+                                        user.id = Number(contact.userId);
+                                        user.firstName = contact.firstName;
+                                        user.middleName = contact.middleName;
+                                        user.lastName = contact.lastName;
+                                        user.mobileNumber = contact.mobileNumber;
+                                        user.email = contact.email;
+                                        let password = Math.random().toString(36).slice(-8);
+                                        if (contact.userId == 0) {
+                                            user.createdBy = userId;
+                                            user.password = md5(password);
+                                        } else {
+                                            user.updatedBy = userId;
+                                            user.updatedOn = new Date();
+                                        }
+                                        contactMap.set(user.id, user);
+
+                                        let userRes = await this.userService.createOrUpdate(user);
+                                        if (contact.userId == 0) {
+                                            let mailObj = await this.communicationTemplateService.findById(1);
+                                            await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
+                                        }
+                                        for (let permission of contact.permissions) {
+                                            let userRoleEntity = new UserRoleEntity();
+                                            userRoleEntity.id = Number(permission.userRoleEntityId);
+                                            userRoleEntity.roleId = permission.roleId;
+                                            userRoleEntity.userId = Number(userRes.id);
+                                            userRoleEntity.entityId = Number(organisationRes.id);
+                                            userRoleEntity.entityTypeId = 2;
+                                            userRoleEntity.createdBy = userId;
+                                            PermissionMap.set(userRoleEntity.id, userRoleEntity);
+                                            await this.ureService.createOrUpdate(userRoleEntity);
+                                        }
+                                    }
+                                    else {
+                                        let password = "";
+                                        let mailObj = await this.communicationTemplateService.findById(3);
+                                        await this.userService.sentMail(mailObj, OrgObject.name, userDb, password)
+                                    }
                                 }
-                                contactMap.set(user.id, user);
-                              
-                                let userRes = await this.userService.createOrUpdate(user);
-                                if(contact.userId == 0){
-                                    let mailObj = await this.communicationTemplateService.findById(1);
-                                    await this.userService.sentMail(user, mailObj,OrgObject.name, userRes, password)
+
+                            }
+                      //  }
+                        if (isArrayEmpty(ureUserIdDb)) {
+                            for (let uItem of ureUserIdDb) {
+                                if (contactMap.get(uItem.userId) == undefined) {
+                                    await this.userService.DeleteUser(uItem.userId);
                                 }
-                                for (let permission of contact.permissions) {
-                                    let userRoleEntity = new UserRoleEntity();
-                                    userRoleEntity.id = Number(permission.userRoleEntityId);
-                                    userRoleEntity.roleId = permission.roleId;
-                                    userRoleEntity.userId = Number(userRes.id);
-                                    userRoleEntity.entityId = Number(organisationRes.id);
-                                    userRoleEntity.entityTypeId = 2;
-                                    userRoleEntity.createdBy = userId;
-                                    PermissionMap.set(userRoleEntity.id, userRoleEntity);
-                                    await this.ureService.createOrUpdate(userRoleEntity);
+                                if (PermissionMap.get(uItem.id) == undefined) {
+                                    await this.ureService.DeleteUre(uItem.id, uItem.userId);
                                 }
                             }
-                           
                         }
-                    }
-                    if (isArrayEmpty(ureUserIdDb)) {
-                        for (let uItem of ureUserIdDb) {
-                            if (contactMap.get(uItem.userId) == undefined) {
-                                await this.userService.DeleteUser(uItem.userId);
-                            }
-                            if (PermissionMap.get(uItem.id) == undefined) {
-                                await this.ureService.DeleteUre(uItem.id, uItem.userId);
-                            }
-                        }
-                    }
-                    return response.status(200).send({ id: organisationRes.id, message: 'Successfully inserted' });
+                        return response.status(200).send({ id: organisationRes.id, message: 'Successfully inserted' });
 
                     }
                     else {
@@ -257,7 +285,7 @@ export class AffiliateController extends BaseController {
                 if (userId && userId == currentUser.id) {
                     if (requestBody != null) {
                         const affiliateListRes = await this.affiliateService.affiliatesDelete(requestBody, userId);
-                        return response.status(200).send({ id: requestBody.affiliateId , message: "Successfully deleted affiliate" });
+                        return response.status(200).send({ id: requestBody.affiliateId, message: "Successfully deleted affiliate" });
                     }
                 }
             }
