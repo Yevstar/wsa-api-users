@@ -27,6 +27,14 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
         return ureObj;
     }
 
+    public async findByUserAndEntityId(userId, entityId){
+        let query = this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
+        query.select(['ure.id'])
+        .where(' ure.userId= :userId and ure.entityId= :entityId and ure.entityTypeId = 2 and ure.isDeleted = 0 ', { userId, entityId})
+        let ureObj = await query.getOne()
+        return ureObj;
+    }
+
     public async findByUser(userId: number): Promise<UserRoleEntity[]> {
         return this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
             .leftJoinAndSelect('ure.role', 'r')

@@ -61,34 +61,22 @@ export class BaseController {
             await User.save(user);
         }
 
-        if (user.firebaseUID) {
-          await this.checkFirestoreDatabase(user, true);
-        }
+        await this.checkFirestoreDatabase(user, true);
     }
 
     protected async checkFirestoreDatabase(user, update = false) {
-        if (user.firebaseUID) {
-          let db = admin.firestore();
-          let usersCollectionRef = await db.collection('users');
-          let queryRef = usersCollectionRef.where('uid', '==', user.firebaseUID);
-          let querySnapshot = await queryRef.get();
-          if (querySnapshot.empty) {
+      if (user.firebaseUID) {
+        let db = admin.firestore();
+        let usersCollectionRef = await db.collection('users');
+        let queryRef = usersCollectionRef.where('uid', '==', user.firebaseUID);
+        let querySnapshot = await queryRef.get();
+        if (querySnapshot.empty) {
+          if (user.photoUrl) {
             usersCollectionRef.doc(user.firebaseUID).set({
-                'avatar': user.photoUrl,
-                'email': user.email,
-                'firstName': user.firstName,
-                'lastName': user.lastName,
-                'uid': user.firebaseUID,
-                'searchKeywords': [
-                    `${user.firstName} ${user.lastName}`,
-                    user.firstName,
-                    user.lastName,
-                    user.email
-                ]
+                'avatar': user.photoUrl
             });
-          } else if (update) {
-            usersCollectionRef.doc(user.firebaseUID).update({
-              'avatar': user.photoUrl,
+          }
+          usersCollectionRef.doc(user.firebaseUID).set({
               'email': user.email,
               'firstName': user.firstName,
               'lastName': user.lastName,
@@ -99,8 +87,26 @@ export class BaseController {
                   user.lastName,
                   user.email
               ]
+          });
+        } else if (update) {
+          if (user.photoUrl) {
+            usersCollectionRef.doc(user.firebaseUID).update({
+              'avatar': user.photoUrl
             });
           }
+          usersCollectionRef.doc(user.firebaseUID).update({
+            'email': user.email,
+            'firstName': user.firstName,
+            'lastName': user.lastName,
+            'uid': user.firebaseUID,
+            'searchKeywords': [
+                `${user.firstName} ${user.lastName}`,
+                user.firstName,
+                user.lastName,
+                user.email
+            ]
+          });
         }
+      }
     }
 }

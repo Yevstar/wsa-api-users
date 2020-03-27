@@ -20,7 +20,7 @@ export default class UserService extends BaseService<User> {
 
     public async findByEmail(email: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .andWhere('LOWER(user.email) = :email', {email: email})
+            .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', {email: email})
             .addSelect("user.password").addSelect("user.reset")
             .getOne();
     }

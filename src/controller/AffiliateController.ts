@@ -33,17 +33,38 @@ export class AffiliateController extends BaseController {
                         if (isStringNullOrEmpty(requestBody.contacts)) {
                             requestBody.contacts = JSON.parse(requestBody.contacts);
                             if (isArrayEmpty(requestBody.contacts)) {
+                                let arr =[];
                                 for (let contact of requestBody.contacts) {
                                     let userDb = await this.userService.findByEmail(contact.email)
-                                    if (userDb) {
+                                    if (userDb && contact.userId != 0) {
+                                        console.log("----1")
                                         if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
+                                            console.log("----2")
                                             continue;
                                         }
                                         else {
+                                            console.log("----3")
                                             return response.status(212).send({
                                                 errorCode: 7,
                                                 message: 'A user with this email already exists, but the details you have entered do not match'
                                             });
+                                        }
+                                    }else if(userDb && contact.userId == 0){
+                                        console.log("----4")
+                                        return response.status(212).send({
+                                            errorCode: 7,
+                                            message: 'A user with this email already exists'
+                                        });
+                                    }else{
+                                        let email =arr.find(x=> x == contact.email)
+                                        console.log("#######:: "+email)
+                                        if(email != null && email != undefined && email != ""){
+                                            return response.status(212).send({
+                                                errorCode: 7,
+                                                message: 'Duplicate email address'
+                                            });
+                                        }else{
+                                            arr.push(contact.email)
                                         }
                                     }
                                 }
@@ -114,8 +135,8 @@ export class AffiliateController extends BaseController {
                         //     requestBody.contacts = JSON.parse(requestBody.contacts);
                             if (isArrayEmpty(requestBody.contacts)) {
                                 for (let contact of requestBody.contacts) {
-                                    let userDb = await this.userService.findByEmail(contact.email)
-                                    if (userDb == null) {
+                                    // let userDb = await this.userService.findByEmail(contact.email)
+                                    // if (userDb == null) {
                                         let user = new User();
                                         user.id = Number(contact.userId);
                                         user.firstName = contact.firstName;
@@ -134,27 +155,36 @@ export class AffiliateController extends BaseController {
                                         contactMap.set(user.id, user);
 
                                         let userRes = await this.userService.createOrUpdate(user);
+                                        let ureDb = await this.ureService.findByUserAndEntityId(userRes.id,affiliateRes.affiliateOrgId)
+                                        if(isArrayEmpty(contact.permissions)){
+                                            for (let permission of contact.permissions) {
+                                                let userRoleEntity = new UserRoleEntity();
+                                               if(ureDb){
+                                                    userRoleEntity.id = ureDb.id;
+                                                    userRoleEntity.updatedBy = userId
+                                                    userRoleEntity.updatedAt = new Date();
+                                               }
+                                                else{
+                                                    userRoleEntity.id = Number(permission.userRoleEntityId);
+                                                    userRoleEntity.createdBy = userId;
+                                                    let password = "";
+                                                    let mailObj = await this.communicationTemplateService.findById(3);
+                                                    await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
+                                                }
+                                                userRoleEntity.roleId = permission.roleId;
+                                                userRoleEntity.userId = Number(userRes.id);
+                                                userRoleEntity.entityId = Number(organisationRes.id);
+                                                userRoleEntity.entityTypeId = 2;
+                                                PermissionMap.set(userRoleEntity.id, userRoleEntity);
+                                                await this.ureService.createOrUpdate(userRoleEntity);
+                                            }
+                                        }
                                         if (contact.userId == 0) {
                                             let mailObj = await this.communicationTemplateService.findById(1);
                                             await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
                                         }
-                                        for (let permission of contact.permissions) {
-                                            let userRoleEntity = new UserRoleEntity();
-                                            userRoleEntity.id = Number(permission.userRoleEntityId);
-                                            userRoleEntity.roleId = permission.roleId;
-                                            userRoleEntity.userId = Number(userRes.id);
-                                            userRoleEntity.entityId = Number(organisationRes.id);
-                                            userRoleEntity.entityTypeId = 2;
-                                            userRoleEntity.createdBy = userId;
-                                            PermissionMap.set(userRoleEntity.id, userRoleEntity);
-                                            await this.ureService.createOrUpdate(userRoleEntity);
-                                        }
-                                    }
-                                    else {
-                                        let password = "";
-                                        let mailObj = await this.communicationTemplateService.findById(3);
-                                        await this.userService.sentMail(mailObj, OrgObject.name, userDb, password)
-                                    }
+                                        
+                                   // }
                                 }
 
                             }
