@@ -50,7 +50,11 @@ export class BaseController {
 
     protected async updateFirebaseData(user: User, password: string) {
         user.password = password;
-        let fbUser = await this.firebaseService.loadUserByUID(user.firebaseUID);
+        let fbUser;
+        if (user.firebaseUID) {
+          fbUser = await this.firebaseService.loadUserByUID(user.firebaseUID);
+        }
+        
         if (!fbUser || !fbUser.uid) {
             fbUser = await this.firebaseService.createUser(user.email, password);
         } else {

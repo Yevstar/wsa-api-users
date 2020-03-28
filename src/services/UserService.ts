@@ -69,11 +69,8 @@ export default class UserService extends BaseService<User> {
               'u.photoUrl as photoUrl, u.password as password,\n' +
               'u.dateOfBirth as dateOfBirth, u.firebaseUID as firebaseUID\n' +
               'from wsa_users.user u \n' +
-              'where exists (select ure.userId from wsa_users.userRoleEntity ure \n' +
-              'where ure.entityTypeId = ? \n' +
-              'and ure.roleId = ? and ure.userId = u.id and exists \n' +
-              '(select p.id from wsa.player p where p.id in (?) and ure.entityId = p.teamId));'
-          , [EntityType.TEAM, Role.PLAYER, ids]);
+              'where u.id in (?);'
+          , [ids]);
     }
 
     public async findUserFullDetailsById(id: number): Promise<User> {
@@ -244,8 +241,10 @@ export default class UserService extends BaseService<User> {
 
         let url =process.env.liveScoresWebHost;
         logger.info(`TeamService - sendMail : url ${url}`);
+        console.log("*****Template---:"+templateObj +"--"+ JSON.stringify(templateObj))
       //  let html = ``;
         let subject = templateObj.emailSubject;
+        
 
         templateObj.emailBody = templateObj.emailBody.replace('${user.firstName}',receiverData.firstName);
         templateObj.emailBody = templateObj.emailBody.replace('${Organisation}',OrganisationName);

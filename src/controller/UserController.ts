@@ -216,7 +216,7 @@ export class UserController extends BaseController {
     @Authorized()
     @Get('/childProfiles')
     async getChildProfile(
-      @QueryParam('ids', {required: true}) ids: number[],
+      @QueryParam('ids', {required: true}) ids: number[], // Here ids should be user id's
       @Res() response: Response
     ) {
         let childUserList = await this.userService.findChildPlayerUserDetails(ids);

@@ -37,27 +37,22 @@ export class AffiliateController extends BaseController {
                                 for (let contact of requestBody.contacts) {
                                     let userDb = await this.userService.findByEmail(contact.email)
                                     if (userDb && contact.userId != 0) {
-                                        console.log("----1")
                                         if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
-                                            console.log("----2")
                                             continue;
                                         }
                                         else {
-                                            console.log("----3")
                                             return response.status(212).send({
                                                 errorCode: 7,
                                                 message: 'A user with this email already exists, but the details you have entered do not match'
                                             });
                                         }
                                     }else if(userDb && contact.userId == 0){
-                                        console.log("----4")
                                         return response.status(212).send({
                                             errorCode: 7,
                                             message: 'A user with this email already exists'
                                         });
                                     }else{
                                         let email =arr.find(x=> x == contact.email)
-                                        console.log("#######:: "+email)
                                         if(email != null && email != undefined && email != ""){
                                             return response.status(212).send({
                                                 errorCode: 7,
@@ -168,8 +163,11 @@ export class AffiliateController extends BaseController {
                                                     userRoleEntity.id = Number(permission.userRoleEntityId);
                                                     userRoleEntity.createdBy = userId;
                                                     let password = "";
-                                                    let mailObj = await this.communicationTemplateService.findById(3);
-                                                    await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
+                                                    let mailObj;
+                                                    if(contact.userId != 0 ){
+                                                        mailObj = await this.communicationTemplateService.findById(3);
+                                                        await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
+                                                    }
                                                 }
                                                 userRoleEntity.roleId = permission.roleId;
                                                 userRoleEntity.userId = Number(userRes.id);
