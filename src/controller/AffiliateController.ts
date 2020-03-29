@@ -35,31 +35,30 @@ export class AffiliateController extends BaseController {
                             if (isArrayEmpty(requestBody.contacts)) {
                                 let arr =[];
                                 for (let contact of requestBody.contacts) {
+
+                                    if (contact.userId == 0) {
                                     let userDb = await this.userService.findByEmail(contact.email)
-                                    if (userDb && contact.userId != 0) {
-                                        if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
-                                            continue;
+                                        if(userDb){
+                                            if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
+                                                contact.userId = userDb.id
+                                                continue;
+                                            }
+                                            else {
+                                                return response.status(212).send({
+                                                    errorCode: 7,
+                                                    message: 'A user with this email already exists, but the details you have entered do not match'
+                                                });
+                                            }
                                         }
-                                        else {
-                                            return response.status(212).send({
-                                                errorCode: 7,
-                                                message: 'A user with this email already exists, but the details you have entered do not match'
-                                            });
-                                        }
-                                    }else if(userDb && contact.userId == 0){
-                                        return response.status(212).send({
-                                            errorCode: 7,
-                                            message: 'A user with this email already exists'
-                                        });
-                                    }else{
-                                        let email =arr.find(x=> x == contact.email)
-                                        if(email != null && email != undefined && email != ""){
-                                            return response.status(212).send({
-                                                errorCode: 7,
-                                                message: 'Duplicate email address'
-                                            });
-                                        }else{
-                                            arr.push(contact.email)
+                                    }else if(contact.userId != 0){
+                                        if(currentUser.id != contact.userId){
+                                            let userDb1 = await this.userService.findById(contact.userId)
+                                            if(userDb1.email != contact.email){
+                                                return response.status(212).send({
+                                                    errorCode: 7,
+                                                    message: 'Email address cannot be modified'
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -106,6 +105,7 @@ export class AffiliateController extends BaseController {
                         }
 
                         let affiliateRes = await this.affiliateService.createOrUpdate(affiliate);
+                        let orgLogoDb = await this.organisationLogoService.findByOrganisationId(affiliateRes.affiliateOrgId)
                         if (organisationLogoFile != null) {
                             if (isPhoto(organisationLogoFile.mimetype)) {
                                 //   let organisation_logo_file = requestBody.organisationLogo ;
@@ -113,7 +113,10 @@ export class AffiliateController extends BaseController {
                                 let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile);
                                 if (fileUploaded) {
                                     let orgLogoModel = new OrganisationLogo();
-                                    orgLogoModel.id = requestBody.organisationLogoId;
+                                    if(orgLogoDb)
+                                        orgLogoModel.id = orgLogoDb.id;
+                                    else
+                                        orgLogoModel.id = requestBody.organisationLogoId;
                                     orgLogoModel.organisationId = affiliateRes.affiliateOrgId;
                                     orgLogoModel.logoUrl = fileUploaded['url'];
                                     orgLogoModel.isDefault = requestBody.logoIsDefault;
