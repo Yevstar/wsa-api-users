@@ -35,6 +35,7 @@ export default class UserDashboardService extends BaseService<User> {
                 let userMap = new Map();
                 let roleMap = new Map();
                 let linkedMap = new Map();
+                let teamMap = new Map();
                
                 let competitionMap = new Map();
                 for (let textual of result[0]) {
@@ -42,7 +43,7 @@ export default class UserDashboardService extends BaseService<User> {
                     let roleTemp = roleMap.get(textual.roleId);
                     let linkedTemp = linkedMap.get(textual.linkedEntityId);
                     let competitionTemp = competitionMap.get(textual.competitionId);
-    
+                    let teamTemp = teamMap.get(textual.teamId);
                     let roleObj = {
                         role: textual.role,
                         roleId: textual.roleId
@@ -56,7 +57,11 @@ export default class UserDashboardService extends BaseService<User> {
                         competition: textual.competition,
                         competitionId: textual.competitionId
                     }
-    
+                    let teamObj = {
+                        teamId: textual.teamId,
+                        team: textual.team
+                    }
+   
                     if(userTemp == undefined)
                     {
                         let textualObj = {
@@ -78,6 +83,8 @@ export default class UserDashboardService extends BaseService<User> {
     
                         textualObj.competition.push(competitionObj);
                         competitionMap.set(textual.competitionId, competitionObj)
+                        textualObj.team.push(teamObj);
+                        teamMap.set(textual.teamId, teamObj);
     
                         userMap.set(textual.id, textualObj);
     
@@ -98,6 +105,11 @@ export default class UserDashboardService extends BaseService<User> {
                         {
                             userTemp.competition.push(competitionObj);
                             competitionMap.set(textual.competitionId, competitionObj)
+                        }
+                        if(teamTemp == undefined)
+                        {
+                            userTemp.team.push(teamObj);
+                            teamMap.set(textual.teamId, teamObj);
                         }
                     }
                 }

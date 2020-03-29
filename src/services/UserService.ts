@@ -10,7 +10,7 @@ import {LinkedEntities} from "../models/views/LinkedEntities";
 import {Brackets} from "typeorm";
 import { logger } from "../logger";
 import nodeMailer from "nodemailer";
-import { paginationData, stringTONumber } from "../utils/Utils";
+import { paginationData, stringTONumber, isArrayEmpty } from "../utils/Utils";
 @Service()
 export default class UserService extends BaseService<User> {
 
@@ -294,9 +294,92 @@ export default class UserService extends BaseService<User> {
             let result = await this.entityManager.query("call wsa_users.usp_user_personal_details(?)",
             [userId]);
 
-            return result[0].find(x=>x);
-        }catch(error){
+            let competitionMap = new Map();
+            let teamMap = new Map();
+            let userMap = new Map();
+            let userObj = null;
+            if(result!= null)
+            {
+                if(isArrayEmpty(result[0]))
+                {
+                    for(let item of result[0])
+                    {
+                        let userTemp = userMap.get(item.userId);
+                        let competitionTemp = competitionMap.get(item.competitionId);
+                        let teamTemp = teamMap.get(item.teamId);
 
+                        let competitionObj = {
+                            competitionId: item.competitionId,
+                            competitionName: item.competitionName,
+                            divisionId: item.divisionId,
+                            divisionName: item.divisionName,
+                            teams: []
+                        }
+                        let teamObj = {
+                            teamId: item.teamId,
+                            teamName: item.teamName
+                        }
+
+                        if(userTemp == undefined)
+                        {
+                            userObj = {
+                                userId: item.userId,
+                                firstName: item.firstName,
+                                middleName: item.middleName,
+                                lastName: item.lastName,
+                                email: item.email,
+                                mobileNumber: item.mobileNumber,
+                                photoUrl: item.photoUrl,
+                                dateOfBirth: item.dateOfBirth,
+                                postalCode: item.postalCode,
+                                genderRefId: item.genderRefId,
+                                gender: item.gender,
+                                emergencyContactName: item.emergencyContactName,
+                                emergencyContactNumber: item.emergencyContactNumber,
+                                languages: item.languages,
+                                nationalityRefId: item.nationalityRefId,
+                                nationalityName: item.nationalityName,
+                                countryName: item.countryName,
+                                isDisability: item.isDisability,
+                                competitions: []
+                            }
+
+                            if(item.teamId!= null)
+                            {
+                                competitionObj.teams.push(teamObj);
+                                teamMap.set(item.teamId, teamObj);
+                            }
+                            userObj.competitions.push(competitionObj);
+                            competitionMap.set(item.competitionId, competitionObj)
+                            userMap.set(item.userId, userObj);
+                        }
+                        else{
+                            if(competitionTemp == undefined)
+                            {
+                                if(item.teamId != null)
+                                {
+                                    competitionObj.teams.push(teamObj);
+                                    teamMap.set(item.teamId, teamObj);
+                                }
+                               
+                                userTemp.competitions.push(competitionObj);
+                                competitionMap.set(item.competitionId, competitionObj)
+                            }
+                            else{
+                                if(item.teamId!= null)
+                                {
+                                    competitionTemp.teams.push(teamObj);
+                                    teamMap.set(item.teamId, teamObj);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return userObj;
+        }catch(error){
+            throw error;
         }
     }
 
@@ -306,7 +389,7 @@ export default class UserService extends BaseService<User> {
             let competitionUniqueKey = requestBody.competitionUniqueKey;
             let result = await this.entityManager.query("call wsa_users.usp_user_personal_details_by_competition(?,?)",
             [userId, competitionUniqueKey]);
-            return result[0].find(x=>x);
+            return result[0];
         }catch(error){
             throw error;
         }
@@ -317,9 +400,9 @@ export default class UserService extends BaseService<User> {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
-            let competitionUniqueKey = requestBody.competitionUniqueKey;
+            let competitionId = requestBody.competitionId;
             let result = await this.entityManager.query("call wsa_users.usp_user_activity_player(?,?,?,?)",
-            [userId, competitionUniqueKey, limit, offset]);
+            [userId, competitionId, limit, offset]);
             if(result != null){
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -336,9 +419,9 @@ export default class UserService extends BaseService<User> {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
-            let competitionUniqueKey = requestBody.competitionUniqueKey;
+            let competitionId = requestBody.competitionId;
             let result = await this.entityManager.query("call wsa_users.usp_user_activity_parent(?,?,?,?)",
-            [userId, competitionUniqueKey, limit, offset]);
+            [userId, competitionId, limit, offset]);
             if(result != null){
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -356,9 +439,9 @@ export default class UserService extends BaseService<User> {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
-            let competitionUniqueKey = requestBody.competitionUniqueKey;
+            let competitionId = requestBody.competitionId;
             let result = await this.entityManager.query("call wsa_users.usp_user_activity_scorer(?,?,?,?)",
-            [userId, competitionUniqueKey, limit, offset]);
+            [userId, competitionId, limit, offset]);
             if(result != null){
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -376,9 +459,9 @@ export default class UserService extends BaseService<User> {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
-            let competitionUniqueKey = requestBody.competitionUniqueKey;
+            let competitionId = requestBody.competitionId;
             let result = await this.entityManager.query("call wsa_users.usp_user_activity_manager(?,?,?,?)",
-            [userId, competitionUniqueKey, limit, offset]);
+            [userId, competitionId, limit, offset]);
             if(result != null){
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -398,9 +481,9 @@ export default class UserService extends BaseService<User> {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
-            let competitionUniqueKey = requestBody.competitionUniqueKey;
+            let competitionId = requestBody.competitionId;
             let result = await this.entityManager.query("call wsa_users.usp_user_registration_details(?,?,?,?)",
-            [limit, offset, userId, competitionUniqueKey]);
+            [limit, offset, userId, competitionId]);
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);

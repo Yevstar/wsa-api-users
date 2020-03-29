@@ -77,11 +77,11 @@ export class UserDashboardController extends BaseController {
         @Res() response: Response) {
         try {
             if (requestBody != null) {
-                let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
-                if (validateComp != null) {
-                    return response.status(212).send(validateComp);
-                }
-                validateComp = validateReqFilter(requestBody.userId, 'userId');
+                //let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
+                // if (validateComp != null) {
+                //     return response.status(212).send(validateComp);
+                // }
+                let validateComp = validateReqFilter(requestBody.userId, 'userId');
                 if (validateComp != null) {
                     return response.status(212).send(validateComp);
                 }
@@ -104,11 +104,11 @@ export class UserDashboardController extends BaseController {
         @Res() response: Response) {
         try {
             if (requestBody != null) {
-                let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
-                if (validateComp != null) {
-                    return response.status(212).send(validateComp);
-                }
-                validateComp = validateReqFilter(requestBody.userId, 'userId');
+                // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
+                // if (validateComp != null) {
+                //     return response.status(212).send(validateComp);
+                // }
+                let validateComp = validateReqFilter(requestBody.userId, 'userId');
                 if (validateComp != null) {
                     return response.status(212).send(validateComp);
                 }
@@ -131,11 +131,11 @@ export class UserDashboardController extends BaseController {
         @Res() response: Response) {
         try {
             if (requestBody != null) {
-                let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
-                if (validateComp != null) {
-                    return response.status(212).send(validateComp);
-                }
-                validateComp = validateReqFilter(requestBody.userId, 'userId');
+                // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
+                // if (validateComp != null) {
+                //     return response.status(212).send(validateComp);
+                // }
+                let validateComp = validateReqFilter(requestBody.userId, 'userId');
                 if (validateComp != null) {
                     return response.status(212).send(validateComp);
                 }
@@ -158,11 +158,11 @@ export class UserDashboardController extends BaseController {
         @Res() response: Response) {
         try {
             if (requestBody != null) {
-                let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
-                if (validateComp != null) {
-                    return response.status(212).send(validateComp);
-                }
-                validateComp = validateReqFilter(requestBody.userId, 'userId');
+                // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
+                // if (validateComp != null) {
+                //     return response.status(212).send(validateComp);
+                // }
+                let validateComp = validateReqFilter(requestBody.userId, 'userId');
                 if (validateComp != null) {
                     return response.status(212).send(validateComp);
                 }
@@ -203,10 +203,10 @@ export class UserDashboardController extends BaseController {
         @Res() response: Response) {
         try {
             if (requestBody != null) {
-                let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
-                if (validateComp != null) {
-                    return response.status(212).send(validateComp);
-                }
+                // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
+                // if (validateComp != null) {
+                //     return response.status(212).send(validateComp);
+                // }
                 const userRegRes = await this.userService.userRegistrationDetails(requestBody);
                 return response.status(200).send(userRegRes);
             }
