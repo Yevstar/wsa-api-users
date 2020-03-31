@@ -44,10 +44,10 @@ export default class UserDashboardService extends BaseService<User> {
                     let linkedTemp = linkedMap.get(textual.linkedEntityId);
                     let competitionTemp = competitionMap.get(textual.competitionId);
                     let teamTemp = teamMap.get(textual.teamId);
-                    let roleObj = {
-                        role: textual.role,
-                        roleId: textual.roleId
-                    }
+                    // let roleObj = {
+                    //     role: textual.role,
+                    //     roleId: textual.roleId
+                    // }
                     let linkedObj = {
                         linked: textual.linked,
                         linkedEntityId: textual.linkedEntityId
@@ -68,15 +68,15 @@ export default class UserDashboardService extends BaseService<User> {
                             userId: textual.id,
                             name: textual.name,
                             dateOfBirth: textual.dateOfBirth,
-                            role: [],
+                            role: textual.roles,
                             linked: [],
                             competition: [],
                             team:[],
                             isUsed: false,
                             key: textual.id.toString()
                         }
-                        textualObj.role.push(roleObj);
-                        roleMap.set(textual.roleId, roleObj);
+                        // textualObj.role.push(roleObj);
+                        // roleMap.set(textual.roleId, roleObj);
                         
                         textualObj.linked.push(linkedObj);
                         linkedMap.set(textual.linkedEntityId, linkedObj);
@@ -91,11 +91,11 @@ export default class UserDashboardService extends BaseService<User> {
                         userArr.push(textualObj);
                     }
                     else {
-                        if(roleTemp == undefined)
-                        {
-                            userTemp.role.push(roleObj);
-                            roleMap.set(textual.roleId, roleObj);
-                        }
+                        // if(roleTemp == undefined)
+                        // {
+                        //     userTemp.role.push(roleObj);
+                        //     roleMap.set(textual.roleId, roleObj);
+                        // }
                         if(linkedTemp == undefined)
                         {
                             userTemp.linked.push(linkedObj); 

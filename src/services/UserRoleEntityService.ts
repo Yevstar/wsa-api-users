@@ -40,6 +40,7 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
             .leftJoinAndSelect('ure.role', 'r')
             .leftJoinAndSelect('ure.entityType', 'et')
             .andWhere('ure.userId = :userId', {userId})
+            .andWhere('ure.isDeleted = 0')
             .getMany();
     }
 }

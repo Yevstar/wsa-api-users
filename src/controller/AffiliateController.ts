@@ -59,6 +59,20 @@ export class AffiliateController extends BaseController {
                                                     message: 'Email address cannot be modified'
                                                 });
                                             }
+                                        }else {
+                                        let userDb = await this.userService.findByEmail(contact.email)
+                                        if(userDb.id != contact.userId){
+                                            if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
+                                                contact.userId = userDb.id
+                                                continue;
+                                            } else {
+                                                return response.status(212).send({
+                                                    errorCode: 7,
+                                                    message: 'A user with this email already exists, but the details you have entered do not match'
+                                                });
+                                            }
+                                        }
+
                                         }
                                     }
                                 }
@@ -113,14 +127,17 @@ export class AffiliateController extends BaseController {
                                 let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile);
                                 if (fileUploaded) {
                                     let orgLogoModel = new OrganisationLogo();
-                                    if(orgLogoDb)
+                                    if(orgLogoDb){
                                         orgLogoModel.id = orgLogoDb.id;
-                                    else
+                                        orgLogoModel.updatedBy = userId
+                                    }
+                                    else{
                                         orgLogoModel.id = requestBody.organisationLogoId;
+                                        orgLogoModel.createdBy = userId;
+                                    }
                                     orgLogoModel.organisationId = affiliateRes.affiliateOrgId;
                                     orgLogoModel.logoUrl = fileUploaded['url'];
                                     orgLogoModel.isDefault = requestBody.logoIsDefault;
-                                    orgLogoModel.createdBy = userId;
                                     await this.organisationLogoService.createOrUpdate(orgLogoModel);
                                 }
                             }

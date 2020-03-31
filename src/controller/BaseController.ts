@@ -54,7 +54,7 @@ export class BaseController {
         if (user.firebaseUID) {
           fbUser = await this.firebaseService.loadUserByUID(user.firebaseUID);
         }
-        
+
         if (!fbUser || !fbUser.uid) {
             fbUser = await this.firebaseService.createUser(user.email, password);
         } else {
@@ -75,16 +75,15 @@ export class BaseController {
         let queryRef = usersCollectionRef.where('uid', '==', user.firebaseUID);
         let querySnapshot = await queryRef.get();
         if (querySnapshot.empty) {
-          if (user.photoUrl) {
-            usersCollectionRef.doc(user.firebaseUID).set({
-                'avatar': user.photoUrl
-            });
-          }
           usersCollectionRef.doc(user.firebaseUID).set({
               'email': user.email,
               'firstName': user.firstName,
               'lastName': user.lastName,
               'uid': user.firebaseUID,
+              'avatar': (user.photoUrl != null && user.photoUrl != undefined) ?
+                  user.photoUrl :
+                  null,
+              'created_at': admin.firestore.FieldValue.serverTimestamp(),
               'searchKeywords': [
                   `${user.firstName} ${user.lastName}`,
                   user.firstName,
@@ -93,16 +92,15 @@ export class BaseController {
               ]
           });
         } else if (update) {
-          if (user.photoUrl) {
-            usersCollectionRef.doc(user.firebaseUID).update({
-              'avatar': user.photoUrl
-            });
-          }
           usersCollectionRef.doc(user.firebaseUID).update({
             'email': user.email,
             'firstName': user.firstName,
             'lastName': user.lastName,
             'uid': user.firebaseUID,
+            'avatar': (user.photoUrl != null && user.photoUrl != undefined) ?
+                user.photoUrl :
+                null,
+            'updated_at': admin.firestore.FieldValue.serverTimestamp(),
             'searchKeywords': [
                 `${user.firstName} ${user.lastName}`,
                 user.firstName,
