@@ -74,6 +74,7 @@ export class UserController extends BaseController {
                     let result = await this.firebaseService.upload(filename, file);
                     if (result) {
                         user.photoUrl = result['url'];
+                        this.checkFirestoreDatabase(user, true);
                         await this.userService.createOrUpdate(user);
                         return user;
                     } else {

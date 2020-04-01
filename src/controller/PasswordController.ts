@@ -3,7 +3,7 @@ import {Response} from 'express';
 import * as bodyParser from 'body-parser';
 import {logger} from '../logger';
 import uuid from 'uuid/v1';
-import sg from '@sendgrid/mail';
+import nodeMailer from "nodemailer";
 import {md5} from "../utils/Utils";
 import {BaseController} from "./BaseController";
 
@@ -16,9 +16,9 @@ export class PasswordController extends BaseController {
         @Res() response: Response
     ) {
         try {
-            const user = await this.userService.findByEmail(email);
+            const user = await this.userService.findByEmail(email.toLowerCase());
             if (user) {
-                logger.info(`Sending password reset link to ${email}`);
+                logger.info(`Sending password reset link to ${email.toLowerCase()}`);
                 // Set a reset code.
                 user.reset = uuid();
                 await this.userService.createOrUpdate(user);
@@ -27,17 +27,38 @@ export class PasswordController extends BaseController {
                 const url = `${process.env.SERVER_URL}/password/change?token=${user.reset}`;
 
                 // Send out the email.
-                sg.setApiKey(process.env.SENDGRID_API_KEY);
-                const msg = {
-                    to: user.email,
-                    from: 'support@worldsportaction.com',
+                const transporter = nodeMailer.createTransport({
+                    host: "smtp.gmail.com",
+                    port: 587,
+                    secure: false, // true for 465, false for other ports
+                    auth: {
+                        user: process.env.MAIL_USERNAME, // generated ethereal user
+                        pass: process.env.MAIL_PASSWORD // generated ethereal password
+                    },
+
+                    tls: {
+                        // do not fail on invalid certs
+                        rejectUnauthorized: false
+                    }
+
+                });
+
+                const mailOptions = {
+                    from: {
+                        name: "World Sport Action",
+                        address: "admin@worldsportaction.com"
+                    },
+                    to: user.email.toLowerCase(),
+                    replyTo: "donotreply@worldsportaction.com",
                     subject: 'Reset your password.',
-                    html: `Go here to reset your password: <a href="${url}">${url}</a>`,
+                    html: `Go here to reset your password: <a href="${url}">${url}</a>`
                 };
 
-                // Send the email.
-                await sg.send(msg);
-
+                // Send the mail via nodeMailer
+                await transporter.sendMail(mailOptions, (err, info) => {
+                  logger.info(`Password - forgot : info ${info} Error ${err}`);
+                    return Promise.resolve();
+               });
             } else {
                 logger.warn(`Password reset link requested for ${email}, but couldn't find a user. Ignoring request.`);
                 return response.status(400).send(
@@ -59,7 +80,7 @@ export class PasswordController extends BaseController {
     }
 
     @Post('/change')
-    @UseBefore(bodyParser.urlencoded())
+    @UseBefore(bodyParser.urlencoded({ extended: true }))
     async postChange(
         @BodyParam('token', {required: true}) token: string,
         @BodyParam('password', {required: true}) password: string,
@@ -82,6 +103,7 @@ export class PasswordController extends BaseController {
         user.reset = null;
 
         await this.userService.createOrUpdate(user);
+        await this.updateFirebaseData(user, user.password);
         return response.render('password/changed.ejs',);
     }
 }
