@@ -67,7 +67,7 @@ export class PasswordController extends BaseController {
             return response.status(200).send(
                 {name: 'success', message: 'A password reset link was sent to your email address.'});
         } catch (err) {
-            logger.error(`Failed to send a password reset email to ${email}`, err);
+            logger.error(`Failed to send a password reset email to ${email}`+err);
             return response.status(400).send(
                 {name: 'unexpected_error', message: 'There was a problem sending your password reset email.'});
         }

@@ -36,7 +36,7 @@ export class ClubController extends BaseController {
                 }
             }
         } catch (error) {
-            logger.error(`Error Occurred in organisation list ${userId}`, error);
+            logger.error(`Error Occurred in organisation list ${userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -59,7 +59,7 @@ export class ClubController extends BaseController {
                 }
             }
         } catch (error) {
-            logger.error(`Error Occurred in organisation list  ${userId}`, error);
+            logger.error(`Error Occurred in organisation list  ${userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });

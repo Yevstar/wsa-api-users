@@ -207,7 +207,7 @@ export class UserController extends BaseController {
             logger.info(`Current user data updated ${user.email}`);
             return this.responseWithTokenAndUser(user.email, userDetails.password, user, false);
         } catch (err) {
-            logger.error(`Unable to patch user ${userDetails.email}`, err);
+            logger.error(`Unable to patch user ${userDetails.email}`+err);
             return response.status(400).send({
                 name: 'unexpected_error', message: 'Failed to update the user.'
             });
@@ -280,10 +280,14 @@ export class UserController extends BaseController {
     /// will create one and then verify for firestore database for the user.
     private async checkUserForFirestore(user: User) {
       user['linkedEntity'] = JSON.parse(user['linkedEntity']);
-      if (isNullOrEmpty(user.firebaseUID)) {
+      if (user.email != null && user.email != undefined &&
+          (user.firebaseUID == null || user.firebaseUID == undefined)) {
         // Commenting this code will have issues in the messages chat flows
-        const userDetails = await this.userService.findUserFullDetailsById(user.id);
-        await this.checkFirebaseUser(user, userDetails.password);
+        const result = await this.userService.findUserFullDetailsById(user.id);
+        let userDetails = result[0];
+        if (userDetails.email != null && userDetails.email != undefined) {
+            await this.checkFirebaseUser(user, userDetails.password);
+        }
       } else {
         await this.checkFirestoreDatabase(user);
       }

@@ -241,7 +241,7 @@ export class AffiliateController extends BaseController {
                 })
             }
         } catch (error) {
-            logger.error(`Error Occurred in Competition Timeslot Save ${userId}`, error);
+            logger.error(`Error Occurred in Competition Timeslot Save ${userId}`+error);
             return response.status(500).send({
                 message: `Something went wrong. Please contact administrator:  ${error}`
             });
@@ -265,7 +265,7 @@ export class AffiliateController extends BaseController {
                 }
             }
         } catch (error) {
-            logger.error(`Error Occurred in affilateslist ${userId}`, error);
+            logger.error(`Error Occurred in affilateslist ${userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -290,7 +290,7 @@ export class AffiliateController extends BaseController {
                 }
             }
         } catch (error) {
-            logger.error(`Error Occurred in affilatelist ${userId}`, error);
+            logger.error(`Error Occurred in affilatelist ${userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -314,7 +314,7 @@ export class AffiliateController extends BaseController {
                 }
             }
         } catch (error) {
-            logger.error(`Error Occurred in affilatelist ${userId}`, error);
+            logger.error(`Error Occurred in affilatelist ${userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -338,7 +338,7 @@ export class AffiliateController extends BaseController {
                 }
             }
         } catch (error) {
-            logger.error(`Error Occurred in affilateslist ${userId}`, error);
+            logger.error(`Error Occurred in affilateslist ${userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });

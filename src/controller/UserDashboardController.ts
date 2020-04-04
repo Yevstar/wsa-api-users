@@ -21,7 +21,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(affiliateListRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in dashboard textual`, error);
+            logger.error(`Error Occurred in dashboard textual`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -43,7 +43,7 @@ export class UserDashboardController extends BaseController {
                 }
             }
         } catch (error) {
-            logger.error(`Error Occurred in affilatelist ${userId}`, error);
+            logger.error(`Error Occurred in affilatelist ${userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -62,7 +62,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user Personal Details By Competition `, error);
+            logger.error(`Error Occurred in user Personal Details By Competition `+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -89,7 +89,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user activity player `, error);
+            logger.error(`Error Occurred in user activity player `+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -116,7 +116,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user activity parent `, error);
+            logger.error(`Error Occurred in user activity parent `+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -143,7 +143,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user activity scorer `, error);
+            logger.error(`Error Occurred in user activity scorer `+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -170,7 +170,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user activity manager `, error);
+            logger.error(`Error Occurred in user activity manager `+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -189,7 +189,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`, error);
+            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -211,7 +211,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userRegRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`, error);
+            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });

@@ -61,7 +61,7 @@ export default class FirebaseService {
                                     resolve({filePath, url});
                                 })
                                 .catch((error) => {
-                                    logger.error(`Failed upload file`, error);
+                                    logger.error(`Failed upload file`+error);
                                     reject(error);
                                 });
                         }
@@ -162,7 +162,7 @@ export default class FirebaseService {
                 return userRecord;
             })
             .catch(function(error) {
-                logger.error(`Error load user by uid ${uid}:`, error);
+                logger.error(`Error load user by uid ${uid}:`+error);
                 return undefined;
             });
     }
