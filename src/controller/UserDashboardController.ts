@@ -32,12 +32,13 @@ export class UserDashboardController extends BaseController {
     @Get('/user/personaldetails')
     async userPersonalDetails(
         @QueryParam('userId') userId: number,
+        @QueryParam('organisationId') organisationUniqueKey: string,
         @HeaderParam("authorization") currentUser: User,
         @Res() response: Response) {
         try {
             if (userId) {
                 if (currentUser.id) {
-                    const userPersonalDetailsRes = await this.userService.userPersonalDetails(userId);
+                    const userPersonalDetailsRes = await this.userService.userPersonalDetails(userId, organisationUniqueKey);
                     return response.status(200).send(userPersonalDetailsRes);
 
                 }

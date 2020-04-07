@@ -289,10 +289,10 @@ export default class UserService extends BaseService<User> {
        });
     }
 
-    public async userPersonalDetails(userId: number){
+    public async userPersonalDetails(userId: number, organisationUniqueKey: any){
         try{
-            let result = await this.entityManager.query("call wsa_users.usp_user_personal_details(?)",
-            [userId]);
+            let result = await this.entityManager.query("call wsa_users.usp_user_personal_details(?,?)",
+            [userId, organisationUniqueKey]);
 
             let competitionMap = new Map();
             let teamMap = new Map();
@@ -356,20 +356,27 @@ export default class UserService extends BaseService<User> {
                         else{
                             if(competitionTemp == undefined)
                             {
-                                if(item.teamId != null)
+                                if(competitionObj.competitionId!= null)
                                 {
-                                    competitionObj.teams.push(teamObj);
-                                    teamMap.set(item.teamId, teamObj);
+                                    if(item.teamId != null)
+                                    {
+                                        competitionObj.teams.push(teamObj);
+                                        teamMap.set(item.teamId, teamObj);
+                                    }
+                                    userTemp.competitions.push(competitionObj);
+                                    competitionMap.set(item.competitionId, competitionObj)
                                 }
-                               
-                                userTemp.competitions.push(competitionObj);
-                                competitionMap.set(item.competitionId, competitionObj)
                             }
                             else{
                                 if(item.teamId!= null)
                                 {
                                     competitionTemp.teams.push(teamObj);
                                     teamMap.set(item.teamId, teamObj);
+                                }
+                                if(competitionObj.divisionName!= null)
+                                {
+                                    competitionTemp.divisionId = competitionObj.divisionId;
+                                    competitionTemp.divisionName = competitionObj.divisionName;
                                 }
                             }
                         }
