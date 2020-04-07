@@ -17,7 +17,7 @@ export class UserDashboardController extends BaseController {
         @Res() response: Response) {
         try {
             if (requestBody != null) {
-                const affiliateListRes = await this.userDashboardService.userDashboardTextualList(requestBody);
+                const affiliateListRes = await this.userDashboardService.userDashboardTextualList(requestBody, currentUser.id);
                 return response.status(200).send(affiliateListRes);
             }
         } catch (error) {
