@@ -12,7 +12,7 @@ export default class UserDashboardService extends BaseService<User> {
         return User.name;
     }
 
-    public async userDashboardTextualList(requestBody: any) {
+    public async userDashboardTextualList(requestBody: any, userId: any) {
         try{
             let organisationId = requestBody.organisationId;
             let yearRefId = requestBody.yearRefId;
@@ -25,8 +25,8 @@ export default class UserDashboardService extends BaseService<User> {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userArr = [];
-            let result = await this.entityManager.query("call wsa_users.usp_user_dashboard_textual(?,?,?,?,?,?,?,?,?,?)",
-                [organisationId, yearRefId, competitionUniqueKey, roleId, genderRefId, linkedEntityId, postCode, searchText,  limit, offset]);
+            let result = await this.entityManager.query("call wsa_users.usp_user_dashboard_textual(?,?,?,?,?,?,?,?,?,?,?)",
+                [organisationId, yearRefId, competitionUniqueKey, roleId, genderRefId, linkedEntityId, postCode, searchText,  limit, offset, userId]);
     
             if (result != null) {
                 let totalCount = result[1].find(x=>x).totalCount;
