@@ -43,11 +43,16 @@ export default class UserDashboardService extends BaseService<User> {
                 let competitionMap = new Map();
                 if( result[0]!= null && result[0]!= undefined){
                     for (let textual of result[0]) {
+                        
                         let userTemp = userMap.get(textual.id);
-                        let roleTemp = roleMap.get(textual.role);
-                        let organisationTemp = organisationMap.get(textual.organisationId);
-                        let competitionTemp = competitionMap.get(textual.competitionId);
-                        let teamTemp = teamMap.get(textual.linkedEntityId);
+                        let roleKey = textual.role + "#"+ textual.id;
+                        let orgKey = textual.organisationId + "#" + textual.id;
+                        let compKey = textual.competitionId + "#" + textual.id;
+                        let teamKey = textual.linkedEntityId + "#" + textual.id;
+                        let roleTemp = roleMap.get(roleKey);
+                        let organisationTemp = organisationMap.get(orgKey);
+                        let competitionTemp = competitionMap.get(compKey);
+                        let teamTemp = teamMap.get(teamKey);
                         let roleObj = {
                             role: textual.role!= null ? textual.role.toString() : null
                         };
@@ -56,7 +61,7 @@ export default class UserDashboardService extends BaseService<User> {
                             linkedEntityId: textual.organisationId
                         };
                        
-                        console.log("Comp Name" + textual.competitionName);
+                      //  console.log("Comp Name" + textual.competitionName);
                         let competitionObj = {
                             competitionName: textual.competitionName!= null ? textual.competitionName.toString(): null,
                             competitionId: textual.competitionId
@@ -80,25 +85,24 @@ export default class UserDashboardService extends BaseService<User> {
                                 key: textual.id.toString()
                             }
                             textualObj.role.push(roleObj);
-                            roleMap.set(textual.role, roleObj);
+                            roleMap.set(roleKey, roleObj);
                             
                             if(textual.organisationName!= null)
                             {
                                 textualObj.linked.push(organisationObj);
-                                organisationMap.set(textual.organisationId, organisationObj);
+                                organisationMap.set(orgKey, organisationObj);
                             }
                             
     
                             if(textual.competitionName!= null)
                             {
-                                console.log("competitionObj" + JSON.stringify(competitionObj));
                                 textualObj.competition.push(competitionObj);
-                                competitionMap.set(textual.competitionId, competitionObj)
+                                competitionMap.set(compKey, competitionObj)
                             }
                             
                             if(textual.teamName!= null){
                                 textualObj.team.push(teamObj);
-                                teamMap.set(textual.linkedEntityId, teamObj);
+                                teamMap.set(teamKey, teamObj);
                             }
                             userMap.set(textual.id, textualObj);
                             userArr.push(textualObj);
@@ -107,23 +111,22 @@ export default class UserDashboardService extends BaseService<User> {
                             if(roleTemp == undefined)
                             {
                                 userTemp.role.push(roleObj);
-                                roleMap.set(textual.role, roleObj);
+                                roleMap.set(roleKey, roleObj);
                             }
                             if(organisationTemp == undefined)
                             {
                                 if(textual.organisationName!= null)
                                 {
                                     userTemp.linked.push(organisationObj); 
-                                    organisationMap.set(textual.organisationId, organisationObj);
+                                    organisationMap.set(orgKey, organisationObj);
                                 }
                             }
                             if(competitionTemp == undefined)
                             {
                                 if(textual.competitionName!= null)
                                 {
-                                    console.log("competitionObj" + JSON.stringify(competitionObj));
                                     userTemp.competition.push(competitionObj);
-                                    competitionMap.set(textual.competitionId, competitionObj)
+                                    competitionMap.set(compKey, competitionObj)
                                 }
                             }
                             if(teamTemp == undefined)
@@ -131,7 +134,7 @@ export default class UserDashboardService extends BaseService<User> {
                                 if(textual.teamName!= null)
                                 {
                                     userTemp.team.push(teamObj);
-                                    teamMap.set(textual.linkedEntityId, teamObj);
+                                    teamMap.set(teamKey, teamObj);
                                 }
                             }
                         }
