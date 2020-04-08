@@ -344,13 +344,16 @@ export default class UserService extends BaseService<User> {
                                 competitions: []
                             }
 
-                            if(item.teamId!= null)
-                            {
-                                competitionObj.teams.push(teamObj);
-                                teamMap.set(item.teamId, teamObj);
+                            if(competitionObj.competitionId!= null){
+                                if(item.teamId!= null)
+                                {
+                                    competitionObj.teams.push(teamObj);
+                                    teamMap.set(item.teamId, teamObj);
+                                }
+
+                                userObj.competitions.push(competitionObj);
+                                competitionMap.set(item.competitionId, competitionObj)
                             }
-                            userObj.competitions.push(competitionObj);
-                            competitionMap.set(item.competitionId, competitionObj)
                             userMap.set(item.userId, userObj);
                         }
                         else{
