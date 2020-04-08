@@ -6,7 +6,7 @@ export function md5(password: string): string {
 }
 
 export function authToken(email: string, password: string): string {
-    const data = `${email}:${password}`;
+    const data = `${email.toLowerCase()}:${password}`;
     return encrypt(jwt.encode({ data }, process.env.SECRET));
 }
 

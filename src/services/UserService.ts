@@ -20,7 +20,7 @@ export default class UserService extends BaseService<User> {
 
     public async findByEmail(email: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', {email: email})
+            .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', {email: email.toLowerCase()})
             .addSelect("user.password").addSelect("user.reset")
             .getOne();
     }
@@ -36,7 +36,7 @@ export default class UserService extends BaseService<User> {
     public async findByCredentials(email: string, password: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .andWhere('LOWER(user.email) = :email and user.password = :password',
-                {email: email, password: password})
+                {email: email.toLowerCase(), password: password})
             .getOne();
     }
 
@@ -63,7 +63,7 @@ export default class UserService extends BaseService<User> {
 
     public async findChildPlayerUserDetails(ids: number[]): Promise<User[]> {
       return await this.entityManager.query(
-          'select u.id as id, u.email as email, u.firstName as firstName,\n' +
+          'select u.id as id, LOWER(u.email) as email, u.firstName as firstName,\n' +
               'u.lastName as lastName, u.mobileNumber as mobileNumber,\n' +
               'u.genderRefId as genderRefId, u.marketingOptIn as marketingOptIn,\n' +
               'u.photoUrl as photoUrl, u.password as password,\n' +
@@ -81,7 +81,7 @@ export default class UserService extends BaseService<User> {
 
     public async userExist(email: string): Promise<number> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .where('user.email = :email', {email})
+            .where('LOWER(user.email) = :email', {email: email.toLowerCase()})
             .getCount()
     }
 
@@ -89,7 +89,7 @@ export default class UserService extends BaseService<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .update(User)
             .set(user)
-            .andWhere('user.email = :email', {email})
+            .andWhere('LOWER(user.email) = :email', {email: email.toLowerCase()})
             .execute();
     }
 
@@ -182,7 +182,7 @@ export default class UserService extends BaseService<User> {
 
     public async getUsersByIdWithLinkedEntity(userId: number): Promise<any> {
         return this.entityManager.createQueryBuilder(User, 'u')
-            .select(['u.id as id', 'u.email as email', 'u.firstName as firstName', 'u.lastName as lastName',
+            .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
                 'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl'])
             .addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'entityTypeId\', ' +
@@ -200,7 +200,7 @@ export default class UserService extends BaseService<User> {
     public async getUsersBySecurity(entityTypeId: number, entityId: number, userName: string,
                                     sec: { functionId?: number, roleId?: number }): Promise<User[]> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
-            .select(['u.id as id', 'u.email as email', 'u.firstName as firstName', 'u.lastName as lastName',
+            .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
                 'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl', 'u.firebaseUID as firebaseUID'])
             .addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'entityTypeId\', ' +
@@ -249,7 +249,7 @@ export default class UserService extends BaseService<User> {
         templateObj.emailBody = templateObj.emailBody.replace('${user.firstName}',receiverData.firstName);
         templateObj.emailBody = templateObj.emailBody.replace('${Organisation}',OrganisationName);
         templateObj.emailBody = templateObj.emailBody.replace('${user.lastName}',receiverData.lastName);
-        templateObj.emailBody = templateObj.emailBody.replace('${userName}',receiverData.email);
+        templateObj.emailBody = templateObj.emailBody.replace('${userName}',receiverData.email.toLowerCase());
         templateObj.emailBody = templateObj.emailBody.replace('${password}',password);
         templateObj.emailBody = templateObj.emailBody.replace('${process.env.liveScoresWebHost}',url);
 
@@ -275,7 +275,7 @@ export default class UserService extends BaseService<User> {
                 name: "World Sport Action",
                 address: "admin@worldsportaction.com"
             },
-            to: receiverData.email,
+            to: receiverData.email.toLowerCase(),
             replyTo: "donotreply@worldsportaction.com",
             subject: subject,
             html: templateObj.emailBody
@@ -327,7 +327,7 @@ export default class UserService extends BaseService<User> {
                                 firstName: item.firstName,
                                 middleName: item.middleName,
                                 lastName: item.lastName,
-                                email: item.email,
+                                email: item.email.toLowerCase(),
                                 mobileNumber: item.mobileNumber,
                                 photoUrl: item.photoUrl,
                                 dateOfBirth: item.dateOfBirth,

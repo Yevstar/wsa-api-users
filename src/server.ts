@@ -32,9 +32,9 @@ wrapConsole();
 
 async function checkFirebaseUser(user, password: string) {
     if (!user.firebaseUID) {
-        let fbUser = await FirebaseService.Instance().loadUserByEmail(user.email);
+        let fbUser = await FirebaseService.Instance().loadUserByEmail(user.email.toLowerCase());
         if (!fbUser || !fbUser.uid) {
-            fbUser = await FirebaseService.Instance().createUser(user.email, password);
+            fbUser = await FirebaseService.Instance().createUser(user.email.toLowerCase(), password);
         }
         if (fbUser.uid) {
             user.firebaseUID = fbUser.uid;
@@ -51,7 +51,7 @@ async function checkFirestoreDatabase(user) {
   let querySnapshot = await queryRef.get();
   if (querySnapshot.empty) {
     usersCollectionRef.doc(user.firebaseUID).set({
-        'email': user.email,
+        'email': user.email.toLowerCase(),
         'firstName': user.firstName,
         'lastName': user.lastName,
         'uid': user.firebaseUID,
@@ -63,7 +63,7 @@ async function checkFirestoreDatabase(user) {
             `${user.firstName} ${user.lastName}`,
             user.firstName,
             user.lastName,
-            user.email
+            user.email.toLowerCase()
         ]
     });
   }
@@ -103,8 +103,8 @@ async function start() {
                 let user = null;
                 // if (!cachedUser) {
                 const query = User.createQueryBuilder('user').andWhere(
-                    'user.email = :email and user.password = :password',
-                    {email: data[0], password: data[1]});
+                    'LOWER(user.email) = :email and user.password = :password',
+                    {email: data[0].toLowerCase(), password: data[1]});
                 if (action.request.url == '/users/profile' && action.request.method == 'PATCH')
                     query.addSelect("user.password");
                 user = await query.getOne();
