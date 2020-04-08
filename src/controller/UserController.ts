@@ -183,6 +183,7 @@ export class UserController extends BaseController {
         @Body() user: User,
         @Res() response: Response
     ) {
+        user.email = user.email.toLowerCase();
         const result = await this.userService.findUserFullDetailsById(currentUser.id);
         let userDetails = result[0];
 
@@ -193,7 +194,7 @@ export class UserController extends BaseController {
             });
         }
         try {
-            if (userDetails.email != user.email) {
+            if (userDetails.email.toLowerCase() != user.email) {
                 let exist = await this.userService.userExist(user.email);
                 if (exist) {
                     logger.debug(`User with email ${user.email} already exist`);
@@ -202,7 +203,7 @@ export class UserController extends BaseController {
                     });
                 }
             }
-            await this.userService.update(userDetails.email, user);
+            await this.userService.update(userDetails.email.toLowerCase(), user);
             await this.updateFirebaseData(user, userDetails.password);
             logger.info(`Current user data updated ${user.email}`);
             return this.responseWithTokenAndUser(user.email, userDetails.password, user, false);
@@ -264,9 +265,9 @@ export class UserController extends BaseController {
 
     private async checkFirebaseUser(user, password: string) {
         if (!user.firebaseUID) {
-            let fbUser = await this.firebaseService.loadUserByEmail(user.email);
+            let fbUser = await this.firebaseService.loadUserByEmail(user.email.toLowerCase());
             if (!fbUser || !fbUser.uid) {
-                fbUser = await this.firebaseService.createUser(user.email, password);
+                fbUser = await this.firebaseService.createUser(user.email.toLowerCase(), password);
             }
             if (fbUser.uid) {
                 user.firebaseUID = fbUser.uid;
@@ -279,6 +280,7 @@ export class UserController extends BaseController {
     /// First we will check if user is having firebaseUID or not. If not we
     /// will create one and then verify for firestore database for the user.
     private async checkUserForFirestore(user: User) {
+      user.email = user.email.toLowerCase();
       user['linkedEntity'] = JSON.parse(user['linkedEntity']);
       if (user.email != null && user.email != undefined &&
           (user.firebaseUID == null || user.firebaseUID == undefined)) {
