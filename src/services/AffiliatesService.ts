@@ -19,7 +19,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
         let offset = requestFilter.paging.offset;
 
         let affiliateArray = [];
-        
+
         let result = await this.entityManager.query("call wsa_users.usp_affiliates_list(?,?,?,?,?,?)",
             [organisationId, affiliatedToOrgId, organisationTypeRefId, statusRefId, limit, offset]);
 
@@ -66,11 +66,11 @@ export default class AffiliateService extends BaseService<Affiliate> {
     }
 
     public async affiliate( organisationId :any) {
-        
+
         let result = await this.entityManager.query("call wsa_users.usp_affiliate(?)",
             [organisationId]);
         let res = result[0];
-       
+
         if(res != null){
 
             let affMap = new Map();
@@ -83,14 +83,14 @@ export default class AffiliateService extends BaseService<Affiliate> {
                     userRoleEntityId: aff.userRoleEntityId,
                     roleId: aff.roleId
                 }
-                
+
                 let contactsObj ={
                     userId: aff.userId,
                     firstName: aff.firstName,
                     middleName: aff.middleName,
                     lastName: aff.lastName,
                     mobileNumber: aff.mobileNumber,
-                    email: aff.email,
+                    email: aff.email.toLowerCase(),
                     permissions: []
                 }
                 if(affTemp == undefined){
@@ -122,7 +122,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         contactMap.set(aff.userId,contactsObj);
                     }
                     affMap.set(aff.affiliateId, affiliateObj);
-                    
+
                 }
                 else{
                         if(contactTemp == undefined){
@@ -141,7 +141,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
         }else{
             console.log("Empty Result......")
         }
-            
+
     }
 
     public async affiliateToOrg(organisationId: any){

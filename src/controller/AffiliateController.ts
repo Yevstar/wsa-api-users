@@ -37,7 +37,7 @@ export class AffiliateController extends BaseController {
                                 for (let contact of requestBody.contacts) {
 
                                     if (contact.userId == 0) {
-                                    let userDb = await this.userService.findByEmail(contact.email)
+                                    let userDb = await this.userService.findByEmail(contact.email.toLowerCase())
                                         if(userDb){
                                             if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
                                                 contact.userId = userDb.id
@@ -53,14 +53,14 @@ export class AffiliateController extends BaseController {
                                     }else if(contact.userId != 0){
                                         if(currentUser.id != contact.userId){
                                             let userDb1 = await this.userService.findById(contact.userId)
-                                            if(userDb1.email != contact.email){
+                                            if(userDb1.email.toLowerCase() != contact.email.toLowerCase()) {
                                                 return response.status(212).send({
                                                     errorCode: 7,
                                                     message: 'Email address cannot be modified'
                                                 });
                                             }
                                         }else {
-                                        let userDb = await this.userService.findByEmail(contact.email)
+                                        let userDb = await this.userService.findByEmail(contact.email.toLowerCase())
                                         if(userDb.id != contact.userId){
                                             if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
                                                 contact.userId = userDb.id
@@ -158,7 +158,7 @@ export class AffiliateController extends BaseController {
                                         user.middleName = contact.middleName;
                                         user.lastName = contact.lastName;
                                         user.mobileNumber = contact.mobileNumber;
-                                        user.email = contact.email;
+                                        user.email = contact.email.toLowerCase();
                                         let password = Math.random().toString(36).slice(-8);
                                         if (contact.userId == 0) {
                                             user.createdBy = userId;
@@ -201,7 +201,7 @@ export class AffiliateController extends BaseController {
                                             let mailObj = await this.communicationTemplateService.findById(1);
                                             await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
                                         }
-                                        
+
                                    // }
                                 }
 

@@ -12,7 +12,7 @@ export default class UserDashboardService extends BaseService<User> {
         return User.name;
     }
 
-    public async userDashboardTextualList(requestBody: any) {
+    public async userDashboardTextualList(requestBody: any, userId: any) {
         try{
             let organisationId = requestBody.organisationId;
             let yearRefId = requestBody.yearRefId;
@@ -25,113 +25,122 @@ export default class UserDashboardService extends BaseService<User> {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userArr = [];
-            let result = await this.entityManager.query("call wsa_users.usp_user_dashboard_textual(?,?,?,?,?,?,?,?,?,?)",
-                [organisationId, yearRefId, competitionUniqueKey, roleId, genderRefId, linkedEntityId, postCode, searchText,  limit, offset]);
+            let result = await this.entityManager.query("call wsa_users.usp_user_dashboard_textual(?,?,?,?,?,?,?,?,?,?,?)",
+                [organisationId, yearRefId, competitionUniqueKey, roleId, genderRefId, linkedEntityId, postCode, searchText,  limit, offset, userId]);
     
             if (result != null) {
-                let totalCount = result[1].find(x=>x).totalCount;
+                console.log("****" +JSON.stringify(result[1]));
+                let totalCount = 0;
+                if(result[1]!= undefined && result[1]!= null)
+                    totalCount = result[1].find(x=>x).totalCount;
+
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-    
                 let userMap = new Map();
                 let roleMap = new Map();
                 let organisationMap = new Map();
                 let teamMap = new Map();
                
                 let competitionMap = new Map();
-                for (let textual of result[0]) {
-                    let userTemp = userMap.get(textual.id);
-                    let roleTemp = roleMap.get(textual.role);
-                    let organisationTemp = organisationMap.get(textual.organisationId);
-                    let competitionTemp = competitionMap.get(textual.competitionId);
-                    let teamTemp = teamMap.get(textual.linkedEntityId);
-                    let roleObj = {
-                        role: textual.role!= null ? textual.role.toString() : null
-                    };
-                    let organisationObj = {
-                        linked: textual.organisationName!= null ? textual.organisationName.toString() : null,
-                        linkedEntityId: textual.organisationId
-                    };
-                   
-                    console.log("Comp Name" + textual.competitionName);
-                    let competitionObj = {
-                        competitionName: textual.competitionName!= null ? textual.competitionName.toString(): null,
-                        competitionId: textual.competitionId
-                    };
-                    let teamObj = {
-                        teamId: textual.linkedEntityId,
-                        team: textual.teamName!= null ? textual.teamName.toString() : null
-                    }
-   
-                    if(userTemp == undefined)
-                    {
-                        let textualObj = {
-                            userId: textual.id,
-                            name: textual.firstName + " " + textual.lastName,
-                            dateOfBirth: textual.dateOfBirth,
-                            role: [],
-                            linked: [],
-                            competition: [],
-                            team:[],
-                            isUsed: false,
-                            key: textual.id.toString()
-                        }
-                        textualObj.role.push(roleObj);
-                        roleMap.set(textual.role, roleObj);
+                if( result[0]!= null && result[0]!= undefined){
+                    for (let textual of result[0]) {
                         
-                        if(textual.organisationName!= null)
-                        {
-                            textualObj.linked.push(organisationObj);
-                            organisationMap.set(textual.organisationId, organisationObj);
+                        let userTemp = userMap.get(textual.id);
+                        let roleKey = textual.role + "#"+ textual.id;
+                        let orgKey = textual.organisationId + "#" + textual.id;
+                        let compKey = textual.competitionId + "#" + textual.id;
+                        let teamKey = textual.linkedEntityId + "#" + textual.id;
+                        let roleTemp = roleMap.get(roleKey);
+                        let organisationTemp = organisationMap.get(orgKey);
+                        let competitionTemp = competitionMap.get(compKey);
+                        let teamTemp = teamMap.get(teamKey);
+                        let roleObj = {
+                            role: textual.role!= null ? textual.role.toString() : null
+                        };
+                        let organisationObj = {
+                            linked: textual.organisationName!= null ? textual.organisationName.toString() : null,
+                            linkedEntityId: textual.organisationId
+                        };
+                       
+                      //  console.log("Comp Name" + textual.competitionName);
+                        let competitionObj = {
+                            competitionName: textual.competitionName!= null ? textual.competitionName.toString(): null,
+                            competitionId: textual.competitionId
+                        };
+                        let teamObj = {
+                            teamId: textual.linkedEntityId,
+                            team: textual.teamName!= null ? textual.teamName.toString() : null
                         }
-                        
-
-                        if(textual.competitionName!= null)
+       
+                        if(userTemp == undefined)
                         {
-                            console.log("competitionObj" + JSON.stringify(competitionObj));
-                            textualObj.competition.push(competitionObj);
-                            competitionMap.set(textual.competitionId, competitionObj)
-                        }
-                        
-                        if(textual.teamName!= null){
-                            textualObj.team.push(teamObj);
-                            teamMap.set(textual.linkedEntityId, teamObj);
-                        }
-                        userMap.set(textual.id, textualObj);
-                        userArr.push(textualObj);
-                    }
-                    else {
-                        if(roleTemp == undefined)
-                        {
-                            userTemp.role.push(roleObj);
-                            roleMap.set(textual.role, roleObj);
-                        }
-                        if(organisationTemp == undefined)
-                        {
+                            let textualObj = {
+                                userId: textual.id,
+                                name: textual.firstName + " " + textual.lastName,
+                                dateOfBirth: textual.dateOfBirth,
+                                role: [],
+                                linked: [],
+                                competition: [],
+                                team:[],
+                                isUsed: false,
+                                key: textual.id.toString()
+                            }
+                            textualObj.role.push(roleObj);
+                            roleMap.set(roleKey, roleObj);
+                            
                             if(textual.organisationName!= null)
                             {
-                                userTemp.linked.push(organisationObj); 
-                                organisationMap.set(textual.organisationId, organisationObj);
+                                textualObj.linked.push(organisationObj);
+                                organisationMap.set(orgKey, organisationObj);
                             }
-                        }
-                        if(competitionTemp == undefined)
-                        {
+                            
+    
                             if(textual.competitionName!= null)
                             {
-                                console.log("competitionObj" + JSON.stringify(competitionObj));
-                                userTemp.competition.push(competitionObj);
-                                competitionMap.set(textual.competitionId, competitionObj)
+                                textualObj.competition.push(competitionObj);
+                                competitionMap.set(compKey, competitionObj)
                             }
+                            
+                            if(textual.teamName!= null){
+                                textualObj.team.push(teamObj);
+                                teamMap.set(teamKey, teamObj);
+                            }
+                            userMap.set(textual.id, textualObj);
+                            userArr.push(textualObj);
                         }
-                        if(teamTemp == undefined)
-                        {
-                            if(textual.teamName!= null)
+                        else {
+                            if(roleTemp == undefined)
                             {
-                                userTemp.team.push(teamObj);
-                                teamMap.set(textual.linkedEntityId, teamObj);
+                                userTemp.role.push(roleObj);
+                                roleMap.set(roleKey, roleObj);
+                            }
+                            if(organisationTemp == undefined)
+                            {
+                                if(textual.organisationName!= null)
+                                {
+                                    userTemp.linked.push(organisationObj); 
+                                    organisationMap.set(orgKey, organisationObj);
+                                }
+                            }
+                            if(competitionTemp == undefined)
+                            {
+                                if(textual.competitionName!= null)
+                                {
+                                    userTemp.competition.push(competitionObj);
+                                    competitionMap.set(compKey, competitionObj)
+                                }
+                            }
+                            if(teamTemp == undefined)
+                            {
+                                if(textual.teamName!= null)
+                                {
+                                    userTemp.team.push(teamObj);
+                                    teamMap.set(teamKey, teamObj);
+                                }
                             }
                         }
                     }
                 }
+                
                 responseObject["users"] = userArr;
                 return responseObject;
             }
