@@ -210,7 +210,7 @@ export class AffiliateController extends BaseController {
                         if (isArrayEmpty(ureUserIdDb)) {
                             for (let uItem of ureUserIdDb) {
                                 if (contactMap.get(uItem.userId) == undefined) {
-                                    await this.userService.DeleteUser(uItem.userId);
+                                  //  await this.userService.DeleteUser(uItem.userId);
                                 }
                                 if (PermissionMap.get(uItem.id) == undefined) {
                                     await this.ureService.DeleteUre(uItem.id, uItem.userId);
