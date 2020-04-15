@@ -71,6 +71,8 @@ export default class AffiliateService extends BaseService<Affiliate> {
             [organisationId]);
         let res = result[0];
 
+        console.log("****" + JSON.stringify(res));
+
         if(res != null){
 
             let affMap = new Map();
@@ -90,7 +92,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                     middleName: aff.middleName,
                     lastName: aff.lastName,
                     mobileNumber: aff.mobileNumber,
-                    email: aff.email.toLowerCase(),
+                    email: aff.email!= null ?  aff.email.toLowerCase() : null,
                     permissions: []
                 }
                 if(affTemp == undefined){
