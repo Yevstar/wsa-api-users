@@ -67,7 +67,8 @@ export default class UserService extends BaseService<User> {
               'u.lastName as lastName, u.mobileNumber as mobileNumber,\n' +
               'u.genderRefId as genderRefId, u.marketingOptIn as marketingOptIn,\n' +
               'u.photoUrl as photoUrl, u.password as password,\n' +
-              'u.dateOfBirth as dateOfBirth, u.firebaseUID as firebaseUID\n' +
+              'u.dateOfBirth as dateOfBirth, u.firebaseUID as firebaseUID,\n' +
+              'u.statusRefId as statusRefId\n' +
               'from wsa_users.user u \n' +
               'where u.id in (?);'
           , [ids]);
@@ -184,7 +185,8 @@ export default class UserService extends BaseService<User> {
         return this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
-                'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl'])
+                'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl',
+                'u.statusRefId as statusRefId'])
             .addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'entityTypeId\', ' +
                 'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, \'competitionId\', le.inputEntityId, \'name\', le.linkedEntityName)),\']\') ' +
                 'as linkedEntity')
@@ -202,7 +204,8 @@ export default class UserService extends BaseService<User> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
-                'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl', 'u.firebaseUID as firebaseUID'])
+                'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl',
+                'u.firebaseUID as firebaseUID', 'u.statusRefId as statusRefId'])
             .addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'entityTypeId\', ' +
                 'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, \'name\', le.linkedEntityName)),\']\') ' +
                 'as linkedEntity')
