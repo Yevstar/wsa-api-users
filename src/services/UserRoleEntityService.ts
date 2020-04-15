@@ -15,7 +15,7 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
         return this.entityManager.createQueryBuilder(UserRoleEntity, 'userRoleEntity')
         .update(UserRoleEntity)
         .set({isDeleted: 1, updatedBy: userId, updatedAt: new Date()})
-        .andWhere('userRoleEntity.userId = :userId', {userId})
+        .andWhere('userRoleEntity.id = :id', {id})
         .execute();
     }
 
