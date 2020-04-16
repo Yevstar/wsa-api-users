@@ -211,8 +211,9 @@ export class AffiliateController extends BaseController {
                             for (let uItem of ureUserIdDb) {
                                 if (contactMap.get(uItem.userId) == undefined) {
                                     let userExist = await this.ureService.findByAffiliateUser(uItem.userId)
-                                    if(!userExist){
-                                        await this.userService.DeleteUser(uItem.userId);
+                                    if(userExist == undefined || userExist == null){
+                                        console.log("deleting")
+                                        //await this.userService.DeleteUser(uItem.userId);
                                     }
                                 }
                                 if (PermissionMap.get(uItem.id) == undefined) {

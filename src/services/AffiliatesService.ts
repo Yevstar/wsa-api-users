@@ -167,11 +167,49 @@ export default class AffiliateService extends BaseService<Affiliate> {
     public async affiliatesDelete(requestBody: any, userId: number){
         try{
             let affiliateId =requestBody.affiliateId;
-            this.entityManager.createQueryBuilder(Affiliate, 'affiliate')
+
+            let contacts = await this.entityManager.query(
+                `SELECT userId from wsa_users.userRoleEntity ure 
+                inner join wsa_users.affiliate a
+                    on a.affiliateOrgId = ure.entityId a.isDeleted =0
+                where a.id = ?`,[affiliateId]);
+            
+            let deleteUserRoleEntity = await this.entityManager.query(
+                ` UPDATE wsa_users.userRoleEntity ure
+                set ure.isDeleted = 1
+                where ure.entityId =? and ure.entityTypeId = 2`,[affiliateId]);
+
+                let contactsOtherAffiliateExists =null ;
+                let exists =[];
+                if(isArrayEmpty(contacts)){
+                    for(let c of contacts){
+                        contactsOtherAffiliateExists = await this.entityManager.query(
+                            `SELECT * from from wsa_users.userRoleEntity ure 
+                            where ure.userId = ? and ure.entityId != ? 
+                            and ure.entityTypeId = 2 and ure.isDeleted = 0`,[c.userId,affiliateId]
+                        );
+                            exists.push(contactsOtherAffiliateExists)
+                    }
+                }
+                if(!(isArrayEmpty(exists))){
+                    if(isArrayEmpty(contacts)){
+                        for(let c of contacts){
+                            let deleteUser = await this.entityManager.query(
+                                ` UPDATE wsa_users.user u
+                                set u.isDeleted = 1
+                                where id = ?`,[c.userId]);
+                        }
+                    }
+                   
+                }
+           
+            await this.entityManager.createQueryBuilder(Affiliate, 'affiliate')
             .update(Affiliate)
             .set({ isDeleted: 1,updatedBy: userId, updatedOn: new Date() })
             .andWhere("id = :id", { id: affiliateId })
             .execute();
+
+
         }catch(error){
             throw error;
         }
