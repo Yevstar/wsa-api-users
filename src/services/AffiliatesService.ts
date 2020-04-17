@@ -171,7 +171,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
             let contacts = await this.entityManager.query(
                 `SELECT userId from wsa_users.userRoleEntity ure 
                 inner join wsa_users.affiliate a
-                    on a.affiliateOrgId = ure.entityId a.isDeleted =0
+                    on a.affiliateOrgId = ure.entityId and a.isDeleted =0
                 where a.id = ?`,[affiliateId]);
             
             let deleteUserRoleEntity = await this.entityManager.query(
@@ -184,7 +184,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                 if(isArrayEmpty(contacts)){
                     for(let c of contacts){
                         contactsOtherAffiliateExists = await this.entityManager.query(
-                            `SELECT * from from wsa_users.userRoleEntity ure 
+                            `SELECT * from wsa_users.userRoleEntity ure 
                             where ure.userId = ? and ure.entityId != ? 
                             and ure.entityTypeId = 2 and ure.isDeleted = 0`,[c.userId,affiliateId]
                         );
@@ -202,7 +202,6 @@ export default class AffiliateService extends BaseService<Affiliate> {
                     }
                    
                 }
-           
             await this.entityManager.createQueryBuilder(Affiliate, 'affiliate')
             .update(Affiliate)
             .set({ isDeleted: 1,updatedBy: userId, updatedOn: new Date() })
