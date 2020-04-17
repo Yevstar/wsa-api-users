@@ -402,6 +402,15 @@ export default class UserService extends BaseService<User> {
             let competitionUniqueKey = requestBody.competitionUniqueKey;
             let result = await this.entityManager.query("call wsa_users.usp_user_personal_details_by_competition(?,?)",
             [userId, competitionUniqueKey]);
+            if(isArrayEmpty(result[0]))
+            {
+                for(let item of result[0])
+                {
+                    item.friends = JSON.parse(item.friends);
+                    item.referFriends = JSON.parse(item.referFriends);
+                }
+            }
+
             return result[0];
         }catch(error){
             throw error;
