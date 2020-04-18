@@ -25,11 +25,12 @@ export default class UserDashboardService extends BaseService<User> {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userArr = [];
+            logger.info("UserInfoTextualDashboardInput"+JSON.stringify(requestBody));
             let result = await this.entityManager.query("call wsa_users.usp_user_dashboard_textual(?,?,?,?,?,?,?,?,?,?,?)",
                 [organisationId, yearRefId, competitionUniqueKey, roleId, genderRefId, linkedEntityId, postCode, searchText,  limit, offset, userId]);
     
             if (result != null) {
-                console.log("****" +JSON.stringify(result[1]));
+                logger.info("UserInfoTextualDashboard" +JSON.stringify(result[0]));
                 let totalCount = 0;
                 if(result[1]!= undefined && result[1]!= null)
                     totalCount = result[1].find(x=>x).totalCount;
