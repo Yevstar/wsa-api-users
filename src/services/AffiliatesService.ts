@@ -180,7 +180,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                 where ure.entityId =? and ure.entityTypeId = 2`,[affiliateId]);
 
                 let contactsOtherAffiliateExists =null ;
-                let exists =[];
+                let exists = null;
                 if(isArrayEmpty(contacts)){
                     for(let c of contacts){
                         contactsOtherAffiliateExists = await this.entityManager.query(
@@ -188,10 +188,14 @@ export default class AffiliateService extends BaseService<Affiliate> {
                             where ure.userId = ? and ure.entityId != ? 
                             and ure.entityTypeId = 2 and ure.isDeleted = 0`,[c.userId,affiliateId]
                         );
-                            exists.push(contactsOtherAffiliateExists)
+                           // exists.push(contactsOtherAffiliateExists)
+                            if(isArrayEmpty(contactsOtherAffiliateExists)){
+                                exists = 1;
+                                break;
+                            }
                     }
                 }
-                if(!(isArrayEmpty(exists))){
+                if(exists == null){
                     if(isArrayEmpty(contacts)){
                         for(let c of contacts){
                             let deleteUser = await this.entityManager.query(
@@ -210,6 +214,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
 
         }catch(error){
+            console.log("-------------ERROR:;")
             throw error;
         }
     }
