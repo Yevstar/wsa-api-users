@@ -60,7 +60,9 @@ export class BaseController {
           /// in-order to make sure we don't call create of firebase user
           /// with an already existing email.
           fbUser = await this.firebaseService.loadUserByEmail(user.email);
-          user.firebaseUID = fbUser.uid;
+          if (fbUser && fbUser.uid) {
+            user.firebaseUID = fbUser.uid;
+          }
         }
 
         if (!fbUser || !fbUser.uid) {
