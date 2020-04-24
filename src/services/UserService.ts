@@ -102,6 +102,44 @@ export default class UserService extends BaseService<User> {
             .execute();
     }
 
+    public async friendDashboard(requestBody: any){
+        try{
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
+            let result = await this.entityManager.query("call wsa_users.usp_friend_dashboard(?,?,?)",[requestBody.yearRefId, limit, offset]);
+
+            if (isArrayEmpty(result[1])) {
+                let totalCount = result[0].find(x=>x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["friends"] = result[1];
+                return responseObject;
+            }
+            else
+            return [];
+        }catch(error){
+            throw error
+        }
+    }
+
+    public async referFriendDashboard(requestBody: any){
+        try{
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
+            let result = await this.entityManager.query("call wsa_users.usp_refer_friend_dashboard(?,?,?)",[requestBody.yearRefId, limit, offset]);
+           
+            if (isArrayEmpty(result[1])) {
+                let totalCount = result[0].find(x=>x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["referFriends"] = result[1];
+                return responseObject;
+            }
+            else
+            return [];
+        }catch(error){
+            throw error
+        }
+    }
+
     public async getUserPermission(userId: number): Promise<any[]> {
         return this.entityManager.query(
             'select distinct r.id as id,\n' +

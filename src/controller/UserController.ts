@@ -294,4 +294,43 @@ export class UserController extends BaseController {
         await this.checkFirestoreDatabase(user);
       }
     }
+
+    @Authorized()
+    @Post('/dashboard/friend')
+    async friendDashboard(
+        @Body() requestBody: any,
+        @HeaderParam("authorization") user: User,
+        @Res() response: Response
+    ) {
+      try {
+            let res = await this.userService.friendDashboard(requestBody)
+
+            return response.status(200).send(res)
+      }
+      catch(error){
+        logger.error(`Unable to get Friend details `,error)
+        return response.status(500).send('Something Went wrong')
+
+      }
+    }
+
+    @Authorized()
+    @Post('/dashboard/referfriend')
+    async referFriendDashboard(
+        @Body() requestBody: any,
+        @HeaderParam("authorization") user: User,
+        @Res() response: Response
+    ) {
+      try {
+            let res = await this.userService.referFriendDashboard(requestBody)
+            return response.status(200).send(res)
+            
+      }
+      catch(error){
+        logger.error(`Unable to get Refer friend details `,error)
+        return response.status(500).send('Something Went wrong')
+        
+      }
+    }
+
 }
