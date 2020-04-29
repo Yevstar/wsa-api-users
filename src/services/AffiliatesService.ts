@@ -115,6 +115,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         logoUrl: aff.logoUrl,
                         logoIsDefault: aff.logoIsDefault,
                         organisationLogo: "",
+                        organisationPhotos: JSON.parse(aff.organisationPhotos),
                         whatIsTheLowestOrgThatCanAddChild: aff.whatIsTheLowestOrgThatCanAddChild,
                         contacts:[]
                     }

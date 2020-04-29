@@ -9,6 +9,8 @@ import { Organisation } from "../models/Organisation";
 import { UserRoleEntity } from "../models/security/UserRoleEntity";
 import e = require("express");
 import { OrganisationLogo } from "../models/OrganisationLogo";
+import { OrganisationPhoto } from "../models/OrganisationPhoto";
+import { validateReqFilter } from "../validation/Validation";
 
 @JsonController("/api")
 export class AffiliateController extends BaseController {
@@ -349,4 +351,79 @@ export class AffiliateController extends BaseController {
         }
     }
 
+
+    @Authorized()
+    @Post("/organisationphoto/save")
+    async organisationPhotos(
+        @QueryParam("userId") userId: number,
+        @HeaderParam("authorization") currentUser: User,
+        @UploadedFile("organisationPhoto") organisationPhotoFile: Express.Multer.File,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (userId) {
+                if (userId && userId == currentUser.id) {
+                    //let requestBody = Object.assign({}, requestBod);
+
+                    if (requestBody != null) {
+
+                        let validateOrg = validateReqFilter(requestBody.organisationId, 'organisation');
+                        if (validateOrg != null) {
+                            return response.status(212).send(validateOrg);
+                        }
+                        let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
+
+                        if (organisationPhotoFile != null) {
+                            if (isPhoto(organisationPhotoFile.mimetype)) {
+                                //   let organisation_logo_file = requestBody.organisationLogo ;
+                                let filename = `/organisation/photo_${organisationId}_${timestamp()}.${fileExt(organisationPhotoFile.originalname)}`;
+                                let fileUploaded = await this.firebaseService.upload(filename, organisationPhotoFile);
+                                if (fileUploaded) {
+                                    let orgPhotoModel = new OrganisationPhoto();
+                                    if(requestBody.organisationPhotoId == 0 || requestBody.organisationPhotoId == null){
+                                        orgPhotoModel.id = 0;
+                                        orgPhotoModel.createdBy = userId;
+                                    }
+                                    else{
+                                        orgPhotoModel.id = requestBody.organisationPhotoId;
+                                        orgPhotoModel.updatedBy = userId
+                                        orgPhotoModel.updatedOn = new Date();
+                                    }
+                                    orgPhotoModel.organisationId = organisationId;
+                                    orgPhotoModel.photoUrl = fileUploaded['url'];
+                                    orgPhotoModel.photoTypeRefId = requestBody.photoTypeRefId;
+                                    await this.organisationPhotoService.createOrUpdate(orgPhotoModel);
+                                    return response.status(200).send('File saved successfully');
+                                }
+                            }
+                        }
+
+                    }
+                    else {
+                        return response.status(204).send({
+                            errorCode: 3,
+                            message: 'Empty Body'
+                        });
+                    }
+                }
+                else {
+                    return response.status(401).send({
+                        errorCode: 2,
+                        message: 'You are trying to access another user\'s data'
+                    });
+                }
+            }
+            else {
+                return response.status(212).send({
+                    errorCode: 3,
+                    message: 'Please pass userId to save the file '
+                })
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in organisation Photo Save ${userId}`+error);
+            return response.status(500).send({
+                message: `Something went wrong. Please contact administrator:  ${error}`
+            });
+        }
+    }
 }

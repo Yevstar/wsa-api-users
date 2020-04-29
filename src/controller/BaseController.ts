@@ -12,6 +12,7 @@ import CommunicationTemplateService from "../services/CommunicationTemplateServi
 import UserDashboardService from "../services/userDashboardService";
 import UserRegistrationService from "../services/UserRegistrationService";
 import admin from "firebase-admin";
+import OrganisationPhotoService from "../services/OrganisationPhotoService";
 
 export class BaseController {
 
@@ -44,6 +45,9 @@ export class BaseController {
 
     @Inject()
     protected organisationLogoService: OrganisationLogoService;
+
+    @Inject()
+    protected organisationPhotoService: OrganisationPhotoService;
 
     @Inject()
     protected userDashboardService: UserDashboardService;
