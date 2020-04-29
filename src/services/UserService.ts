@@ -547,8 +547,94 @@ export default class UserService extends BaseService<User> {
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                let arr = [];
+                if(isArrayEmpty(result[1])){
+                    
+                    console.log("*****************");
+                    for(let item of result[1]){
+                        let obj = {
+                            key: item.key,
+                            affiliate: item.affiliate,
+                            membershipProduct: item.membershipProduct,
+                            membershipType: item.membershipType,
+                            feesPaid: item.feesPaid,
+                            vouchers: item.vouchers,
+                            shopPurchases: item.shopPurchases,
+                            registrationForm: []
+                        }
 
-                responseObject["registrationDetails"] = result[1];
+                        if(isArrayEmpty(result[2])){
+                            let filterRes = result[2].filter(x=>x.orgRegId == item.orgRegId);
+                            if(isArrayEmpty(filterRes)){
+                                for(let i of filterRes){
+                                    let regObj = {
+                                        registrationSettingsRefId: i.registrationSettingsRefId,
+                                        description: i.description,
+                                        contentValue: '',
+                                        friends: [],
+                                        referFriends: [],
+                                        playedBefore: [],
+                                        volunteers: []
+                                    }
+                                    if(i.registrationSettingsRefId == 5){
+                                        regObj.contentValue = item.playedBefore == 0 ? 'No': 'Yes';
+                                        if(item.playedBefore ==  1){
+                                            let objPl = {
+                                                playedClub: item.playedClub,
+                                                playedGrade: item.playedGrade,
+                                                playedYear: item.playedYear,
+                                            }
+                                            regObj.playedBefore.push(objPl);
+                                        }
+                                        obj.registrationForm.push(regObj);
+                                    }
+                                    else if(i.registrationSettingsRefId == 6){
+                                        regObj.contentValue = item.positionId1!= null ? item.positionId1 : ''  + ',' + 
+                                                    item.positionId2!= null ? item.positionId2 : '' ;
+                                        obj.registrationForm.push(regObj);
+                                    }
+                                    else if(i.registrationSettingsRefId == 7){
+                                        regObj.contentValue = item.lastCaptainName;
+                                        obj.registrationForm.push(regObj);
+                                    }
+                                    else if(i.registrationSettingsRefId == 8){
+                                        if(isArrayEmpty(result[3])){
+                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 0);
+                                            if(isArrayEmpty(filteredFriend)){
+                                                regObj.friends = filteredFriend;
+                                            }
+                                        }
+                                        obj.registrationForm.push(regObj);
+                                    }
+                                    else if(i.registrationSettingsRefId == 9){
+                                        if(isArrayEmpty(result[3])){
+                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 1);
+                                            if(isArrayEmpty(filteredFriend)){
+                                                regObj.referFriends = filteredFriend;
+                                            }
+                                        }
+                                        obj.registrationForm.push(regObj);
+                                    }
+                                    else if(i.registrationSettingsRefId == 11){
+                                        regObj.contentValue = item.isConsentPhotosGiven;
+                                        obj.registrationForm.push(regObj);
+                                    }
+                                    else if(i.registrationSettingsRefId == 12){
+                                        if(isArrayEmpty(result[4])){
+                                            let volunteers = result[4].filter(x=>x.regMasterId == item.regMasterId);
+                                            if(isArrayEmpty(volunteers)){
+                                                regObj.volunteers = volunteers;
+                                            }
+                                        }
+                                        obj.registrationForm.push(regObj);
+                                    }
+                                }
+                            }
+                        }
+                        arr.push(obj);
+                    }
+                }
+                responseObject["registrationDetails"] = arr;
                 return responseObject;
             }
         }catch(error){
