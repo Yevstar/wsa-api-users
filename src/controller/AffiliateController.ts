@@ -466,15 +466,15 @@ export class AffiliateController extends BaseController {
     }
 
     @Authorized()
-    @Delete("/organisationphoto/delete/:oganisationPhotoid")
+    @Delete("/organisationphoto/delete/:organisationPhotoid")
     async organisationPhotosDelete(
-        @Param("oganisationPhotoid") oganisationPhotoid: number,
+        @Param("organisationPhotoid") organisationPhotoid: number,
         @HeaderParam("authorization") currentUser: User,
         @Res() response: Response) {
         let userId = currentUser.id;
         try {
             if (userId) {
-                let res = await this.organisationPhotoService.organisationPhotosDelete(oganisationPhotoid, userId);
+                let res = await this.organisationPhotoService.organisationPhotosDelete(organisationPhotoid, userId);
                 return response.status(200).send(res)
             }
             else {
