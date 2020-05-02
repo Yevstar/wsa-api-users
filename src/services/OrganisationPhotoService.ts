@@ -17,7 +17,20 @@ export default class OrganisationPhotoService extends BaseService<OrganisationPh
             return result[0];
         }
         catch(error){
+            throw error;
+        }
+    }
 
+    public async organisationPhotosDelete(oganisationPhotoid: number, userId: number){
+        try{
+            await this.entityManager.createQueryBuilder(OrganisationPhoto, 'op')
+            .update(OrganisationPhoto)
+            .set({ isDeleted: 1,updatedBy: userId, updatedOn: new Date() })
+            .andWhere("op.id = :id", { id: oganisationPhotoid })
+            .execute();
+        }
+        catch(error){
+            throw error;
         }
     }
 }

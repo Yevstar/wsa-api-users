@@ -1,5 +1,5 @@
 import { BaseController } from "./BaseController";
-import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Param, Get, UploadedFile } from "routing-controllers";
+import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Param, Get, UploadedFile, Delete } from "routing-controllers";
 import { isArrayEmpty, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty } from "../utils/Utils";
 import { Response, response } from 'express';
 import { Affiliate } from "../models/Affiliate";
@@ -445,6 +445,37 @@ export class AffiliateController extends BaseController {
                         let organisationId = await this.organisationService.findByUniquekey(organisationUniqueKey);
 
                         let res = await this.organisationPhotoService.organisationPhotosList(organisationId);
+                        return response.status(200).send(res)
+
+                    
+                }
+                else {
+                    return response.status(401).send({
+                        errorCode: 2,
+                        message: 'You are trying to access another user\'s data'
+                    });
+                }
+           
+        } catch (error) {
+            logger.error(`Error Occurred in organisation Photo Save ${userId}`+error);
+            return response.status(500).send({
+                message: `Something went wrong. Please contact administrator:  ${error}`
+            });
+        }
+    }
+
+    @Authorized()
+    @Delete("/organisationphoto/delete/:oganisationPhotoid")
+    async organisationPhotosDelete(
+        @Param("oganisationPhotoid") oganisationPhotoid: number,
+        @HeaderParam("authorization") currentUser: User,
+        @Res() response: Response) {
+            let userId = currentUser.id;
+        try {
+                if (userId) {
+                    //let requestBody = Object.assign({}, requestBod);
+                    
+                        let res = await this.organisationPhotoService.organisationPhotosDelete(oganisationPhotoid, userId);
                         return response.status(200).send(res)
 
                     
