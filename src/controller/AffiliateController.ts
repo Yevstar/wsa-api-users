@@ -382,7 +382,7 @@ export class AffiliateController extends BaseController {
                                     orgPhotoModel.createdBy = userId;
                                 }
                                 else {
-                                    orgPhotoModel.id = requestBody.organisationPhotoId;
+                                    orgPhotoModel.id = Number(requestBody.organisationPhotoId);
                                     orgPhotoModel.updatedBy = userId
                                     orgPhotoModel.updatedOn = new Date();
                                 }
