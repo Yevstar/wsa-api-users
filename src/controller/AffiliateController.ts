@@ -397,7 +397,19 @@ export class AffiliateController extends BaseController {
                                 }
                             }
                         }
-
+                        else{
+                            if(requestBody.organisationPhotoId != 0){
+                                let orgPhotoModel = new OrganisationPhoto();
+                                orgPhotoModel.id = requestBody.organisationPhotoId;
+                                orgPhotoModel.updatedBy = userId
+                                orgPhotoModel.updatedOn = new Date();
+                                orgPhotoModel.organisationId = organisationId;
+                                orgPhotoModel.photoUrl = requestBody.photoUrl;
+                                orgPhotoModel.photoTypeRefId = requestBody.photoTypeRefId;
+                                await this.organisationPhotoService.createOrUpdate(orgPhotoModel);
+                                return response.status(200).send('File saved successfully');
+                            }
+                        }
                     }
                     else {
                         return response.status(204).send({
