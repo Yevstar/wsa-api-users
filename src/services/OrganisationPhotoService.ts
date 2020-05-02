@@ -21,12 +21,12 @@ export default class OrganisationPhotoService extends BaseService<OrganisationPh
         }
     }
 
-    public async organisationPhotosDelete(oganisationPhotoid: number, userId: number){
+    public async organisationPhotosDelete(organisationPhotoid: number, userId: number){
         try{
-            await this.entityManager.createQueryBuilder(OrganisationPhoto, 'op')
+            await this.entityManager.createQueryBuilder(OrganisationPhoto, 'organisationPhoto')
             .update(OrganisationPhoto)
             .set({ isDeleted: 1,updatedBy: userId, updatedOn: new Date() })
-            .andWhere("op.id = :id", { id: oganisationPhotoid })
+            .andWhere(" organisationPhoto.id = :id ", { id: organisationPhotoid })
             .execute();
         }
         catch(error){
