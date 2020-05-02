@@ -426,4 +426,41 @@ export class AffiliateController extends BaseController {
             });
         }
     }
+
+    @Authorized()
+    @Get("/organisationphoto/list")
+    async organisationPhotosList(
+        @QueryParam("organisationUniqueKey") organisationUniqueKey: string,
+        @HeaderParam("authorization") currentUser: User,
+        @Res() response: Response) {
+            let userId = currentUser.id;
+        try {
+                if (userId) {
+                    //let requestBody = Object.assign({}, requestBod);
+                    
+                        let validateOrg = validateReqFilter(organisationUniqueKey, 'organisation');
+                        if (validateOrg != null) {
+                            return response.status(212).send(validateOrg);
+                        }
+                        let organisationId = await this.organisationService.findByUniquekey(organisationUniqueKey);
+
+                        let res = await this.organisationPhotoService.organisationPhotosList(organisationId);
+                        return response.status(200).send(res)
+
+                    
+                }
+                else {
+                    return response.status(401).send({
+                        errorCode: 2,
+                        message: 'You are trying to access another user\'s data'
+                    });
+                }
+           
+        } catch (error) {
+            logger.error(`Error Occurred in organisation Photo Save ${userId}`+error);
+            return response.status(500).send({
+                message: `Something went wrong. Please contact administrator:  ${error}`
+            });
+        }
+    }
 }

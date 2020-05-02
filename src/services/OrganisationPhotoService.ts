@@ -8,4 +8,16 @@ export default class OrganisationPhotoService extends BaseService<OrganisationPh
     modelName(): string {
         return OrganisationPhoto.name;
     }
+
+    public async organisationPhotosList(organisationId: number){
+        try{
+            let result =  await this.entityManager.query("call wsa_users.usp_organisation_photos(?)",
+            [organisationId]);
+
+            return result[0];
+        }
+        catch(error){
+
+        }
+    }
 }
