@@ -397,7 +397,7 @@ export class AffiliateController extends BaseController {
                     else {
                         if (requestBody.organisationPhotoId != 0) {
                             let orgPhotoModel = new OrganisationPhoto();
-                            orgPhotoModel.id = requestBody.organisationPhotoId;
+                            orgPhotoModel.id = Number(requestBody.organisationPhotoId);
                             orgPhotoModel.updatedBy = userId
                             orgPhotoModel.updatedOn = new Date();
                             orgPhotoModel.organisationId = organisationId;
