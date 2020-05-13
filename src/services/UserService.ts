@@ -573,18 +573,20 @@ export default class UserService extends BaseService<User> {
                                         contentValue: '',
                                         friends: [],
                                         referFriends: [],
-                                        playedBefore: null,
+                                        playedBefore: [],
                                         volunteers: []
                                     }
-                                    if(i.registrationSettingsRefId == 5){
+                                    if(i.registrationSettingsRefId == 7){
                                         regObj.contentValue = item.playedBefore == 0 ? 'No': 'Yes';
                                         if(item.playedBefore ==  1){
                                             let objPl = {
+                                                key: i.registrationSettingsRefId,
                                                 playedClub: item.playedClub,
                                                 playedGrade: item.playedGrade,
                                                 playedYear: item.playedYear,
+                                                lastCaptainName: item.lastCaptainName
                                             }
-                                            regObj.playedBefore = objPl;
+                                            regObj.playedBefore.push(objPl);
                                         }
                                         obj.registrationForm.push(regObj);
                                     }
@@ -593,10 +595,10 @@ export default class UserService extends BaseService<User> {
                                                     item.positionId2!= null ? item.positionId2 : '' ;
                                         obj.registrationForm.push(regObj);
                                     }
-                                    else if(i.registrationSettingsRefId == 7){
-                                        regObj.contentValue = item.lastCaptainName;
-                                        obj.registrationForm.push(regObj);
-                                    }
+                                    // else if(i.registrationSettingsRefId == 7){
+                                    //     regObj.contentValue = item.lastCaptainName;
+                                    //     obj.registrationForm.push(regObj);
+                                    // }
                                     else if(i.registrationSettingsRefId == 8){
                                         if(isArrayEmpty(result[3])){
                                             let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 0);
