@@ -581,6 +581,7 @@ export default class UserService extends BaseService<User> {
                                         if(item.playedBefore ==  1){
                                             let objPl = {
                                                 key: i.registrationSettingsRefId,
+                                                playedBefore: regObj.contentValue,
                                                 playedClub: item.playedClub,
                                                 playedGrade: item.playedGrade,
                                                 playedYear: item.playedYear,
