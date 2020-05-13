@@ -573,7 +573,7 @@ export default class UserService extends BaseService<User> {
                                         contentValue: '',
                                         friends: [],
                                         referFriends: [],
-                                        playedBefore: [],
+                                        playedBefore: null,
                                         volunteers: []
                                     }
                                     if(i.registrationSettingsRefId == 5){
@@ -584,7 +584,7 @@ export default class UserService extends BaseService<User> {
                                                 playedGrade: item.playedGrade,
                                                 playedYear: item.playedYear,
                                             }
-                                            regObj.playedBefore.push(objPl);
+                                            regObj.playedBefore = objPl;
                                         }
                                         obj.registrationForm.push(regObj);
                                     }
@@ -626,6 +626,11 @@ export default class UserService extends BaseService<User> {
                                                 regObj.volunteers = volunteers;
                                             }
                                         }
+                                        obj.registrationForm.push(regObj);
+                                    }
+                                    else if(i.registrationSettingsRefId == 10){
+                                        regObj.contentValue = item.favouriteTeamName;
+                                        regObj["favouriteFireBird"] = item.favouriteFireBird;
                                         obj.registrationForm.push(regObj);
                                     }
                                 }
