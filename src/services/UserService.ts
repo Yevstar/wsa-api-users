@@ -106,7 +106,7 @@ export default class UserService extends BaseService<User> {
         try{
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
-            let result = await this.entityManager.query("call wsa_users.usp_friend_dashboard(?,?,?)",[requestBody.yearRefId, limit, offset]);
+            let result = await this.entityManager.query("call wsa_users.usp_friend_dashboard(?,?,?,?)",[requestBody.yearRefId,requestBody.organisationUniqueKey, limit, offset]);
 
             if (isArrayEmpty(result[1])) {
                 let totalCount = result[0].find(x=>x).totalCount;
@@ -125,7 +125,7 @@ export default class UserService extends BaseService<User> {
         try{
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
-            let result = await this.entityManager.query("call wsa_users.usp_refer_friend_dashboard(?,?,?)",[requestBody.yearRefId, limit, offset]);
+            let result = await this.entityManager.query("call wsa_users.usp_refer_friend_dashboard(?,?,?,?)",[requestBody.yearRefId,requestBody.organisationUniqueKey, limit, offset]);
            
             if (isArrayEmpty(result[1])) {
                 let totalCount = result[0].find(x=>x).totalCount;
