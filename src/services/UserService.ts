@@ -603,7 +603,7 @@ export default class UserService extends BaseService<User> {
                                     // }
                                     else if(i.registrationSettingsRefId == 8){
                                         if(isArrayEmpty(result[3])){
-                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 0);
+                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 1);
                                             if(isArrayEmpty(filteredFriend)){
                                                 regObj.friends = filteredFriend;
                                             }
@@ -612,7 +612,7 @@ export default class UserService extends BaseService<User> {
                                     }
                                     else if(i.registrationSettingsRefId == 9){
                                         if(isArrayEmpty(result[3])){
-                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 1);
+                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 2);
                                             if(isArrayEmpty(filteredFriend)){
                                                 regObj.referFriends = filteredFriend;
                                             }
