@@ -574,7 +574,8 @@ export default class UserService extends BaseService<User> {
                                         friends: [],
                                         referFriends: [],
                                         playedBefore: [],
-                                        volunteers: []
+                                        volunteers: [],
+                                        favourites: []
                                     }
                                     if(i.registrationSettingsRefId == 7){
                                         regObj.contentValue = item.playedBefore == 0 ? 'No': 'Yes';
@@ -632,8 +633,11 @@ export default class UserService extends BaseService<User> {
                                         obj.registrationForm.push(regObj);
                                     }
                                     else if(i.registrationSettingsRefId == 10){
-                                        regObj.contentValue = item.favouriteTeamName;
-                                        regObj["favouriteFireBird"] = item.favouriteFireBird;
+                                        let objFav = {
+                                            favouriteFireBird: item.favouriteFireBird,
+                                            favouriteTeam: item.favouriteTeamName
+                                        }
+                                        regObj.favourites.push(objFav);
                                         obj.registrationForm.push(regObj);
                                     }
                                 }
