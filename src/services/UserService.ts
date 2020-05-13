@@ -616,7 +616,7 @@ export default class UserService extends BaseService<User> {
                                         obj.registrationForm.push(regObj);
                                     }
                                     else if(i.registrationSettingsRefId == 11){
-                                        regObj.contentValue = item.isConsentPhotosGiven;
+                                        regObj.contentValue = item.isConsentPhotosGiven == 1 ? "Yes": "No";
                                         obj.registrationForm.push(regObj);
                                     }
                                     else if(i.registrationSettingsRefId == 12){
