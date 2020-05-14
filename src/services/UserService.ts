@@ -25,10 +25,10 @@ export default class UserService extends BaseService<User> {
             .getOne();
     }
 
-    public async DeleteUser(userId: number){
+    public async DeleteUser(userId: number, loginUserId: number){
         return this.entityManager.createQueryBuilder(User, 'user')
         .update(User)
-        .set({isDeleted: 1, updatedBy: userId, updatedOn: new Date()})
+        .set({isDeleted: 1, updatedBy: loginUserId, updatedOn: new Date()})
         .andWhere('user.id = :userId', {userId})
         .execute();
     }
