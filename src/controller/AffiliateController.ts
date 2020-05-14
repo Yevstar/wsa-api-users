@@ -39,6 +39,7 @@ export class AffiliateController extends BaseController {
                                 for (let contact of requestBody.contacts) {
 
                                     if (contact.userId == 0) {
+                                        console.log("------------0")
                                         let userDb = await this.userService.findByEmail(contact.email.toLowerCase())
                                         if (userDb) {
                                             if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
@@ -53,6 +54,7 @@ export class AffiliateController extends BaseController {
                                             }
                                         }
                                     } else if (contact.userId != 0) {
+                                        console.log("------------0- 0")
                                         if (currentUser.id != contact.userId) {
                                             let userDb1 = await this.userService.findById(contact.userId)
                                             if (userDb1.email.toLowerCase() != contact.email.toLowerCase()) {
@@ -92,7 +94,7 @@ export class AffiliateController extends BaseController {
                         organisation.postalCode = requestBody.postalCode;
                         organisation.stateRefId = requestBody.stateRefId;
                         organisation.statusRefId = 2;
-
+                        console.log("------------0-1")
                         organisation.whatIsTheLowestOrgThatCanAddChild = requestBody.whatIsTheLowestOrgThatCanAddChild;
                         if (requestBody.affiliateOrgId == "" || requestBody.affiliateOrgId == 0) {
                             organisation.id = 0;
@@ -104,8 +106,11 @@ export class AffiliateController extends BaseController {
                             organisation.updatedBy = userId;
                             organisation.updatedOn = new Date();
                         }
+                        console.log("------------0- 3")
                         let organisationRes = await this.organisationService.createOrUpdate(organisation);
+                        console.log("------------0-4")
                         let affiliatedToOrgId = await this.organisationService.findByUniquekey(requestBody.affiliatedToOrgId);
+                        console.log("------------0- 5")
                         let affiliate = new Affiliate();
                         affiliate.id = Number(requestBody.affiliateId);
                         affiliate.affiliateOrgId = Number(organisationRes.id);
@@ -119,7 +124,7 @@ export class AffiliateController extends BaseController {
                             affiliate.updatedBy = userId;
                             affiliate.updatedOn = new Date();
                         }
-
+                        console.log("------------0-2")
                         let affiliateRes = await this.affiliateService.createOrUpdate(affiliate);
                         let orgLogoDb = await this.organisationLogoService.findByOrganisationId(affiliateRes.affiliateOrgId)
                         if (organisationLogoFile != null) {
@@ -211,15 +216,18 @@ export class AffiliateController extends BaseController {
                         //  }
                         if (isArrayEmpty(ureUserIdDb)) {
                             for (let uItem of ureUserIdDb) {
-                                if (contactMap.get(uItem.userId) == undefined) {
-                                    let userExist = await this.ureService.findByAffiliateUser(uItem.userId)
-                                    if (userExist == undefined || userExist == null) {
-                                        console.log("deleting")
-                                        //await this.userService.DeleteUser(uItem.userId);
-                                    }
-                                }
+                                
                                 if (PermissionMap.get(uItem.id) == undefined) {
                                     await this.ureService.DeleteUre(uItem.id, uItem.userId);
+                                }
+                                if (contactMap.get(uItem.userId) == undefined) {
+                                    console.log("------------1")
+                                    let userExist = await this.ureService.findByAffiliateUser(uItem.userId)
+                                    console.log("------------1 - 2")
+                                    if (userExist == undefined || userExist == null) {
+                                        console.log("deleting")
+                                        await this.userService.DeleteUser(uItem.userId,);
+                                    }
                                 }
                             }
                         }

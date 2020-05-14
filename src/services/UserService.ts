@@ -35,8 +35,7 @@ export default class UserService extends BaseService<User> {
 
     public async findByCredentials(email: string, password: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .innerJoin(UserRoleEntity, 'ure', 'user.id = ure.userId and ure.entityTypeId = 2 and ure.isDeleted = 0')
-            .andWhere('LOWER(user.email) = :email and user.password = :password and user.isDeleted = 0',
+            .andWhere('LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
                 {email: email.toLowerCase(), password: password})
             .getOne();
     }
@@ -441,14 +440,14 @@ export default class UserService extends BaseService<User> {
             let competitionUniqueKey = requestBody.competitionUniqueKey;
             let result = await this.entityManager.query("call wsa_users.usp_user_personal_details_by_competition(?,?)",
             [userId, competitionUniqueKey]);
-            // if(isArrayEmpty(result[0]))
-            // {
-            //     for(let item of result[0])
-            //     {
-            //         item.friends = JSON.parse(item.friends);
-            //         item.referFriends = JSON.parse(item.referFriends);
-            //     }
-            // }
+            if(isArrayEmpty(result[0]))
+            {
+                for(let item of result[0])
+                {
+                    item.friends = JSON.parse(item.friends);
+                    item.referFriends = JSON.parse(item.referFriends);
+                }
+            }
 
             return result[0];
         }catch(error){
@@ -594,8 +593,8 @@ export default class UserService extends BaseService<User> {
                                         obj.registrationForm.push(regObj);
                                     }
                                     else if(i.registrationSettingsRefId == 6){
-                                        regObj.contentValue = (item.positionId1!= null ? item.positionId1 : '')  + ', ' + 
-                                                    (item.positionId2!= null ? item.positionId2 : '') ;
+                                        regObj.contentValue = item.positionId1!= null ? item.positionId1 : ''  + ',' + 
+                                                    item.positionId2!= null ? item.positionId2 : '' ;
                                         obj.registrationForm.push(regObj);
                                     }
                                     // else if(i.registrationSettingsRefId == 7){
@@ -604,7 +603,7 @@ export default class UserService extends BaseService<User> {
                                     // }
                                     else if(i.registrationSettingsRefId == 8){
                                         if(isArrayEmpty(result[3])){
-                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 1);
+                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 0);
                                             if(isArrayEmpty(filteredFriend)){
                                                 regObj.friends = filteredFriend;
                                             }
@@ -613,7 +612,7 @@ export default class UserService extends BaseService<User> {
                                     }
                                     else if(i.registrationSettingsRefId == 9){
                                         if(isArrayEmpty(result[3])){
-                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 2);
+                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 1);
                                             if(isArrayEmpty(filteredFriend)){
                                                 regObj.referFriends = filteredFriend;
                                             }
