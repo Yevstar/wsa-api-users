@@ -593,7 +593,7 @@ export default class UserService extends BaseService<User> {
                                         obj.registrationForm.push(regObj);
                                     }
                                     else if(i.registrationSettingsRefId == 6){
-                                        regObj.contentValue = (item.positionId1!= null ? item.positionId1 : '')  + ',' + 
+                                        regObj.contentValue = (item.positionId1!= null ? item.positionId1 : '')  + ', ' + 
                                                     (item.positionId2!= null ? item.positionId2 : '') ;
                                         obj.registrationForm.push(regObj);
                                     }
