@@ -16,6 +16,7 @@ export class PasswordController extends BaseController {
         @Res() response: Response
     ) {
         try {
+            if(email !== "undefined" && email !=="null" && email !== undefined && email !== null && email!=='') {
             const user = await this.userService.findByEmail(email.toLowerCase());
             if (user) {
                 logger.info(`Sending password reset link to ${email.toLowerCase()}`);
@@ -61,11 +62,15 @@ export class PasswordController extends BaseController {
                });
             } else {
                 logger.warn(`Password reset link requested for ${email}, but couldn't find a user. Ignoring request.`);
-                return response.status(400).send(
+                return response.status(212).send(
                     {name: 'validation_error', message: `User with email [${email}] not found`});
             }
             return response.status(200).send(
                 {name: 'success', message: 'A password reset link was sent to your email address.'});
+            } else {
+            return response.status(200).send(
+                {name: 'email_id_error', message: 'email id is necessary to be passed.'});
+            }
         } catch (err) {
             logger.error(`Failed to send a password reset email to ${email}`+err);
             return response.status(400).send(
