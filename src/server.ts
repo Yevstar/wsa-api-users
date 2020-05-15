@@ -103,7 +103,7 @@ async function start() {
                 let user = null;
                 // if (!cachedUser) {
                 const query = User.createQueryBuilder('user').andWhere(
-                    'LOWER(user.email) = :email and user.password = :password',
+                    'LOWER(user.email) = :email and user.password = :password and user.isDeleted = 0',
                     {email: data[0].toLowerCase(), password: data[1]});
                 if (action.request.url == '/users/profile' && action.request.method == 'PATCH')
                     query.addSelect("user.password");
