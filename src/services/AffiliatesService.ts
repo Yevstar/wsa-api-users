@@ -177,8 +177,10 @@ export default class AffiliateService extends BaseService<Affiliate> {
             
             let deleteUserRoleEntity = await this.entityManager.query(
                 ` UPDATE wsa_users.userRoleEntity ure
+                inner join wsa_users.affiliate a
+                    on a.affiliateOrgId = ure.entityId and a.isDeleted =0
                 set ure.isDeleted = 1
-                where ure.entityId =? and ure.entityTypeId = 2`,[affiliateId]);
+                where a.id = ? and ure.entityTypeId = 2`,[affiliateId]);
 
                 let contactsOtherAffiliateExists =null ;
                 let exists = null;
