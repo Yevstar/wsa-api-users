@@ -25,18 +25,17 @@ export default class UserService extends BaseService<User> {
             .getOne();
     }
 
-    public async DeleteUser(userId: number){
+    public async DeleteUser(userId: number, loginUserId: number){
         return this.entityManager.createQueryBuilder(User, 'user')
         .update(User)
-        .set({isDeleted: 1, updatedBy: userId, updatedOn: new Date()})
+        .set({isDeleted: 1, updatedBy: loginUserId, updatedOn: new Date()})
         .andWhere('user.id = :userId', {userId})
         .execute();
     }
 
     public async findByCredentials(email: string, password: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .innerJoin(UserRoleEntity, 'ure', 'user.id = ure.userId and ure.entityTypeId = 2 and ure.isDeleted = 0')
-            .andWhere('LOWER(user.email) = :email and user.password = :password and user.isDeleted = 0',
+            .andWhere('LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
                 {email: email.toLowerCase(), password: password})
             .getOne();
     }
@@ -594,7 +593,8 @@ export default class UserService extends BaseService<User> {
                                         obj.registrationForm.push(regObj);
                                     }
                                     else if(i.registrationSettingsRefId == 6){
-                                        regObj.contentValue = (item.positionId1!= null ? item.positionId1 : '')  + ', ' + 
+                                        regObj.contentValue = (item.positionId1!= null ? item.positionId1 : '' ) + 
+                                                            ((item.positionId1!= null && item.positionId2!= null) ? ', ' : '') + 
                                                     (item.positionId2!= null ? item.positionId2 : '') ;
                                         obj.registrationForm.push(regObj);
                                     }

@@ -211,15 +211,16 @@ export class AffiliateController extends BaseController {
                         //  }
                         if (isArrayEmpty(ureUserIdDb)) {
                             for (let uItem of ureUserIdDb) {
+                                
+                                if (PermissionMap.get(uItem.id) == undefined) {
+                                    await this.ureService.DeleteUre(uItem.id, uItem.userId);
+                                }
                                 if (contactMap.get(uItem.userId) == undefined) {
                                     let userExist = await this.ureService.findByAffiliateUser(uItem.userId)
                                     if (userExist == undefined || userExist == null) {
                                         console.log("deleting")
-                                        //await this.userService.DeleteUser(uItem.userId);
+                                        await this.userService.DeleteUser(uItem.userId,userId);
                                     }
-                                }
-                                if (PermissionMap.get(uItem.id) == undefined) {
-                                    await this.ureService.DeleteUre(uItem.id, uItem.userId);
                                 }
                             }
                         }
