@@ -1,5 +1,4 @@
 import {Inject} from "typedi";
-import ClubService from "../services/ClubService";
 import FirebaseService from "../services/FirebaseService";
 import UserRoleEntityService from "../services/UserRoleEntityService";
 import UserService from "../services/UserService";
@@ -15,9 +14,6 @@ import admin from "firebase-admin";
 import OrganisationPhotoService from "../services/OrganisationPhotoService";
 
 export class BaseController {
-
-    @Inject()
-    protected clubService: ClubService;
 
     @Inject()
     protected firebaseService: FirebaseService;

@@ -5,7 +5,7 @@ import {IsDate, IsNumber, IsString} from "class-validator";
 export class EntityType extends BaseEntity {
 
     public static COMPETITION = 1;
-    public static CLUB = 2;
+    public static ORGANISATION = 2;
     public static TEAM = 3;
     public static USER = 4;
     public static PLAYER = 5;
