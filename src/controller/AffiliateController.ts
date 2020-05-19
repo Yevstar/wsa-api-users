@@ -215,13 +215,13 @@ export class AffiliateController extends BaseController {
                                 if (PermissionMap.get(uItem.id) == undefined) {
                                     await this.ureService.DeleteUre(uItem.id, uItem.userId);
                                 }
-                                if (contactMap.get(uItem.userId) == undefined) {
-                                    let userExist = await this.ureService.findByAffiliateUser(uItem.userId)
-                                    if (userExist == undefined || userExist == null) {
-                                        console.log("deleting")
-                                        await this.userService.DeleteUser(uItem.userId,userId);
-                                    }
-                                }
+                                // if (contactMap.get(uItem.userId) == undefined) {
+                                //     let userExist = await this.ureService.findByAffiliateUser(uItem.userId)
+                                //     if (userExist == undefined || userExist == null) {
+                                //         console.log("deleting")
+                                //         await this.userService.DeleteUser(uItem.userId,userId);
+                                //     }
+                                // }
                             }
                         }
                         return response.status(200).send({ id: organisationRes.id, message: 'Successfully inserted' });

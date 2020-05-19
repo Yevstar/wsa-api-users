@@ -39,6 +39,13 @@ export default class UserService extends BaseService<User> {
                 {email: email.toLowerCase(), password: password})
             .getOne();
     }
+    public async findByCredentialsForWeb(email: string, password: string): Promise<User> {
+        return this.entityManager.createQueryBuilder(User, 'user')
+            .innerJoin(UserRoleEntity, 'ure', 'user.id = ure.userId and ure.entityType = 2 and ure.isDeleted = 0')
+            .andWhere('LOWER(user.email) = :email and user.password = :password and user.isDeleted = 0',
+                {email: email.toLowerCase(), password: password})
+            .getOne();
+    }
 
     public async findByFullName(name: string): Promise<User[]> {
         let builder = this.entityManager.createQueryBuilder(User, 'user')
