@@ -68,7 +68,7 @@ export class PasswordController extends BaseController {
             return response.status(200).send(
                 {name: 'success', message: 'A password reset link was sent to your email address.'});
             } else {
-            return response.status(200).send(
+            return response.status(212).send(
                 {name: 'email_id_error', message: 'email id is necessary to be passed.'});
             }
         } catch (err) {

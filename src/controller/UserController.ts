@@ -15,10 +15,11 @@ import {
 import {User} from '../models/User';
 import {Request, Response} from 'express';
 import {decode as atob} from 'base-64';
-import {authToken, fileExt, isNullOrEmpty, isPhoto, timestamp} from "../utils/Utils";
+import {authToken, fileExt, isNullOrEmpty, isPhoto, timestamp, isArrayEmpty} from "../utils/Utils";
 import {LoginError} from "../exceptions/LoginError";
 import {BaseController} from "./BaseController";
 import { logger } from '../logger';
+import * as fastcsv from 'fast-csv';
 
 @JsonController('/users')
 export class UserController extends BaseController {
@@ -333,4 +334,47 @@ export class UserController extends BaseController {
       }
     }
 
+    @Authorized()
+    @Get('/byRole/export')
+    async exportUserByRole(
+        @QueryParam('roleId', { required: true }) roleId: number,
+        @QueryParam('entityTypeId', { required: true }) entityTypeId: number,
+        @QueryParam('entityId', { required: true }) entityId: number,
+        @QueryParam('userName') userName: string,
+        @Res() response: Response
+    ) {
+        const getManagersData = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response);
+        getManagersData.map(e => {
+            e['First Name'] = e['firstName'];
+            e['Last Name'] = e['lastName'];
+            e['Email'] = e['email'];
+            e['Contact No'] = e['mobileNumber'];
+            const TeamName = [];
+            if (isArrayEmpty(e['linkedEntity'])) {
+                for (let r of e['linkedEntity']) {
+                    TeamName.push(r['name']);
+                }
+            }
+            e['Team'] = TeamName.toString().replace(",", '\n');
+
+            delete e['id'];
+            delete e['email'];
+            delete e['firstName'];
+            delete e['lastName'];
+            delete e['mobileNumber'];
+            delete e['genderRefId'];
+            delete e['marketingOptIn'];
+            delete e['photoUrl'];
+            delete e['firebaseUID'];
+            delete e['statusRefId'];
+            delete e['linkedEntity'];
+            return e;
+        });
+
+        response.setHeader('Content-disposition', 'attachment; filename=managers.csv');
+        response.setHeader('content-type', 'text/csv');
+        fastcsv.write(getManagersData, { headers: true })
+            .on("finish", function () { })
+            .pipe(response);
+    }
 }
