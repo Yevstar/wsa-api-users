@@ -34,7 +34,14 @@ export class UserController extends BaseController {
             const token = atob(auth.replace('BWSA ', '')).split(':');
             const email = token[0].toLowerCase();
             const password = token[1];
-            const user = await this.userService.findByCredentials(email, password);
+            let sourcesystem = request.headers.sourcesystem
+            let user = null;
+            if(sourcesystem == 'WebAdmin'){
+                user = await this.userService.findByCredentialsForWeb(email, password);
+            }
+            else{
+                 user = await this.userService.findByCredentials(email, password);
+            }
             if (user) {
                 return this.responseWithTokenAndUser(email, password, user);
             } else {
