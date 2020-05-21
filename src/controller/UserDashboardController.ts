@@ -218,4 +218,24 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+    @Authorized()
+    @Post('/export/registration/questions')
+    async exportRegistrationQuestions(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                const affiliateListRes = await this.userDashboardService.exportRegistrationQuestions(requestBody, currentUser.id);
+                return response.status(200).send(affiliateListRes);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in dashboard textual`+error);
+            return response.status(500).send({
+                message: 'Something went wrong. Please contact administrator'
+            });
+        }
+    }
+
 }

@@ -154,4 +154,14 @@ export default class UserDashboardService extends BaseService<User> {
             throw error;
         }
     }
+
+    public async exportRegistrationQuestions(requestBody :any, userId){
+        try{
+            let result = await this.entityManager.query('call wsa_users.usp_user_dashboard_textual(?,?,?,?,?,?,?)',
+            [requestBody.organisationUniqueKey, requestBody.yearRefId, requestBody.competitionUniqueKey, requestBody.roleId, requestBody.genderRefId, requestBody.linkedEntityId, requestBody.postCode]);
+        }
+        catch(error){
+            
+        }
+    }
 }
