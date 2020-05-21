@@ -200,6 +200,7 @@ export class AffiliateController extends BaseController {
                                     }
                                 }
                                 if (contact.userId == 0) {
+                                    await this.updateFirebaseData(userRes,userRes.password);
                                     let mailObj = await this.communicationTemplateService.findById(1);
                                     await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
                                 }
