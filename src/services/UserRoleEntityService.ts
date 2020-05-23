@@ -11,11 +11,12 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
         return UserRoleEntity.name;
     }
 
-    public async DeleteUre(id: number, userId: number){
+    public async DeleteUre(entityId: number, userId: number, currentUserId: number){
         return this.entityManager.createQueryBuilder(UserRoleEntity, 'userRoleEntity')
         .update(UserRoleEntity)
-        .set({isDeleted: 1, updatedBy: userId, updatedAt: new Date()})
-        .andWhere('userRoleEntity.id = :id', {id})
+        .set({isDeleted: 1, updatedBy: currentUserId, updatedAt: new Date()})
+        .andWhere('userRoleEntity.entityId = :entityId and userRoleEntity.userId = :userId and entityTypeId = 2', 
+                    {entityId: entityId, userId: userId})
         .execute();
     }
 

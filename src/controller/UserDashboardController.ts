@@ -5,6 +5,7 @@ import { User } from "../models/User";
 import { Response, response } from 'express';
 import e = require("express");
 import { validateReqFilter } from "../validation/Validation";
+import * as  fastcsv from 'fast-csv';
 
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
@@ -227,8 +228,14 @@ export class UserDashboardController extends BaseController {
         @Res() response: Response) {
         try {
             if (requestBody != null) {
-                const affiliateListRes = await this.userDashboardService.exportRegistrationQuestions(requestBody, currentUser.id);
-                return response.status(200).send(affiliateListRes);
+                const Res = await this.userDashboardService.exportRegistrationQuestions(requestBody, currentUser.id);
+                response.setHeader('Content-disposition', 'attachment; filename=teamFinal.csv');
+                response.setHeader('content-type', 'text/csv');
+                fastcsv
+                    .write(Res, { headers: true })
+                    .on("finish", function () {
+                    })
+                    .pipe(response);
             }
         } catch (error) {
             logger.error(`Error Occurred in dashboard textual`+error);

@@ -210,21 +210,21 @@ export class AffiliateController extends BaseController {
 
                         }
                         //  }
-                        if (isArrayEmpty(ureUserIdDb)) {
-                            for (let uItem of ureUserIdDb) {
+                        // if (isArrayEmpty(ureUserIdDb)) {
+                        //     for (let uItem of ureUserIdDb) {
                                 
-                                if (PermissionMap.get(uItem.id) == undefined) {
-                                    await this.ureService.DeleteUre(uItem.id, uItem.userId);
-                                }
-                                // if (contactMap.get(uItem.userId) == undefined) {
-                                //     let userExist = await this.ureService.findByAffiliateUser(uItem.userId)
-                                //     if (userExist == undefined || userExist == null) {
-                                //         console.log("deleting")
-                                //         await this.userService.DeleteUser(uItem.userId,userId);
-                                //     }
-                                // }
-                            }
-                        }
+                        //         if (PermissionMap.get(uItem.id) == undefined) {
+                        //             await this.ureService.DeleteUre(uItem.id, uItem.userId);
+                        //         }
+                        //         // if (contactMap.get(uItem.userId) == undefined) {
+                        //         //     let userExist = await this.ureService.findByAffiliateUser(uItem.userId)
+                        //         //     if (userExist == undefined || userExist == null) {
+                        //         //         console.log("deleting")
+                        //         //         await this.userService.DeleteUser(uItem.userId,userId);
+                        //         //     }
+                        //         // }
+                        //     }
+                        // }
                         return response.status(200).send({ id: organisationRes.id, message: 'Successfully inserted' });
 
                     }
@@ -252,6 +252,32 @@ export class AffiliateController extends BaseController {
             logger.error(`Error Occurred in Competition Timeslot Save ${userId}` + error);
             return response.status(500).send({
                 message: `Something went wrong. Please contact administrator:  ${error}`
+            });
+        }
+    }
+
+    
+    @Authorized()
+    @Delete('/affiliate/user/delete/:userId')
+    async removeAffiliateContact(
+        @HeaderParam("authorization") currentUser: User,
+        @Param('userId') userId: number,
+        @QueryParam("organisationUniqueKey") organisationUniqueKey: string,
+        @Res() response: Response) {
+            let currentUserId ;
+        try {
+           if(currentUser){
+               currentUserId  = currentUser.id
+            let organisationId = await this.organisationService.findByUniquekey(organisationUniqueKey);
+
+            await this.ureService.DeleteUre(organisationId, userId, currentUserId);
+            return response.status(200).send({message: "Successfully deleted Delete Contact"});
+           }
+               
+        } catch (error) {
+            logger.error(`Error Occurred in deleteing of contact ${currentUserId}`+error);
+            return response.status(500).send({
+                message: 'Something went wrong. Please contact administrator'
             });
         }
     }
