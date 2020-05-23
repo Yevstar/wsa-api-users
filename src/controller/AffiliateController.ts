@@ -271,7 +271,7 @@ export class AffiliateController extends BaseController {
             let organisationId = await this.organisationService.findByUniquekey(organisationUniqueKey);
 
             await this.ureService.DeleteUre(organisationId, userId, currentUserId);
-            return response.status(200).send({message: "Successfully deleted Delete Contact"});
+            return response.status(200).send({message: "Contact Delete Successfully"});
            }
                
         } catch (error) {
