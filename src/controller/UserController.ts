@@ -350,33 +350,43 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        const getManagersData = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response);
-        getManagersData.map(e => {
-            e['First Name'] = e['firstName'];
-            e['Last Name'] = e['lastName'];
-            e['Email'] = e['email'];
-            e['Contact No'] = e['mobileNumber'];
-            const TeamName = [];
-            if (isArrayEmpty(e['linkedEntity'])) {
-                for (let r of e['linkedEntity']) {
-                    TeamName.push(r['name']);
+        let getManagersData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response);
+        if (isArrayEmpty(getManagersData)) {
+            getManagersData.map(e => {
+                e['First Name'] = e['firstName'];
+                e['Last Name'] = e['lastName'];
+                e['Email'] = e['email'];
+                e['Contact No'] = e['mobileNumber'];
+                const TeamName = [];
+                if (isArrayEmpty(e['linkedEntity'])) {
+                    for (let r of e['linkedEntity']) {
+                        TeamName.push(r['name']);
+                    }
                 }
-            }
-            e['Team'] = TeamName.toString().replace(",", '\n');
+                e['Team'] = TeamName.toString().replace(",", '\n');
 
-            delete e['id'];
-            delete e['email'];
-            delete e['firstName'];
-            delete e['lastName'];
-            delete e['mobileNumber'];
-            delete e['genderRefId'];
-            delete e['marketingOptIn'];
-            delete e['photoUrl'];
-            delete e['firebaseUID'];
-            delete e['statusRefId'];
-            delete e['linkedEntity'];
-            return e;
-        });
+                delete e['id'];
+                delete e['email'];
+                delete e['firstName'];
+                delete e['lastName'];
+                delete e['mobileNumber'];
+                delete e['genderRefId'];
+                delete e['marketingOptIn'];
+                delete e['photoUrl'];
+                delete e['firebaseUID'];
+                delete e['statusRefId'];
+                delete e['linkedEntity'];
+                return e;
+            });
+        } else {
+            getManagersData.push({
+                "Last Name": '',
+                ['Email']: 'N/A',
+                ['Contact No']: 'N/A',
+                ['Team']: 'N/A',
+                ['First Name']: 'N/A'
+            });
+        }
 
         response.setHeader('Content-disposition', 'attachment; filename=managers.csv');
         response.setHeader('content-type', 'text/csv');
