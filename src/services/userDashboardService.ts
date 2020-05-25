@@ -161,7 +161,7 @@ export default class UserDashboardService extends BaseService<User> {
     public async exportRegistrationQuestions(requestBody :any, userId){
         try{
             let result = await this.entityManager.query('call wsa_users.usp_export_registration_questions(?,?,?,?,?,?,?)',
-            [requestBody.organisationUniqueKey, requestBody.yearRefId, requestBody.competitionUniqueKey, requestBody.roleId, requestBody.genderRefId, requestBody.linkedEntityId, requestBody.postCode]);
+            [requestBody.organisationId, requestBody.yearRefId, requestBody.competitionUniqueKey, requestBody.roleId, requestBody.genderRefId, requestBody.linkedEntityId, requestBody.postCode]);
 
             if(isArrayEmpty(result[0])){
                 for(let res of result[0]){
