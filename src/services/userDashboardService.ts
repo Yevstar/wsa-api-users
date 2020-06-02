@@ -146,7 +146,20 @@ export default class UserDashboardService extends BaseService<User> {
                 responseObject["competitions"] = result[2];
                 responseObject["organisations"] = result[3];
                 responseObject["roles"] = result[4];
-                responseObject["counts"] = result[5].find(x=>x);
+                let obj = {
+                    noOfUsers: 0,
+                    noOfRegisteredUsers: 0
+                }
+                responseObject["counts"] = obj;
+                if(isArrayEmpty(result[5]))
+                {
+                    let userCount = result[5].find(x=>x.moduleId == 1);
+                    let userCount1 = result[5].find(x=>x.moduleId == 2);
+                    responseObject["counts"]["noOfUsers"] = (userCount!= null ? userCount.counts : 0);
+                    responseObject["counts"]["noOfRegisteredUsers"] = (userCount1!= null ? userCount1.counts : 0);
+                }
+               
+               
                 return responseObject;
             }
             else{
