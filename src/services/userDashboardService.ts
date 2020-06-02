@@ -146,6 +146,7 @@ export default class UserDashboardService extends BaseService<User> {
                 responseObject["competitions"] = result[2];
                 responseObject["organisations"] = result[3];
                 responseObject["roles"] = result[4];
+                responseObject["counts"] = result[5].find(x=>x);
                 return responseObject;
             }
             else{
