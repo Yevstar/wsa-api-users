@@ -519,4 +519,31 @@ export class AffiliateController extends BaseController {
             });
         }
     }
+
+    @Authorized()
+    @Post('/affiliatedirectory')
+    async affiliateDirectory(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestFilter: any,
+        @Res() response: Response) {
+        try {
+            if (currentUser.id) {
+                if (requestFilter != null) {
+                    const affiliateListRes = await this.affiliateService.affiliateDirectory(requestFilter);
+                    return response.status(200).send(affiliateListRes);
+                }
+            }
+            else{
+                return response.status(401).send({
+                    errorCode: 2,
+                    message: 'You are trying to access another user\'s data'
+                });
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in affiliateDirectory ${currentUser.id}` + error);
+            return response.status(500).send({
+                message: 'Something went wrong. Please contact administrator'
+            });
+        }
+    }
 }
