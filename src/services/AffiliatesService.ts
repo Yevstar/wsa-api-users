@@ -294,4 +294,31 @@ export default class AffiliateService extends BaseService<Affiliate> {
             throw error;
         }
     }
+
+    public async exportAffiliateDirectory(requestFilter :any, userId){
+        try{
+            let organisationId = requestFilter.organisationUniqueKey;
+            let yearRefId = requestFilter.yearRefId;
+            let organisationTypeRefId = requestFilter.organisationTypeRefId;
+            let searchText = requestFilter.searchText;
+            let limit = requestFilter.paging.limit;
+            let offset = requestFilter.paging.offset;
+    
+            let affiliateArray = [];
+    
+            let result = await this.entityManager.query("call wsa_users.usp_export_affiliate_directory(?,?,?,?,?,?,?)",
+                [organisationId, yearRefId, organisationTypeRefId, searchText, limit, offset, 2]);
+
+            if(result!= null){
+                return result[0]
+            }
+            else {
+                return [];
+            }
+            
+        }
+        catch(error){
+            throw error;
+        }
+    }
 }

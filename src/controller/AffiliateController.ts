@@ -11,6 +11,7 @@ import e = require("express");
 import { OrganisationLogo } from "../models/OrganisationLogo";
 import { OrganisationPhoto } from "../models/OrganisationPhoto";
 import { validateReqFilter } from "../validation/Validation";
+import * as  fastcsv from 'fast-csv';
 
 @JsonController("/api")
 export class AffiliateController extends BaseController {
@@ -541,6 +542,31 @@ export class AffiliateController extends BaseController {
             }
         } catch (error) {
             logger.error(`Error Occurred in affiliateDirectory ${currentUser.id}` + error);
+            return response.status(500).send({
+                message: 'Something went wrong. Please contact administrator'
+            });
+        }
+    }
+
+    @Authorized()
+    @Post('/export/affiliatedirectory')
+    async exportAffiliateDirectory(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                const Res = await this.affiliateService.exportAffiliateDirectory(requestBody, currentUser.id);
+                response.setHeader('Content-disposition', 'attachment; filename=teamFinal.csv');
+                response.setHeader('content-type', 'text/csv');
+                fastcsv
+                    .write(Res, { headers: true })
+                    .on("finish", function () {
+                    })
+                    .pipe(response);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in dashboard textual`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
