@@ -634,7 +634,7 @@ export default class UserService extends BaseService<User> {
                                     }
                                     else if(i.registrationSettingsRefId == 12){
                                         if(isArrayEmpty(result[4])){
-                                            let volunteers = result[4].filter(x=>x.regMasterId == item.regMasterId);
+                                            let volunteers = result[4].filter(x=>x.registrationId == item.registrationId);
                                             if(isArrayEmpty(volunteers)){
                                                 regObj.volunteers = volunteers;
                                             }
