@@ -306,11 +306,46 @@ export default class AffiliateService extends BaseService<Affiliate> {
     
             let affiliateArray = [];
     
-            let result = await this.entityManager.query("call wsa_users.usp_export_affiliate_directory(?,?,?,?,?,?,?)",
-                [organisationId, yearRefId, organisationTypeRefId, searchText, limit, offset, 2]);
+            let result = await this.entityManager.query("call wsa_users.usp_export_affiliate_directory(?,?,?,?,?)",
+                [organisationId, yearRefId, organisationTypeRefId, searchText, 2]);
 
             if(result!= null){
-                return result[0]
+
+                if(isArrayEmpty(result[0])){
+                    for(let r of result[0]){
+                        let obj={};
+
+                        obj["Affiliate Name"] = r.affiliateName;
+                        obj["Organisation Type"] = r.organisationTypeRefId;
+                        obj["Affiliated To"] = r.affiliatedToName;
+                        obj["Competition"] = r.competitionName;
+                        obj["Address Line 1"] = r.street1;
+                        obj["Address Line 2"] = r.street2;
+                        obj["Suburb"] = r.suburb;
+                        obj["State"] = r.state;
+                        obj["Postcode"] = r.postalCode;
+                        obj["Phone Number"] = r.phoneNo;
+
+                        let res1 = result[1].find(x => x.organisationId == r.affiliateOrgId)
+                        let contacts = res1.contacts;
+
+                        if(isArrayEmpty(contacts)){
+                            let i = 1;
+                            for(let c of contacts){
+                                obj["Contact "+i+" First Name"] = c.contactFirstName;
+                                obj["Contact "+i+" Last Name"] = c.contactLastName;
+                                obj["Contact "+i+" Email"] = c.contactEmail;
+                                obj["Contact "+i+" Phone Number"] = c.contactPhone;
+                                i++;
+                            }
+                        }
+
+                        affiliateArray.push(obj)
+                    }
+                }
+
+
+                return affiliateArray;
             }
             else {
                 return [];
