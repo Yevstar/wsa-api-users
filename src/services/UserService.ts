@@ -360,6 +360,7 @@ export default class UserService extends BaseService<User> {
                         let competitionObj = {
                             competitionId: item.competitionId,
                             competitionName: item.competitionName,
+                            competitionUniqueKey: item.competitionUniqueKey,
                             divisionId: item.divisionId,
                             divisionName: item.divisionName,
                             teams: []
@@ -550,8 +551,9 @@ export default class UserService extends BaseService<User> {
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_registration_details(?,?,?,?)",
-            [limit, offset, userId, competitionId]);
+            let organisationId = requestBody.organisationId;
+            let result = await this.entityManager.query("call wsa_users.usp_user_registration_details(?,?,?,?,?)",
+            [limit, offset, userId, competitionId, organisationId]);
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);

@@ -221,4 +221,104 @@ export default class AffiliateService extends BaseService<Affiliate> {
             throw error;
         }
     }
+
+    public async affiliateDirectory(requestFilter: any) {
+        try{
+            let organisationId = requestFilter.organisationUniqueKey;
+            let yearRefId = requestFilter.yearRefId;
+            let organisationTypeRefId = requestFilter.organisationTypeRefId;
+            let searchText = requestFilter.searchText;
+            let limit = requestFilter.paging.limit;
+            let offset = requestFilter.paging.offset;
+    
+            let affiliateArray = [];
+    
+            let result = await this.entityManager.query("call wsa_users.usp_affiliate_directory(?,?,?,?,?,?,?)",
+                [organisationId, yearRefId, organisationTypeRefId, searchText, limit, offset, 1]);
+    
+            if (result != null) {
+                let totalCount = result[1].find(x=>x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+
+                if(isArrayEmpty(result[0])){
+                    let orgMap = new Map();
+                    let compMap = new Map();
+                    for(let item of result[0]){
+                        let key = item.affiliateOrgId + "#" + item.affiliatedToOrg;
+                        let compKey = key + "#" + item.competitionId;
+                        let orgTemp = orgMap.get(key);
+                        let compTemp = compMap.get(compKey);
+                        let compObj ={
+                            competitionId: item.competitionId,
+                            competitionName: item.competitionName
+                        }
+                        if(orgTemp == undefined){
+                            let obj = {
+                                affiliateOrgId: item.affiliateOrgId,
+                                affiliateName: item.affiliateName,
+                                affiliatedToOrg: item.affiliatedToOrg,
+                                affiliatedToName: item.affiliatedToName,
+                                organisationTypeName: item.organisationTypeName,
+                                organisationTypeRefId: item.organisationTypeRefId,
+                                suburb: item.suburb,
+                                postalCode: item.postalCode,
+                                competitions: []
+                            }
+
+                            if(item.competitionId!= null){
+                                obj.competitions.push(compObj);
+                                compMap.set(compKey,compObj);
+                            }
+                            affiliateArray.push(obj);
+                            orgMap.set(key,obj);
+                        }
+                        else{
+                            if(compTemp == undefined){
+                                if(item.competitionId!= null){
+                                    orgTemp.competitions.push(compObj);
+                                    compMap.set(compKey,compObj);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                responseObject["affiliates"] = affiliateArray;
+                responseObject["organisationTypes"] = result[2];
+                return responseObject;
+            }
+            else{
+                return [];
+            }
+        }catch(error){
+            throw error;
+        }
+    }
+
+    public async exportAffiliateDirectory(requestFilter :any, userId){
+        try{
+            let organisationId = requestFilter.organisationUniqueKey;
+            let yearRefId = requestFilter.yearRefId;
+            let organisationTypeRefId = requestFilter.organisationTypeRefId;
+            let searchText = requestFilter.searchText;
+            let limit = requestFilter.paging.limit;
+            let offset = requestFilter.paging.offset;
+    
+            let affiliateArray = [];
+    
+            let result = await this.entityManager.query("call wsa_users.usp_export_affiliate_directory(?,?,?,?,?,?,?)",
+                [organisationId, yearRefId, organisationTypeRefId, searchText, limit, offset, 2]);
+
+            if(result!= null){
+                return result[0]
+            }
+            else {
+                return [];
+            }
+            
+        }
+        catch(error){
+            throw error;
+        }
+    }
 }
