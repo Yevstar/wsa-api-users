@@ -314,7 +314,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         let obj={};
 
                         obj["Affiliate Name"] = r.affiliateName;
-                        obj["Organisation Type"] = r.organisationTypeRefId;
+                        obj["Organisation Type"] = r.organisationTypeName;
                         obj["Affiliated To"] = r.affiliatedToName;
                         obj["Competition"] = r.competitionName;
                         obj["Address Line 1"] = r.street1;
