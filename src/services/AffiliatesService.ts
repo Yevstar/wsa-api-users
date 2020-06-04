@@ -312,7 +312,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                 if(isArrayEmpty(result[0])){
                     for(let r of result[0]){
                         let obj={};
-
+                        obj["count"] = 0;
                         obj["Affiliate Name"] = r.affiliateName;
                         obj["Organisation Type"] = r.organisationTypeName;
                         obj["Affiliated To"] = r.affiliatedToName;
@@ -329,19 +329,25 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
                         if(isArrayEmpty(contacts)){
                             let i = 1;
+                            obj["count"] = contacts.length
                             for(let c of contacts){
                                 obj["Contact "+i+" First Name"] = c.contactFirstName;
                                 obj["Contact "+i+" Last Name"] = c.contactLastName;
                                 obj["Contact "+i+" Email"] = c.contactEmail;
                                 obj["Contact "+i+" Phone Number"] = c.contactPhone;
                                 i++;
+
                             }
                         }
 
                         affiliateArray.push(obj)
                     }
+                    affiliateArray.sort((a,b) =>  b.count-a.count )
                 }
 
+                affiliateArray.map((item, index) =>{
+                    delete item.count;
+                });
 
                 return affiliateArray;
             }
