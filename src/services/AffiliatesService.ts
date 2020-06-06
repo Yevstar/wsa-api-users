@@ -262,6 +262,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                                 organisationTypeRefId: item.organisationTypeRefId,
                                 suburb: item.suburb,
                                 postalCode: item.postalCode,
+                                isEditable: item.isEditable,
                                 competitions: []
                             }
 
