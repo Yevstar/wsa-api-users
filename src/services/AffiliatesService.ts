@@ -343,15 +343,37 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         affiliateArray.push(obj)
                     }
                     affiliateArray.sort((a,b) =>  b.count-a.count )
-                }
 
-                affiliateArray.map((item, index) =>{
-                    delete item.count;
-                });
+                    affiliateArray.map((item, index) =>{
+                        delete item.count;
+                    });
+                }
+                else{
+                 let obj={
+                    "Affiliate Name": "",
+                    "Organisation Type": "",
+                    "Affiliated To": "",
+                    "Competition": "",
+                    "Address Line 1": "",
+                    "Address Line 2": "",
+                    "Suburb": "",
+                    "State": "",
+                    "Postcode": "",
+                    "Phone Number": "",
+                    "Contact 1 First Name": "",
+                    "Contact 1 Last Name": "",
+                    "Contact 1 Email": "",
+                    "Contact 1 Phone Number": ""
+                 }   
+                 affiliateArray.push(obj)
+
+                }
+               
 
                 return affiliateArray;
             }
             else {
+
                 return [];
             }
             
