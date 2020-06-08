@@ -262,6 +262,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                                 organisationTypeRefId: item.organisationTypeRefId,
                                 suburb: item.suburb,
                                 postalCode: item.postalCode,
+                                isEditable: item.isEditable,
                                 competitions: []
                             }
 
@@ -314,7 +315,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         let obj={};
                         obj["count"] = 0;
                         obj["Affiliate Name"] = r.affiliateName;
-                        obj["Organisation Type"] = r.organisationTypeRefId;
+                        obj["Organisation Type"] = r.organisationTypeName;
                         obj["Affiliated To"] = r.affiliatedToName;
                         obj["Competition"] = r.competitionName;
                         obj["Address Line 1"] = r.street1;
