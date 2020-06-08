@@ -187,9 +187,52 @@ export default class UserDashboardService extends BaseService<User> {
                     if(res1['Your support can you help'] != null)
                         res1['Your support can you help'] = res1['Your support can you help'].join(", ")
                 }
-            }
 
-            return result[0]
+                return result[0]
+            }
+            else{
+                let arr  = [];
+                let obj = {
+                    "First Name": "",
+                    "Last Name": "",
+                    "Gender": "",
+                    "DOB": "",
+                    "PostalCode": "",
+                    "Mobile": "",
+                    "Address":"",
+                    "State": "",
+                    "Affiliate Name": "",
+                    "Competition Name": "",
+                    "Start Date": "",
+                    "End Date": "",
+                    "Venue": "",
+                    "Training details": "",
+                    "Membership Product": "",
+                    "Division": "",
+                    "Emergency Contact": "",
+                    "Emergency Contact Mobile": "",
+                    "Regular Medications": "",
+                    "Hear about Netball": "",
+                    "Favorite team": "",
+                    "Agreed Terms and Conditions": "",
+                    "Country of birth": "",
+                    "Nationality": "",
+                    "Languages spoken at home": "",
+                    "Do you have a Disability": "",
+                    "Have you ever played netball before": "",
+                    "Last captain name": "",
+                    "Played Club": "",
+                    "Played Grade": "",
+                    "Played Year": "",
+                    "Been to a Firebird Game": "",
+                    "1st & 2nd playing position": "",
+                    "Your support can you help": "",
+                    "Photo Consent": ""
+                }
+                arr.push(obj);
+                return arr;
+            }
+       
         }
         catch(error){
             throw error;
