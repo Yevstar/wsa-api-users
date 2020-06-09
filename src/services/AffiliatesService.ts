@@ -326,7 +326,8 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         obj["Phone Number"] = r.phoneNo;
 
                         let res1 = result[1].find(x => x.organisationId == r.affiliateOrgId)
-                        let contacts = res1.contacts;
+
+                        let contacts = res1 != undefined? res1.contacts : [];
 
                         if(isArrayEmpty(contacts)){
                             let i = 1;
