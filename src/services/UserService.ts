@@ -253,7 +253,7 @@ export default class UserService extends BaseService<User> {
                 'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl',
                 'u.firebaseUID as firebaseUID', 'u.statusRefId as statusRefId'])
             .addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'entityTypeId\', ' +
-                'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, \'name\', le.linkedEntityName)),\']\') ' +
+                'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, \'name\', le.linkedEntityName, \'parentName\', le.linkedParentName)),\']\') ' +
                 'as linkedEntity')
             .innerJoin(UserRoleEntity, 'ure', 'u.id = ure.userId')
             .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId')
