@@ -6,6 +6,7 @@ import { Response, response } from 'express';
 import e = require("express");
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
+import { UserRegistration } from "../models/UserRegistration";
 
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
@@ -243,6 +244,79 @@ export class UserDashboardController extends BaseController {
                 message: 'Something went wrong. Please contact administrator'
             });
         }
+        
     }
 
+    @Authorized()
+    @Post('/userprofile/update')
+    async userProfileUpdate(
+        @HeaderParam("authorization") currentUser: User,
+        @HeaderParam("section") section: string,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+
+            let user = new User();
+            let userReg = new UserRegistration();
+
+            if(section == 'address'){
+                user.id = requestBody.userId;
+                user.street1 = requestBody.street1;
+                user.street2 = requestBody.street2;
+                user.suburb = requestBody.suburb;
+                user.stateRefId = requestBody.stateRefId;
+                user.postalCode = requestBody.postalCode;
+                user.email = requestBody.email;
+                await this.userService.createOrUpdate(user);
+                return response.status(200).send({message: "Successfully updated"})
+            }
+            else if(section == 'primary'){
+                user.id = requestBody.userId;
+                user.firstName = requestBody.firstName;
+                user.lastName = requestBody.lastName;
+                user.street1 = requestBody.street1;
+                user.street2 = requestBody.street2;
+                user.suburb = requestBody.suburb;
+                user.stateRefId = requestBody.stateRefId;
+                user.postalCode = requestBody.postalCode;
+                user.mobileNumber = requestBody.mobileNumber;
+                user.email = requestBody.email;
+                await this.userService.createOrUpdate(user);
+                return response.status(200).send({message: "Successfully updated"})
+            }
+            else if(section == 'emergency'){
+                user.id = requestBody.userId;
+                user.emergencyContactName = requestBody.emergencyContactName
+                user.emergencyContactNumber = requestBody.emergencyContactNumber;
+                await this.userService.createOrUpdate(user);
+                return response.status(200).send({message: "Successfully updated"})
+            }
+            else if(section == 'other'){
+                userReg.id = requestBody.userRegistrationId;
+                userReg.nationalityRefId = requestBody.nationalityRefId;
+                userReg.countryRefId = requestBody.countryRefId;
+                userReg.languages = requestBody.languages;
+                await this.userRegistrationService.createOrUpdate(userReg);
+                return response.status(200).send({message: "Successfully updated"})
+            }
+            else if(section == 'medical'){
+                userReg.id = requestBody.userRegistrationId;
+                userReg.existingMedicalCondition = requestBody.existingMedicalCondition;
+                userReg.regularMedication = requestBody.regularMedication;
+                userReg.isDisability = requestBody.isDisability;
+                userReg.disabilityCareNumber = requestBody.disabilityCareNumber;
+                userReg.disabilityTypeRefId = requestBody.disabilityTypeRefId;
+                await this.userRegistrationService.createOrUpdate(userReg);
+                return response.status(200).send({message: "Successfully updated"})
+            }
+
+
+        } catch (error) {
+            logger.error(`Error Occurred in dashboard textual`+error);
+            return response.status(500).send({
+                message: 'Something went wrong. Please contact administrator'
+            });
+        }
+        
+    }
 }

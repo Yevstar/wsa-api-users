@@ -59,6 +59,34 @@ export class User extends BaseEntity {
     @IsString()
     @Column()
     firebaseUID: string;
+    
+    @IsString()
+    @Column()
+    street1: string;
+
+    @IsString()
+    @Column()
+    street2: string;
+
+    @IsString()
+    @Column()
+    suburb: string;
+
+    @IsNumber()
+    @Column()
+    stateRefId: number;
+    
+    @IsString()
+    @Column()
+    emergencyContactName: string;
+
+    @IsString()
+    @Column()
+    emergencyContactNumber: string;
+
+    @IsString()
+    @Column()
+    postalCode: string;
 
     @IsNumber()
     @Column()

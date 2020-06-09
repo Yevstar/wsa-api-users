@@ -47,6 +47,14 @@ export class UserRegistration extends BaseEntity {
     @IsNumber()
     @Column()
     isDisability: number;
+    
+    @IsString()
+    @Column()
+    disabilityCareNumber: string;
+
+    @IsNumber()
+    @Column()
+    disabilityTypeRefId: number;
 
     @IsString()
     @Column()
