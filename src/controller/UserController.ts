@@ -357,13 +357,18 @@ export class UserController extends BaseController {
                 e['Last Name'] = e['lastName'];
                 e['Email'] = e['email'];
                 e['Contact No'] = e['mobileNumber'];
-                const TeamName = [];
+                const teamName = [];
+                const affiliateName = [];
                 if (isArrayEmpty(e['linkedEntity'])) {
                     for (let r of e['linkedEntity']) {
-                        TeamName.push(r['name']);
+                        teamName.push(r['name']);
+                        if (r['parentName'] != null) {
+                            affiliateName.push(r['parentName']);
+                        }
                     }
                 }
-                e['Team'] = TeamName.toString().replace(",", '\n');
+                e['Organisation'] = affiliateName.toString().replace(",", '\n');
+                e['Team'] = teamName.toString().replace(",", '\n');
 
                 delete e['id'];
                 delete e['email'];
@@ -380,11 +385,12 @@ export class UserController extends BaseController {
             });
         } else {
             getManagersData.push({
-                "Last Name": '',
+                ['First Name']: 'N/A',
+                ['Last Name']: 'N/A',
                 ['Email']: 'N/A',
                 ['Contact No']: 'N/A',
-                ['Team']: 'N/A',
-                ['First Name']: 'N/A'
+                ['Organisation']: 'N/A',
+                ['Team']: 'N/A'
             });
         }
 
