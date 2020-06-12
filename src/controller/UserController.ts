@@ -367,8 +367,8 @@ export class UserController extends BaseController {
                         }
                     }
                 }
-                e['Organisation'] = affiliateName.toString().replace(",", '\n');
-                e['Team'] = teamName.toString().replace(",", '\n');
+                e['Organisation'] = affiliateName.toString();
+                e['Team'] = teamName.toString();
 
                 delete e['id'];
                 delete e['email'];
@@ -394,7 +394,7 @@ export class UserController extends BaseController {
             });
         }
 
-        response.setHeader('Content-disposition', 'attachment; filename=managers.csv');
+        response.setHeader('Content-disposition', 'attachment; filename=file.csv');
         response.setHeader('content-type', 'text/csv');
         fastcsv.write(getManagersData, { headers: true })
             .on("finish", function () { })
