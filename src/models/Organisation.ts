@@ -32,6 +32,9 @@ export class Organisation extends BaseEntity {
     @Column()
     suburb: string;
 
+    @IsString()
+    @Column()
+    email: string;
 
     @IsString()
     @Column()

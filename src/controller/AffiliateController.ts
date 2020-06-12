@@ -92,6 +92,7 @@ export class AffiliateController extends BaseController {
                         organisation.city = requestBody.city;
                         organisation.postalCode = requestBody.postalCode;
                         organisation.stateRefId = requestBody.stateRefId;
+                        organisation.email = requestBody.email.toLowerCase();
                         organisation.statusRefId = 2;
 
                         organisation.whatIsTheLowestOrgThatCanAddChild = requestBody.whatIsTheLowestOrgThatCanAddChild;
