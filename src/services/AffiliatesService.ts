@@ -105,7 +105,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         name: aff.affiliateOrgName,
                         organisationTypeRefName: aff.organisationTypeRefName,
                         phoneNo: aff.phoneNo,
-                        email: aff.email,
+                        email: aff.affiliateMail,
                         street1: aff.street1,
                         street2: aff.street2,
                         suburb: aff.suburb,
