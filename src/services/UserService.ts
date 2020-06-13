@@ -363,6 +363,7 @@ export default class UserService extends BaseService<User> {
                             competitionUniqueKey: item.competitionUniqueKey,
                             divisionId: item.divisionId,
                             divisionName: item.divisionName,
+                            yearRefId: item.yearRefId,
                             teams: []
                         }
                         let teamObj = {
