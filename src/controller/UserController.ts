@@ -15,7 +15,7 @@ import {
 import {User} from '../models/User';
 import {Request, Response} from 'express';
 import {decode as atob} from 'base-64';
-import {authToken, fileExt, isNullOrEmpty, isPhoto, timestamp, isArrayEmpty} from "../utils/Utils";
+import {authToken, fileExt, isNullOrEmpty, isPhoto, timestamp, isArrayPopulated} from "../utils/Utils";
 import {LoginError} from "../exceptions/LoginError";
 import {BaseController} from "./BaseController";
 import { logger } from '../logger';
@@ -351,7 +351,7 @@ export class UserController extends BaseController {
         @Res() response: Response
     ) {
         let getManagersData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response);
-        if (isArrayEmpty(getManagersData)) {
+        if (isArrayPopulated(getManagersData)) {
             getManagersData.map(e => {
                 e['First Name'] = e['firstName'];
                 e['Last Name'] = e['lastName'];
@@ -359,7 +359,7 @@ export class UserController extends BaseController {
                 e['Contact No'] = e['mobileNumber'];
                 const teamName = [];
                 const affiliateName = [];
-                if (isArrayEmpty(e['linkedEntity'])) {
+                if (isArrayPopulated(e['linkedEntity'])) {
                     for (let r of e['linkedEntity']) {
                         teamName.push(r['name']);
                         if (r['parentName'] != null) {

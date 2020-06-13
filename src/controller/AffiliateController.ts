@@ -1,6 +1,6 @@
 import { BaseController } from "./BaseController";
 import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Param, Get, UploadedFile, Delete } from "routing-controllers";
-import { isArrayEmpty, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty } from "../utils/Utils";
+import { isArrayPopulated, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty } from "../utils/Utils";
 import { Response, response } from 'express';
 import { Affiliate } from "../models/Affiliate";
 import { logger } from "../logger";
@@ -35,7 +35,7 @@ export class AffiliateController extends BaseController {
                     if (requestBody != null) {
                         if (isStringNullOrEmpty(requestBody.contacts)) {
                             requestBody.contacts = JSON.parse(requestBody.contacts);
-                            if (isArrayEmpty(requestBody.contacts)) {
+                            if (isArrayPopulated(requestBody.contacts)) {
                                 let arr = [];
                                 for (let contact of requestBody.contacts) {
 
@@ -152,7 +152,7 @@ export class AffiliateController extends BaseController {
                         // if (isStringNullOrEmpty(requestBody.contacts)) {
                         //     console.log("@@@@@@-----1")
                         //     requestBody.contacts = JSON.parse(requestBody.contacts);
-                        if (isArrayEmpty(requestBody.contacts)) {
+                        if (isArrayPopulated(requestBody.contacts)) {
                             for (let contact of requestBody.contacts) {
                                 // let userDb = await this.userService.findByEmail(contact.email)
                                 // if (userDb == null) {
@@ -175,7 +175,7 @@ export class AffiliateController extends BaseController {
 
                                 let userRes = await this.userService.createOrUpdate(user);
                                 let ureDb = await this.ureService.findByUserAndEntityId(userRes.id, affiliateRes.affiliateOrgId)
-                                if (isArrayEmpty(contact.permissions)) {
+                                if (isArrayPopulated(contact.permissions)) {
                                     for (let permission of contact.permissions) {
                                         let userRoleEntity = new UserRoleEntity();
                                         if (ureDb) {
@@ -212,7 +212,7 @@ export class AffiliateController extends BaseController {
 
                         }
                         //  }
-                        // if (isArrayEmpty(ureUserIdDb)) {
+                        // if (isArrayPopulated(ureUserIdDb)) {
                         //     for (let uItem of ureUserIdDb) {
                                 
                         //         if (PermissionMap.get(uItem.id) == undefined) {

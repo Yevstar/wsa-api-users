@@ -2,7 +2,7 @@ import { Service } from "typedi";
 import BaseService from "../services/BaseService";
 import { Organisation } from "../models/Organisation";
 import { logger } from "../logger";
-import { isArrayEmpty } from "../utils/Utils";
+import { isArrayPopulated } from "../utils/Utils";
 
 @Service()
 export default class OrganisationService extends BaseService<Organisation> {

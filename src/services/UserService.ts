@@ -10,7 +10,7 @@ import {LinkedEntities} from "../models/views/LinkedEntities";
 import {Brackets} from "typeorm";
 import { logger } from "../logger";
 import nodeMailer from "nodemailer";
-import { paginationData, stringTONumber, isArrayEmpty } from "../utils/Utils";
+import { paginationData, stringTONumber, isArrayPopulated } from "../utils/Utils";
 @Service()
 export default class UserService extends BaseService<User> {
 
@@ -116,7 +116,7 @@ export default class UserService extends BaseService<User> {
             let offset = requestBody.paging.offset;
             let result = await this.entityManager.query("call wsa_users.usp_friend_dashboard(?,?,?,?)",[requestBody.yearRefId,requestBody.organisationUniqueKey, limit, offset]);
 
-            if (isArrayEmpty(result[1])) {
+            if (isArrayPopulated(result[1])) {
                 let totalCount = result[0].find(x=>x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["friends"] = result[1];
@@ -135,7 +135,7 @@ export default class UserService extends BaseService<User> {
             let offset = requestBody.paging.offset;
             let result = await this.entityManager.query("call wsa_users.usp_refer_friend_dashboard(?,?,?,?)",[requestBody.yearRefId,requestBody.organisationUniqueKey, limit, offset]);
            
-            if (isArrayEmpty(result[1])) {
+            if (isArrayPopulated(result[1])) {
                 let totalCount = result[0].find(x=>x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["referFriends"] = result[1];
@@ -349,7 +349,7 @@ export default class UserService extends BaseService<User> {
             let userObj = null;
             if(result!= null)
             {
-                if(isArrayEmpty(result[0]))
+                if(isArrayPopulated(result[0]))
                 {
                     for(let item of result[0])
                     {
@@ -449,7 +449,7 @@ export default class UserService extends BaseService<User> {
             let competitionUniqueKey = requestBody.competitionUniqueKey;
             let result = await this.entityManager.query("call wsa_users.usp_user_personal_details_by_competition(?,?)",
             [userId, competitionUniqueKey]);
-            // if(isArrayEmpty(result[0]))
+            // if(isArrayPopulated(result[0]))
             // {
             //     for(let item of result[0])
             //     {
@@ -558,7 +558,7 @@ export default class UserService extends BaseService<User> {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 let arr = [];
-                if(isArrayEmpty(result[1])){
+                if(isArrayPopulated(result[1])){
                     
                     console.log("*****************");
                     for(let item of result[1]){
@@ -573,9 +573,9 @@ export default class UserService extends BaseService<User> {
                             registrationForm: []
                         }
 
-                        if(isArrayEmpty(result[2])){
+                        if(isArrayPopulated(result[2])){
                             let filterRes = result[2].filter(x=>x.orgRegId == item.orgRegId);
-                            if(isArrayEmpty(filterRes)){
+                            if(isArrayPopulated(filterRes)){
                                 for(let i of filterRes){
                                     let regObj = {
                                         registrationSettingsRefId: i.registrationSettingsRefId,
@@ -613,18 +613,18 @@ export default class UserService extends BaseService<User> {
                                     //     obj.registrationForm.push(regObj);
                                     // }
                                     else if(i.registrationSettingsRefId == 8){
-                                        if(isArrayEmpty(result[3])){
+                                        if(isArrayPopulated(result[3])){
                                             let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 1);
-                                            if(isArrayEmpty(filteredFriend)){
+                                            if(isArrayPopulated(filteredFriend)){
                                                 regObj.friends = filteredFriend;
                                             }
                                         }
                                         obj.registrationForm.push(regObj);
                                     }
                                     else if(i.registrationSettingsRefId == 9){
-                                        if(isArrayEmpty(result[3])){
+                                        if(isArrayPopulated(result[3])){
                                             let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 2);
-                                            if(isArrayEmpty(filteredFriend)){
+                                            if(isArrayPopulated(filteredFriend)){
                                                 regObj.referFriends = filteredFriend;
                                             }
                                         }
@@ -635,9 +635,9 @@ export default class UserService extends BaseService<User> {
                                         obj.registrationForm.push(regObj);
                                     }
                                     else if(i.registrationSettingsRefId == 12){
-                                        if(isArrayEmpty(result[4])){
+                                        if(isArrayPopulated(result[4])){
                                             let volunteers = result[4].filter(x=>x.registrationId == item.registrationId);
-                                            if(isArrayEmpty(volunteers)){
+                                            if(isArrayPopulated(volunteers)){
                                                 regObj.volunteers = volunteers;
                                             }
                                         }

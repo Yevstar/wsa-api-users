@@ -2,7 +2,7 @@ import { Service } from "typedi";
 import BaseService from "../services/BaseService";
 import { Affiliate } from "../models/Affiliate";
 import { logger } from "../logger";
-import { isArrayEmpty, paginationData, stringTONumber } from "../utils/Utils";
+import { isArrayPopulated, paginationData, stringTONumber } from "../utils/Utils";
 
 @Service()
 export default class AffiliateService extends BaseService<Affiliate> {
@@ -185,7 +185,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
                 let contactsOtherAffiliateExists =null ;
                 let exists = null;
-                if(isArrayEmpty(contacts)){
+                if(isArrayPopulated(contacts)){
                     for(let c of contacts){
                         contactsOtherAffiliateExists = await this.entityManager.query(
                             `SELECT * from wsa_users.userRoleEntity ure 
@@ -193,14 +193,14 @@ export default class AffiliateService extends BaseService<Affiliate> {
                             and ure.entityTypeId = 2 and ure.isDeleted = 0`,[c.userId,affiliateId]
                         );
                            // exists.push(contactsOtherAffiliateExists)
-                            if(isArrayEmpty(contactsOtherAffiliateExists)){
+                            if(isArrayPopulated(contactsOtherAffiliateExists)){
                                 exists = 1;
                                 break;
                             }
                     }
                 }
                 if(exists == null){
-                    if(isArrayEmpty(contacts)){
+                    if(isArrayPopulated(contacts)){
                         for(let c of contacts){
                             let deleteUser = await this.entityManager.query(
                                 ` UPDATE wsa_users.user u
@@ -241,7 +241,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                 let totalCount = result[1].find(x=>x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
 
-                if(isArrayEmpty(result[0])){
+                if(isArrayPopulated(result[0])){
                     let orgMap = new Map();
                     let compMap = new Map();
                     for(let item of result[0]){
@@ -311,7 +311,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
             if(result!= null){
 
-                if(isArrayEmpty(result[0])){
+                if(isArrayPopulated(result[0])){
                     for(let r of result[0]){
                         let obj={};
                         obj["count"] = 0;
@@ -330,7 +330,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
                         let contacts = res1 != undefined? res1.contacts : [];
 
-                        if(isArrayEmpty(contacts)){
+                        if(isArrayPopulated(contacts)){
                             let i = 1;
                             obj["count"] = contacts.length
                             for(let c of contacts){
