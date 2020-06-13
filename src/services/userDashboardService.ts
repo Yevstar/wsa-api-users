@@ -2,7 +2,7 @@ import { Service } from "typedi";
 import BaseService from "../services/BaseService";
 import { Affiliate } from "../models/Affiliate";
 import { logger } from "../logger";
-import { isArrayEmpty, paginationData, stringTONumber } from "../utils/Utils";
+import { isArrayPopulated, paginationData, stringTONumber } from "../utils/Utils";
 import { User } from "../models/User";
 
 
@@ -151,7 +151,7 @@ export default class UserDashboardService extends BaseService<User> {
                     noOfRegisteredUsers: 0
                 }
                 responseObject["counts"] = obj;
-                if(isArrayEmpty(result[5]))
+                if(isArrayPopulated(result[5]))
                 {
                     let userCount = result[5].find(x=>x.moduleId == 1);
                     let userCount1 = result[5].find(x=>x.moduleId == 2);
@@ -177,7 +177,7 @@ export default class UserDashboardService extends BaseService<User> {
             let result = await this.entityManager.query('call wsa_users.usp_export_registration_questions(?,?,?,?,?,?,?)',
             [requestBody.organisationId, requestBody.yearRefId, requestBody.competitionUniqueKey, requestBody.roleId, requestBody.genderRefId, requestBody.linkedEntityId, requestBody.postCode]);
 
-            if(isArrayEmpty(result[0])){
+            if(isArrayPopulated(result[0])){
                 for(let res of result[0]){
                     if(res.Venue != null)
                         res.Venue = res.Venue.join(", ")
