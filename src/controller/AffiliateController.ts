@@ -133,7 +133,8 @@ export class AffiliateController extends BaseController {
                                     let orgLogoModel = new OrganisationLogo();
                                     if (orgLogoDb) {
                                         orgLogoModel.id = orgLogoDb.id;
-                                        orgLogoModel.updatedBy = userId
+                                        orgLogoModel.updatedBy = userId;
+                                        orgLogoModel.updatedOn = new Date();
                                     }
                                     else {
                                         orgLogoModel.id = requestBody.organisationLogoId;
@@ -144,6 +145,16 @@ export class AffiliateController extends BaseController {
                                     orgLogoModel.isDefault = requestBody.logoIsDefault;
                                     await this.organisationLogoService.createOrUpdate(orgLogoModel);
                                 }
+                            }
+                        }
+                        else{
+                            if (orgLogoDb) {
+                                let orgLogoModel = new OrganisationLogo();
+                                orgLogoModel.id = orgLogoDb.id;
+                                orgLogoModel.updatedBy = userId;
+                                orgLogoModel.updatedOn = new Date();
+                                orgLogoModel.isDefault = requestBody.logoIsDefault;
+                                await this.organisationLogoService.createOrUpdate(orgLogoModel);
                             }
                         }
 
