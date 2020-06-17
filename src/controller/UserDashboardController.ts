@@ -251,7 +251,7 @@ export class UserDashboardController extends BaseController {
     @Post('/userprofile/update')
     async userProfileUpdate(
         @HeaderParam("authorization") currentUser: User,
-        @HeaderParam("section") section: string,
+        @QueryParam("section") section: string,
         @Body() requestBody: any,
         @Res() response: Response) {
         try {
