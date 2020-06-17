@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { IsNumber, IsString } from "class-validator";
+import { IsNumber, IsString, IsDate } from "class-validator";
 
 @Entity('organisationLogo',{ database: "wsa_users" })
 export class OrganisationLogo extends BaseEntity {
@@ -27,6 +27,10 @@ export class OrganisationLogo extends BaseEntity {
     @IsNumber()
     @Column({ nullable: true, default: null })
     updatedBy: number;
+
+    @IsDate()
+    @Column({ nullable: true, default: null })
+    updatedOn: Date;
 
     @IsNumber()
     @Column({ default: 0 })
