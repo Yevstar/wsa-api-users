@@ -15,44 +15,6 @@ async function currentConnection(): Promise<Connection[]> {
 
 async function connect(): Promise<Connection[]> {
 
-    // let options: MysqlConnectionOptions = {
-    //     type: "mysql",
-    //     database: process.env.MYSQL_DATABASE,
-    //     username: process.env.MYSQL_USER,
-    //     password: process.env.MYSQL_PASSWORD,
-    //     entities: [
-    //         __dirname + "/models/*",
-    //         __dirname + "/models/security/*",
-    //         __dirname + "/models/views/*"
-    //     ],
-    //     namingStrategy: new NamingStrategy(),
-    //     //logging: 'all',
-    // };
-
-    // if (process.env.MYSQL_SOCKET_PATH) {
-
-    //     options = {
-    //         ...options,
-    //         host: process.env.MYSQL_SOCKET_PATH,
-    //         extra: {
-    //             socketPath: process.env.MYSQL_SOCKET_PATH,
-    //         }
-    //     };
-
-    //     logger.info(`Using socket path ${process.env.MYSQL_SOCKET_PATH} to connect to the database`, options);
-
-    // } else {
-
-    //     options = {
-    //         ...options,
-    //         host: process.env.MYSQL_HOST,
-    //         port: parseInt(process.env.MYSQL_PORT),
-    //     };
-
-    //     logger.info(`Using host ${process.env.MYSQL_HOST}:${process.env.MYSQL_PORT} to connect to the database`, options);
-    // }
-
-
     const usersDatabase = Object.assign({
         name: "default",
         type: "mysql", 
