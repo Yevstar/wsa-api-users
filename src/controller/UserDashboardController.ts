@@ -265,6 +265,7 @@ export class UserDashboardController extends BaseController {
                 user.lastName = requestBody.lastName;
                 user.middleName = requestBody.middleName;
                 user.dateOfBirth = requestBody.dateOfBirth;
+                user.mobileNumber = requestBody.mobileNumber;
                 user.street1 = requestBody.street1;
                 user.street2 = requestBody.street2;
                 user.suburb = requestBody.suburb;
@@ -306,7 +307,7 @@ export class UserDashboardController extends BaseController {
                 user.id = requestBody.userId;
                 user.genderRefId = requestBody.genderRefId;
                 await this.userService.createOrUpdate(user);
-                
+
                 return response.status(200).send({message: "Successfully updated"})
             }
             else if(section == 'medical'){
@@ -322,7 +323,7 @@ export class UserDashboardController extends BaseController {
 
 
         } catch (error) {
-            logger.error(`Error Occurred in dashboard textual`+error);
+            logger.error(`Error Occurred in userProfileUpdate `+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
