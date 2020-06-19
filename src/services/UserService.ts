@@ -471,8 +471,9 @@ export default class UserService extends BaseService<User> {
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_player(?,?,?,?)",
-            [userId, competitionId, limit, offset]);
+            let yearRefId = requestBody.yearRefId;
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_player(?,?,?,?,?)",
+            [userId, competitionId, yearRefId, limit, offset]);
             if(result != null){
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -490,8 +491,9 @@ export default class UserService extends BaseService<User> {
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_parent(?,?,?,?,?)",
-            [userId, competitionId, limit, offset, requestBody.organisationId]);
+            let yearRefId = requestBody.yearRefId;
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_parent(?,?,?,?,?,?)",
+            [userId, competitionId, yearRefId, limit, offset, requestBody.organisationId]);
             if(result != null){
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -510,8 +512,9 @@ export default class UserService extends BaseService<User> {
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_scorer(?,?,?,?)",
-            [userId, competitionId, limit, offset]);
+            let yearRefId = requestBody.yearRefId;
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_scorer(?,?,?,?,?)",
+            [userId, competitionId, yearRefId, limit, offset]);
             if(result != null){
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -530,8 +533,9 @@ export default class UserService extends BaseService<User> {
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_manager(?,?,?,?)",
-            [userId, competitionId, limit, offset]);
+            let yearRefId = requestBody.yearRefId;
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_manager(?,?,?,?,?)",
+            [userId, competitionId, yearRefId, limit, offset]);
             if(result != null){
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -553,15 +557,15 @@ export default class UserService extends BaseService<User> {
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let organisationId = requestBody.organisationId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_registration_details(?,?,?,?,?)",
-            [limit, offset, userId, competitionId, organisationId]);
+            let yearRefId = requestBody.yearRefId;
+            let result = await this.entityManager.query("call wsa_users.usp_user_registration_details(?,?,?,?,?,?)",
+            [limit, offset, userId, yearRefId, competitionId, organisationId]);
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 let arr = [];
                 if(isArrayPopulated(result[1])){
-                    
-                    console.log("*****************");
+            
                     for(let item of result[1]){
                         let obj = {
                             key: item.key,
