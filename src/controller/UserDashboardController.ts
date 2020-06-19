@@ -261,6 +261,10 @@ export class UserDashboardController extends BaseController {
 
             if(section == 'address'){
                 user.id = requestBody.userId;
+                user.firstName = requestBody.firstName;
+                user.lastName = requestBody.lastName;
+                user.middleName = requestBody.middleName;
+                user.dateOfBirth = requestBody.dateOfBirth;
                 user.street1 = requestBody.street1;
                 user.street2 = requestBody.street2;
                 user.suburb = requestBody.suburb;
@@ -293,10 +297,16 @@ export class UserDashboardController extends BaseController {
             }
             else if(section == 'other'){
                 userReg.id = requestBody.userRegistrationId;
+                
                 userReg.nationalityRefId = requestBody.nationalityRefId;
                 userReg.countryRefId = requestBody.countryRefId;
                 userReg.languages = requestBody.languages;
                 await this.userRegistrationService.createOrUpdate(userReg);
+
+                user.id = requestBody.userId;
+                user.genderRefId = requestBody.genderRefId;
+                await this.userService.createOrUpdate(user);
+                
                 return response.status(200).send({message: "Successfully updated"})
             }
             else if(section == 'medical'){
