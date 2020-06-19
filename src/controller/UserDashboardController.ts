@@ -276,7 +276,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send({message: "Successfully updated"})
             }
             else if(section == 'primary'){
-                user.id = requestBody.userId;
+                user.id = requestBody.parentUserId;
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
                 user.street1 = requestBody.street1;
