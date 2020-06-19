@@ -10,10 +10,6 @@ export class UserRegistration extends BaseEntity {
 
     @IsNumber()
     @Column()
-    registrationId: number;
-
-    @IsNumber()
-    @Column()
     userId: number;
 
     @IsString()
