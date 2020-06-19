@@ -400,4 +400,57 @@ export class UserController extends BaseController {
             .on("finish", function () { })
             .pipe(response);
     }
+
+    @Authorized()
+    @Get('/byRole/export/org')
+    async exportUserByRoleOrgs(
+        @QueryParam('roleId', { required: true }) roleId: number,
+        @QueryParam('entityTypeId', { required: true }) entityTypeId: number,
+        @QueryParam('entityId', { required: true }) entityId: number,
+        @QueryParam('userName') userName: string,
+        @Res() response: Response
+    ) {
+        let userData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response);
+        if (isArrayPopulated(userData)) {
+            userData.map(e => {
+                e['First Name'] = e['firstName'];
+                e['Last Name'] = e['lastName'];
+                e['Email'] = e['email'];
+                e['Contact No'] = e['mobileNumber'];
+                const organisationName = [];
+                if (isArrayPopulated(e['linkedEntity'])) {
+                    for (let r of e['linkedEntity']) {
+                        organisationName.push(r['name']);
+                    }
+                }
+                e['Organisation'] = organisationName.toString();
+                delete e['id'];
+                delete e['email'];
+                delete e['firstName'];
+                delete e['lastName'];
+                delete e['mobileNumber'];
+                delete e['genderRefId'];
+                delete e['marketingOptIn'];
+                delete e['photoUrl'];
+                delete e['firebaseUID'];
+                delete e['statusRefId'];
+                delete e['linkedEntity'];
+                return e;
+            });
+        } else {
+            userData.push({
+                ['First Name']: 'N/A',
+                ['Last Name']: 'N/A',
+                ['Email']: 'N/A',
+                ['Contact No']: 'N/A',
+                ['Organisation']: 'N/A'
+            });
+        }
+
+        response.setHeader('Content-disposition', 'attachment; filename=file.csv');
+        response.setHeader('content-type', 'text/csv');
+        fastcsv.write(userData, { headers: true })
+            .on("finish", function () { })
+            .pipe(response);
+    }
 }
