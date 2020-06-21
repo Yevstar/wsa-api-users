@@ -261,6 +261,11 @@ export class UserDashboardController extends BaseController {
 
             if(section == 'address'){
                 user.id = requestBody.userId;
+                user.firstName = requestBody.firstName;
+                user.lastName = requestBody.lastName;
+                user.middleName = requestBody.middleName;
+                user.dateOfBirth = requestBody.dateOfBirth;
+                user.mobileNumber = requestBody.mobileNumber;
                 user.street1 = requestBody.street1;
                 user.street2 = requestBody.street2;
                 user.suburb = requestBody.suburb;
@@ -271,7 +276,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send({message: "Successfully updated"})
             }
             else if(section == 'primary'){
-                user.id = requestBody.userId;
+                user.id = requestBody.parentUserId;
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
                 user.street1 = requestBody.street1;
@@ -293,10 +298,16 @@ export class UserDashboardController extends BaseController {
             }
             else if(section == 'other'){
                 userReg.id = requestBody.userRegistrationId;
+                
                 userReg.nationalityRefId = requestBody.nationalityRefId;
                 userReg.countryRefId = requestBody.countryRefId;
                 userReg.languages = requestBody.languages;
                 await this.userRegistrationService.createOrUpdate(userReg);
+
+                user.id = requestBody.userId;
+                user.genderRefId = requestBody.genderRefId;
+                await this.userService.createOrUpdate(user);
+
                 return response.status(200).send({message: "Successfully updated"})
             }
             else if(section == 'medical'){
@@ -312,7 +323,7 @@ export class UserDashboardController extends BaseController {
 
 
         } catch (error) {
-            logger.error(`Error Occurred in dashboard textual`+error);
+            logger.error(`Error Occurred in userProfileUpdate `+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
