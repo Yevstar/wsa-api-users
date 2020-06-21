@@ -174,10 +174,11 @@ export default class UserDashboardService extends BaseService<User> {
 
     public async exportRegistrationQuestions(requestBody :any, userId){
         try{
-            let result = await this.entityManager.query('call wsa_users.usp_export_registration_questions(?,?,?,?,?,?,?)',
-            [requestBody.organisationId, requestBody.yearRefId, requestBody.competitionUniqueKey, requestBody.roleId, requestBody.genderRefId, requestBody.linkedEntityId, requestBody.postCode]);
+            let result = await this.entityManager.query('call wsa_users.usp_export_registration_questions_temp(?,?,?,?,?,?,?,?)',
+            [requestBody.organisationId, requestBody.yearRefId, requestBody.competitionUniqueKey, requestBody.roleId, requestBody.genderRefId, requestBody.linkedEntityId, requestBody.postCode, userId]);
 
             if(isArrayPopulated(result[0])){
+
                 for(let res of result[0]){
                     if(res.Venue != null)
                         res.Venue = res.Venue.join(", ")
@@ -191,6 +192,8 @@ export default class UserDashboardService extends BaseService<User> {
                 return result[0]
             }
             else{
+            console.log("----3")
+
                 let arr  = [];
                 let obj = {
                     "First Name": "",
