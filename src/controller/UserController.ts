@@ -413,6 +413,7 @@ export class UserController extends BaseController {
         let userData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response);
         if (isArrayPopulated(userData)) {
             userData.map(e => {
+                e['ID'] = e['id'];
                 e['First Name'] = e['firstName'];
                 e['Last Name'] = e['lastName'];
                 e['Email'] = e['email'];
@@ -439,6 +440,7 @@ export class UserController extends BaseController {
             });
         } else {
             userData.push({
+                ['ID']: 'N/A',
                 ['First Name']: 'N/A',
                 ['Last Name']: 'N/A',
                 ['Email']: 'N/A',
