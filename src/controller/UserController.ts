@@ -20,6 +20,7 @@ import {LoginError} from "../exceptions/LoginError";
 import {BaseController} from "./BaseController";
 import { logger } from '../logger';
 import * as fastcsv from 'fast-csv';
+import AppConstants from '../constants/AppConstants';
 
 @JsonController('/users')
 export class UserController extends BaseController {
@@ -30,14 +31,23 @@ export class UserController extends BaseController {
         @Res() response: Response
     ) {
         const auth = request.headers.authorization || "";
-        if (auth.startsWith('BWSA')) {
+        if (auth.startsWith(AppConstants.bwsa)) {
             const token = atob(auth.replace('BWSA ', '')).split(':');
             const email = token[0].toLowerCase();
             const password = token[1];
             let sourcesystem = request.headers.sourcesystem
             let user = null;
-            if(sourcesystem == 'WebAdmin'){
-                user = await this.userService.findByCredentialsForWeb(email, password);
+            if(sourcesystem == AppConstants.sourceSystem){
+                user = await this.userService.findByCredentials(email, password);
+                if(!user){
+                    throw new LoginError(AppConstants.loginUnsuccessfulMsg);
+                }
+                else {
+                    user = await this.userService.findByCredentialsForWeb(email, password);
+                    if(!user){
+                        throw new LoginError(AppConstants.loginErrMsg);
+                    }
+                }
             }
             else{
                  user = await this.userService.findByCredentials(email, password);
@@ -45,10 +55,10 @@ export class UserController extends BaseController {
             if (user) {
                 return this.responseWithTokenAndUser(email, password, user);
             } else {
-                throw new LoginError();
+                throw new LoginError(AppConstants.loginUnsuccessfulMsg);
             }
         } else {
-            throw new LoginError();
+            throw new LoginError(AppConstants.loginUnsuccessfulMsg);
         }
     }
 
