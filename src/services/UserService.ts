@@ -346,6 +346,7 @@ export default class UserService extends BaseService<User> {
             let competitionMap = new Map();
             let teamMap = new Map();
             let userMap = new Map();
+            let divisionMap = new Map();
             let userObj = null;
             if(result!= null)
             {
@@ -356,7 +357,6 @@ export default class UserService extends BaseService<User> {
                         let userTemp = userMap.get(item.userId);
                         let competitionTemp = competitionMap.get(item.competitionId);
                         let teamTemp = teamMap.get(item.teamId);
-
                         let competitionObj = {
                             competitionId: item.competitionId,
                             competitionName: item.competitionName,
@@ -364,11 +364,17 @@ export default class UserService extends BaseService<User> {
                             divisionId: item.divisionId,
                             divisionName: item.divisionName,
                             yearRefId: Number(item.yearRefId) ,
-                            teams: []
+                            teams: [],
+                            divisions: []
                         }
                         let teamObj = {
                             teamId: item.teamId,
                             teamName: item.teamName
+                        }
+
+                        let divisionObj = {
+                            divisionId: item.divisionId,
+                            divisionName: item.divisionName
                         }
 
                         if(userTemp == undefined)
@@ -401,7 +407,10 @@ export default class UserService extends BaseService<User> {
                                     competitionObj.teams.push(teamObj);
                                     teamMap.set(item.teamId, teamObj);
                                 }
-
+                                if(item.divisionId != null){
+                                    competitionObj.divisions.push(divisionObj);
+                                    divisionMap.set(item.divisionId, divisionObj);
+                                }
                                 userObj.competitions.push(competitionObj);
                                 competitionMap.set(item.competitionId, competitionObj)
                             }
@@ -417,6 +426,10 @@ export default class UserService extends BaseService<User> {
                                         competitionObj.teams.push(teamObj);
                                         teamMap.set(item.teamId, teamObj);
                                     }
+                                    if(item.divisionId != null){
+                                        competitionObj.divisions.push(divisionObj);
+                                        divisionMap.set(item.divisionId, divisionObj);
+                                    }
                                     userTemp.competitions.push(competitionObj);
                                     competitionMap.set(item.competitionId, competitionObj)
                                 }
@@ -427,10 +440,10 @@ export default class UserService extends BaseService<User> {
                                     competitionTemp.teams.push(teamObj);
                                     teamMap.set(item.teamId, teamObj);
                                 }
-                                if(competitionObj.divisionName!= null)
+                                if(item.divisionId!= null)
                                 {
-                                    competitionTemp.divisionId = competitionObj.divisionId;
-                                    competitionTemp.divisionName = competitionObj.divisionName;
+                                    competitionTemp.divisions.push(divisionObj);
+                                    divisionMap.set(item.divisionId, divisionObj);
                                 }
                             }
                         }
