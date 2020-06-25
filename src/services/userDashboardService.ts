@@ -158,8 +158,9 @@ export default class UserDashboardService extends BaseService<User> {
                 {
                     let userCount = result[5].find(x=>x.moduleId == 1);
                     let userCount1 = result[5].find(x=>x.moduleId == 2);
-                    responseObject["counts"]["noOfUsers"] = (userCount!= null ? userCount.counts : 0);
-                    responseObject["counts"]["noOfRegisteredUsers"] = (userCount1!= null ? userCount1.counts : 0);
+                    let totalUserCount = (userCount!= null ? Number(userCount.counts) : 0) + (userCount1!= null? Number(userCount1.counts) : 0)
+                    responseObject["counts"]["noOfUsers"] = totalUserCount;
+                    responseObject["counts"]["noOfRegisteredUsers"] = (userCount1!= null ? Number(userCount1.counts) : 0);
                 }
                
                
