@@ -260,6 +260,7 @@ export class UserDashboardController extends BaseController {
             let userReg = new UserRegistration();
 
             if(section == 'address'){
+                let userFromDb = await this.userService.findById(requestBody.userId);
                 user.id = requestBody.userId;
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
@@ -271,12 +272,25 @@ export class UserDashboardController extends BaseController {
                 user.suburb = requestBody.suburb;
                 user.stateRefId = requestBody.stateRefId;
                 user.postalCode = requestBody.postalCode;
-                user.email = requestBody.email;
-                await this.userService.createOrUpdate(user);
+                user.email = requestBody.email.toLowerCase();
+                let userData = await this.userService.createOrUpdate(user);
+
+                if(userFromDb != undefined){
+                    if(userFromDb.email !== user.email){
+                        await this.updateFirebaseData(userData, userFromDb.password);
+                    }
+                }
+
                 return response.status(200).send({message: "Successfully updated"})
             }
-            else if(section == 'primary'){
-                user.id = requestBody.parentUserId;
+            else if(section == 'primary' || section == 'child'){
+                if(section == 'primary'){
+                    user.id = requestBody.parentUserId;
+                }
+                else if(section == 'child'){
+                    user.id = requestBody.childUserId;
+                }
+                let userFromDb = await this.userService.findById(user.id);
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
                 user.street1 = requestBody.street1;
@@ -285,8 +299,14 @@ export class UserDashboardController extends BaseController {
                 user.stateRefId = requestBody.stateRefId;
                 user.postalCode = requestBody.postalCode;
                 user.mobileNumber = requestBody.mobileNumber;
-                user.email = requestBody.email;
-                await this.userService.createOrUpdate(user);
+                user.email = requestBody.email.toLowerCase();
+                let userData =  await this.userService.createOrUpdate(user);
+
+                if(userFromDb != undefined){
+                    if(userFromDb.email !== user.email){
+                        await this.updateFirebaseData(userData, userFromDb.password);
+                    }
+                }
                 return response.status(200).send({message: "Successfully updated"})
             }
             else if(section == 'emergency'){
