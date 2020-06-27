@@ -40,4 +40,18 @@ export default class OrganisationService extends BaseService<Organisation> {
             throw error;
         }
     }
+
+    public async findAffiliatedToOrg(organisationId){
+      try{
+            let result = await this.entityManager.query(
+                `SELECT a.affiliatedToOrgId FROM wsa_users.affiliate a where a.affiliateOrgId = ? and a.isDeleted = 0`,[organisationId] )
+
+                let res = result.find(x => x);
+
+                return res.affiliatedToOrgId;
+      }  
+      catch(error){
+          throw error;
+      }
+    }
 }

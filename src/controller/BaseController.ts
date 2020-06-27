@@ -12,6 +12,7 @@ import UserDashboardService from "../services/userDashboardService";
 import UserRegistrationService from "../services/UserRegistrationService";
 import admin from "firebase-admin";
 import OrganisationPhotoService from "../services/OrganisationPhotoService";
+import ActionsService from "../services/ActionsService";
 
 export class BaseController {
 
@@ -32,6 +33,9 @@ export class BaseController {
 
     @Inject()
     protected affiliateService: AffiliateService;
+    
+    @Inject()
+    protected actionsService: ActionsService;
 
     @Inject()
     protected communicationTemplateService: CommunicationTemplateService;

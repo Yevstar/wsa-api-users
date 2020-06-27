@@ -123,6 +123,11 @@ export class AffiliateController extends BaseController {
                         }
 
                         let affiliateRes = await this.affiliateService.createOrUpdate(affiliate);
+
+                        if (requestBody.organisationTypeRefId == 4) {
+                            await this.affiliateAction(affiliatedToOrgId, OrgObject, affiliateRes, userId)
+                        }
+
                         let orgLogoDb = await this.organisationLogoService.findByOrganisationId(affiliateRes.affiliateOrgId)
                         if (organisationLogoFile != null) {
                             if (isPhoto(organisationLogoFile.mimetype)) {
@@ -147,7 +152,7 @@ export class AffiliateController extends BaseController {
                                 }
                             }
                         }
-                        else{
+                        else {
                             if (orgLogoDb) {
                                 let orgLogoModel = new OrganisationLogo();
                                 orgLogoModel.id = orgLogoDb.id;
@@ -210,10 +215,13 @@ export class AffiliateController extends BaseController {
                                         userRoleEntity.entityTypeId = 2;
                                         PermissionMap.set(userRoleEntity.id, userRoleEntity);
                                         await this.ureService.createOrUpdate(userRoleEntity);
+                                        if (contact.userId == 0 && permission.roleId == 2) {
+                                            await this.contactAction(affiliatedToOrgId, OrgObject, organisationRes, userRes.id, userId)
+                                        }
                                     }
                                 }
                                 if (contact.userId == 0) {
-                                    await this.updateFirebaseData(userRes,userRes.password);
+                                    await this.updateFirebaseData(userRes, userRes.password);
                                     let mailObj = await this.communicationTemplateService.findById(1);
                                     await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
                                 }
@@ -225,7 +233,7 @@ export class AffiliateController extends BaseController {
                         //  }
                         // if (isArrayPopulated(ureUserIdDb)) {
                         //     for (let uItem of ureUserIdDb) {
-                                
+
                         //         if (PermissionMap.get(uItem.id) == undefined) {
                         //             await this.ureService.DeleteUre(uItem.id, uItem.userId);
                         //         }
@@ -269,7 +277,7 @@ export class AffiliateController extends BaseController {
         }
     }
 
-    
+
     @Authorized()
     @Delete('/affiliate/user/delete/:userId')
     async removeAffiliateContact(
@@ -277,18 +285,18 @@ export class AffiliateController extends BaseController {
         @Param('userId') userId: number,
         @QueryParam("organisationUniqueKey") organisationUniqueKey: string,
         @Res() response: Response) {
-            let currentUserId ;
+        let currentUserId;
         try {
-           if(currentUser){
-               currentUserId  = currentUser.id
-            let organisationId = await this.organisationService.findByUniquekey(organisationUniqueKey);
+            if (currentUser) {
+                currentUserId = currentUser.id
+                let organisationId = await this.organisationService.findByUniquekey(organisationUniqueKey);
 
-            await this.ureService.DeleteUre(organisationId, userId, currentUserId);
-            return response.status(200).send({message: "Contact Delete Successfully"});
-           }
-               
+                await this.ureService.DeleteUre(organisationId, userId, currentUserId);
+                return response.status(200).send({ message: "Contact Delete Successfully" });
+            }
+
         } catch (error) {
-            logger.error(`Error Occurred in deleteing of contact ${currentUserId}`+error);
+            logger.error(`Error Occurred in deleteing of contact ${currentUserId}` + error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
@@ -400,7 +408,7 @@ export class AffiliateController extends BaseController {
         @UploadedFile("organisationPhoto") organisationPhotoFile: Express.Multer.File,
         @Body() requestBody: any,
         @Res() response: Response) {
-            let userId = currentUser.id;
+        let userId = currentUser.id;
         try {
             if (userId) {
                 if (requestBody != null) {
@@ -546,7 +554,7 @@ export class AffiliateController extends BaseController {
                     return response.status(200).send(affiliateListRes);
                 }
             }
-            else{
+            else {
                 return response.status(401).send({
                     errorCode: 2,
                     message: 'You are trying to access another user\'s data'
@@ -578,10 +586,72 @@ export class AffiliateController extends BaseController {
                     .pipe(response);
             }
         } catch (error) {
-            logger.error(`Error Occurred in dashboard textual`+error);
+            logger.error(`Error Occurred in dashboard textual` + error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });
         }
     }
+
+
+    private async affiliateAction(affiliatedToOrgId, OrgObject, affiliateRes, userId) {
+        try {
+            let actionObj = null;
+            if (affiliatedToOrgId == OrgObject.id) {
+                let stateOrg = await this.organisationService.findAffiliatedToOrg(affiliatedToOrgId)
+                actionObj = await this.actionsService.createAction10(stateOrg, affiliatedToOrgId, affiliateRes.id, userId)
+            }
+            else {
+                actionObj = await this.actionsService.createAction10(affiliatedToOrgId, OrgObject.id, affiliateRes.id, userId)
+            }
+            await this.actionsService.createOrUpdate(actionObj);
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
+    private async contactAction(affiliatedToOrgId, OrgObject, organisationRes, contactId, userId) {
+        try {
+            let actionObj1 = null;
+            let actionObj2 = null;
+            if (OrgObject.organisationTypeRefId == 4) {
+                let stateOrg = await this.organisationService.findAffiliatedToOrg(affiliatedToOrgId)
+                actionObj1 = await this.actionsService.createAction12(stateOrg, organisationRes.id, contactId, userId)
+                actionObj2 = await this.actionsService.createAction12(affiliatedToOrgId, organisationRes.id, contactId, userId)
+                await this.actionsService.createOrUpdate(actionObj1);
+                await this.actionsService.createOrUpdate(actionObj2);
+
+            }
+            else if (OrgObject.organisationTypeRefId == 3) {
+                if (OrgObject.id == affiliatedToOrgId) {
+                    let stateOrg = await this.organisationService.findAffiliatedToOrg(affiliatedToOrgId)
+                    actionObj1 = await this.actionsService.createAction12(stateOrg, affiliatedToOrgId, contactId, userId)
+                    actionObj2 = await this.actionsService.createAction12(organisationRes.id, affiliatedToOrgId, contactId, userId)
+                    await this.actionsService.createOrUpdate(actionObj1);
+                    await this.actionsService.createOrUpdate(actionObj2);
+                }
+                else {
+                    actionObj1 = await this.actionsService.createAction12(affiliatedToOrgId, organisationRes.id, contactId, userId)
+                    await this.actionsService.createOrUpdate(actionObj1);
+                }
+            }
+            else if (OrgObject.organisationTypeRefId == 2) {
+                if (organisationRes.organisationTypeRefId == 4) {
+                    actionObj1 = await this.actionsService.createAction12(affiliatedToOrgId, OrgObject.id, contactId, userId)
+                    actionObj2 = await this.actionsService.createAction12(organisationRes.id, OrgObject.id, contactId, userId)
+                    await this.actionsService.createOrUpdate(actionObj1);
+                    await this.actionsService.createOrUpdate(actionObj2);
+                }
+                else if (organisationRes.organisationTypeRefId == 3) {
+                    actionObj1 = await this.actionsService.createAction12(organisationRes.id, affiliatedToOrgId, contactId, userId)
+                    await this.actionsService.createOrUpdate(actionObj1);
+                }
+            }
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
 }
