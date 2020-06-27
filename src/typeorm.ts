@@ -51,7 +51,25 @@ async function connect(): Promise<Connection[]> {
         logger: "simple-console"
     });
 
-    const ALL_DATABASES = [usersDatabase, registrationDatabase];
+    const commonDatabse = Object.assign({
+        type: "mysql",
+        name: process.env.MYSQL_DATABASE_COMMON,
+        database: process.env.MYSQL_DATABASE_COMMON,
+        host: process.env.MYSQL_HOST,
+        port: process.env.MYSQL_PORT,
+        username: process.env.MYSQL_USER,
+        password: process.env.MYSQL_PASSWORD,
+        entities: [
+            __dirname + "/models/registrations/*",
+            __dirname + "/models/*",
+            __dirname + "/models/security/*",
+            __dirname + "/models/views/*"
+        ],
+        namingStrategy: new NamingStrategy(),
+        // logger: "file"
+    });
+
+    const ALL_DATABASES = [usersDatabase, registrationDatabase, commonDatabse];
 
     useContainer(Container)
     connection = await createConnections(ALL_DATABASES);
