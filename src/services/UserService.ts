@@ -357,6 +357,7 @@ export default class UserService extends BaseService<User> {
                         let userTemp = userMap.get(item.userId);
                         let competitionTemp = competitionMap.get(item.competitionId);
                         let teamTemp = teamMap.get(item.teamId);
+                        let divTemp = divisionMap.get(item.divisionId);
                         let competitionObj = {
                             competitionId: item.competitionId,
                             competitionName: item.competitionName,
@@ -407,6 +408,7 @@ export default class UserService extends BaseService<User> {
                                     competitionObj.teams.push(teamObj);
                                     teamMap.set(item.teamId, teamObj);
                                 }
+
                                 if(item.divisionId != null){
                                     competitionObj.divisions.push(divisionObj);
                                     divisionMap.set(item.divisionId, divisionObj);
@@ -421,12 +423,12 @@ export default class UserService extends BaseService<User> {
                             {
                                 if(competitionObj.competitionId!= null)
                                 {
-                                    if(item.teamId != null)
+                                    if(item.teamId != null && teamTemp == undefined)
                                     {
                                         competitionObj.teams.push(teamObj);
                                         teamMap.set(item.teamId, teamObj);
                                     }
-                                    if(item.divisionId != null){
+                                    if(item.divisionId != null && divTemp == undefined){
                                         competitionObj.divisions.push(divisionObj);
                                         divisionMap.set(item.divisionId, divisionObj);
                                     }
@@ -435,12 +437,12 @@ export default class UserService extends BaseService<User> {
                                 }
                             }
                             else{
-                                if(item.teamId!= null)
+                                if(item.teamId!= null  && teamTemp == undefined)
                                 {
                                     competitionTemp.teams.push(teamObj);
                                     teamMap.set(item.teamId, teamObj);
                                 }
-                                if(item.divisionId!= null)
+                                if(item.divisionId!= null && divTemp == undefined)
                                 {
                                     competitionTemp.divisions.push(divisionObj);
                                     divisionMap.set(item.divisionId, divisionObj);
