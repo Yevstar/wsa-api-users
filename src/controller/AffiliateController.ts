@@ -1,5 +1,5 @@
 import { BaseController } from "./BaseController";
-import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Param, Get, UploadedFile, Delete } from "routing-controllers";
+import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Param, Get, UploadedFiles,UploadedFile, Delete } from "routing-controllers";
 import { isArrayPopulated, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty, isPdf } from "../utils/Utils";
 import { Response, response } from 'express';
 import { Affiliate } from "../models/Affiliate";
@@ -21,8 +21,7 @@ export class AffiliateController extends BaseController {
     async affiliateSave(
         @QueryParam("userId") userId: number,
         @HeaderParam("authorization") currentUser: User,
-        @UploadedFile("organisationLogo") organisationLogoFile: Express.Multer.File,
-        @UploadedFile("termsAndCondition") termsAndConditionFile: Express.Multer.File,
+        @UploadedFiles("organisationLogo", { required: false }) organisationLogoFile: Express.Multer.File[],
         @Body() requestBody: any,
         @Res() response: Response) {
         try {
@@ -32,14 +31,12 @@ export class AffiliateController extends BaseController {
 
                     let OrgObject = await this.organisationService.findOrgByUniquekey(requestBody.organisationId);
 
-
                     if (requestBody != null) {
                         if (isStringNullOrEmpty(requestBody.contacts)) {
                             requestBody.contacts = JSON.parse(requestBody.contacts);
                             if (isArrayPopulated(requestBody.contacts)) {
                                 let arr = [];
                                 for (let contact of requestBody.contacts) {
-
                                     if (contact.userId == 0) {
                                         let userDb = await this.userService.findByEmail(contact.email.toLowerCase())
                                         if (userDb) {
@@ -97,7 +94,6 @@ export class AffiliateController extends BaseController {
                         organisation.statusRefId = 2;
                         organisation.termsAndConditionsRefId = requestBody.termsAndConditionsRefId;
                         organisation.termsAndConditions = requestBody.termsAndConditions;
-
                         organisation.whatIsTheLowestOrgThatCanAddChild = requestBody.whatIsTheLowestOrgThatCanAddChild;
                         if (requestBody.affiliateOrgId == "" || requestBody.affiliateOrgId == 0) {
                             organisation.id = 0;
@@ -110,18 +106,17 @@ export class AffiliateController extends BaseController {
                             organisation.organisationUniqueKey = requestBody.affiliateOrgId;
                             organisation.updatedOn = new Date();
                         }
-
-                        if(termsAndConditionFile!= null){
-                            if (isPdf(termsAndConditionFile.mimetype)) {
-                                //   let organisation_logo_file = requestBody.organisationLogo ;
-                                let filename = `/organisation/termsAndCondition_org_${organisation.organisationUniqueKey}_${timestamp()}.${fileExt(termsAndConditionFile.originalname)}`;
-                                let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile);
-                                if (fileUploaded) {
-                                    organisation.termsAndConditions = fileUploaded['url'];
+                        if(organisationLogoFile && organisationLogoFile.length > 0){
+                            if(organisationLogoFile[1]!= null){
+                                if (isPdf(organisationLogoFile[1].mimetype)) {
+                                    let filename = `/organisation/termsAndCondition_org_${organisation.organisationUniqueKey}_${timestamp()}.${fileExt(organisationLogoFile[1].originalname)}`;
+                                    let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile[1]);
+                                    if (fileUploaded) {
+                                        organisation.termsAndConditions = fileUploaded['url'];
+                                    }
                                 }
                             }
                         }
-
                         let organisationRes = await this.organisationService.createOrUpdate(organisation);
                         let affiliatedToOrgId = await this.organisationService.findByUniquekey(requestBody.affiliatedToOrgId);
                         let affiliate = new Affiliate();
@@ -147,11 +142,12 @@ export class AffiliateController extends BaseController {
                         }
 
                         let orgLogoDb = await this.organisationLogoService.findByOrganisationId(affiliateRes.affiliateOrgId)
-                        if (organisationLogoFile != null) {
-                            if (isPhoto(organisationLogoFile.mimetype)) {
+                        if (organisationLogoFile != null && organisationLogoFile.length > 0 
+                                && organisationLogoFile[0] != null) {
+                            if (isPhoto(organisationLogoFile[0].mimetype)) {
                                 //   let organisation_logo_file = requestBody.organisationLogo ;
-                                let filename = `/organisation/logo_org_${affiliateRes.affiliateOrgId}_${timestamp()}.${fileExt(organisationLogoFile.originalname)}`;
-                                let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile);
+                                let filename = `/organisation/logo_org_${affiliateRes.affiliateOrgId}_${timestamp()}.${fileExt(organisationLogoFile[0].originalname)}`;
+                                let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile[0]);
                                 if (fileUploaded) {
                                     let orgLogoModel = new OrganisationLogo();
                                     if (orgLogoDb) {
