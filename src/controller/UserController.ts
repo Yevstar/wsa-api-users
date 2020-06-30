@@ -1,7 +1,6 @@
 import {
     Authorized,
     Body,
-    Delete,
     Get,
     HeaderParam,
     JsonController,
@@ -12,14 +11,15 @@ import {
     Res,
     UploadedFile
 } from 'routing-controllers';
-import {User} from '../models/User';
 import {Request, Response} from 'express';
 import {decode as atob} from 'base-64';
-import {authToken, fileExt, isNullOrEmpty, isPhoto, timestamp, isArrayPopulated} from "../utils/Utils";
-import {LoginError} from "../exceptions/LoginError";
-import {BaseController} from "./BaseController";
-import { logger } from '../logger';
 import * as fastcsv from 'fast-csv';
+
+import {User} from '../models/User';
+import {authToken, fileExt, isPhoto, timestamp, isArrayPopulated, tfaToken} from '../utils/Utils';
+import {LoginError} from '../exceptions/LoginError';
+import {BaseController} from './BaseController';
+import {logger} from '../logger';
 import AppConstants from '../constants/AppConstants';
 
 @JsonController('/users')
@@ -35,23 +35,23 @@ export class UserController extends BaseController {
             const token = atob(auth.replace('BWSA ', '')).split(':');
             const email = token[0].toLowerCase();
             const password = token[1];
-            let sourcesystem = request.headers.sourcesystem
-            let user = null;
-            if(sourcesystem == AppConstants.sourceSystem){
+
+            let user;
+            let sourcesystem = request.headers.sourcesystem;
+            if (sourcesystem == AppConstants.sourceSystem) {
                 user = await this.userService.findByCredentials(email, password);
-                if(!user){
+                if (!user) {
                     throw new LoginError(AppConstants.loginUnsuccessfulMsg);
-                }
-                else {
+                } else {
                     user = await this.userService.findByCredentialsForWeb(email, password);
-                    if(!user){
+                    if (!user) {
                         throw new LoginError(AppConstants.loginErrMsg);
                     }
                 }
+            } else {
+                user = await this.userService.findByCredentials(email, password);
             }
-            else{
-                 user = await this.userService.findByCredentials(email, password);
-            }
+
             if (user) {
                 return this.responseWithTokenAndUser(email, password, user);
             } else {
@@ -60,6 +60,58 @@ export class UserController extends BaseController {
         } else {
             throw new LoginError(AppConstants.loginUnsuccessfulMsg);
         }
+    }
+
+    @Get('/loginWithTfa')
+    async loginWithTfa(
+        @Req() request: Request,
+        @Res() response: Response
+    ) {
+        const auth = request.headers.authorization || "";
+        if (auth.startsWith(AppConstants.bwsa)) {
+            const token = atob(auth.replace('BWSA ', '')).split(':');
+            const email = token[0].toLowerCase();
+            const password = token[1];
+
+            let user;
+            let sourcesystem = request.headers.sourcesystem;
+
+            if (sourcesystem !== AppConstants.sourceSystem) {
+                throw new LoginError(AppConstants.loginAccessErrMsg);
+            }
+
+            user = await this.userService.findByCredentials(email, password);
+            if (!user) {
+                throw new LoginError(AppConstants.loginUnsuccessfulMsg);
+            } else {
+                user = await this.userService.findByCredentialsForWeb(email, password);
+                if (!user) {
+                    throw new LoginError(AppConstants.loginErrMsg);
+                }
+
+                if (user.tfaEnabled) {
+                    return {
+                        tfaEnabled: true,
+                        token: tfaToken(user.email)
+                    }
+                }
+
+                return {
+                    tfaEnabled: false,
+                    qr: this.userService.generateTfaSecret(user)
+                }
+            }
+        } else {
+            throw new LoginError(AppConstants.loginUnsuccessfulMsg);
+        }
+    }
+
+    @Get('/confirmTfa')
+    async confirmTfa(
+        @Req() request: Request,
+        @Res() response: Response
+    ) {
+
     }
 
     @Authorized()
@@ -79,14 +131,18 @@ export class UserController extends BaseController {
 
     @Authorized()
     @Post('/photo')
-    public async uploadUserPhoto(@HeaderParam("authorization") user: User,
-                                 @UploadedFile("profile_photo") file: Express.Multer.File,
-                                 @Res() response: Response) {
+    public async uploadUserPhoto(
+        @HeaderParam("authorization") user: User,
+        @UploadedFile("profile_photo") file: Express.Multer.File,
+        @Res() response: Response
+    ) {
         try {
             if (user) {
                 if (!file) {
-                    return response
-                        .status(400).send({name: 'validation_error', message: 'File can not be null'});
+                    return response.status(400).send({
+                        name: 'validation_error',
+                        message: 'File can not be null'
+                    });
                 } else if (isPhoto(file.mimetype)) {
                     let filename = `/photos/user_${user.id}_${timestamp()}.${fileExt(file.originalname)}`;
                     let result = await this.firebaseService.upload(filename, file);
@@ -96,25 +152,28 @@ export class UserController extends BaseController {
                         await this.userService.createOrUpdate(user);
                         return user;
                     } else {
-                        return response
-                            .status(400).send(
-                                {name: 'save_error', message: 'Image not saved, try again later.'});
+                        return response.status(400).send({
+                            name: 'save_error',
+                            message: 'Image not saved, try again later.'
+                        });
                     }
                 } else {
-                    return response
-                        .status(400).send(
-                            {name: 'validation_error', message: 'File mime type not supported'});
+                    return response.status(400).send({
+                        name: 'validation_error',
+                        message: 'File mime type not supported'
+                    });
                 }
             } else {
-                return response
-                    .status(400).send({name: 'validation_error', message: 'User does not exist.'});
+                return response.status(400).send({
+                    name: 'validation_error',
+                    message: 'User does not exist.'
+                });
             }
         } catch (e) {
-            return response
-                .status(500).send({
-                    name: 'upload_error',
-                    message: 'Unexpectable error on load image. Try again later.'
-                });
+            return response.status(500).send({
+                name: 'upload_error',
+                message: 'Unexpectable error on load image. Try again later.'
+            });
         }
     }
 
@@ -161,20 +220,19 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName,
-            {functionId: functionId});
+        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, {functionId: functionId});
 
         if (result) {
-          // Here we are checking every user with firestore inorder to make sure
-          // we have proper firebaseUID and firestore database set for the user.
-          const promises = result.map(async user => {
-            await this.checkUserForFirestore(user);
-            return user;
-          });
+            // Here we are checking every user with firestore inorder to make sure
+            // we have proper firebaseUID and firestore database set for the user.
+            const promises = result.map(async user => {
+                await this.checkUserForFirestore(user);
+                return user;
+            });
 
-          return await Promise.all(promises);
+            return await Promise.all(promises);
         } else {
-          return [];
+            return [];
         }
     }
 
@@ -217,18 +275,22 @@ export class UserController extends BaseController {
                 if (exist) {
                     logger.debug(`User with email ${user.email} already exist`);
                     return response.status(400).send({
-                        name: 'validation_error', message: `User with email ${user.email} already exists`
+                        name: 'validation_error',
+                        message: `User with email ${user.email} already exists`
                     });
                 }
             }
+
             await this.userService.update(userDetails.email.toLowerCase(), user);
             await this.updateFirebaseData(user, userDetails.password);
+
             logger.info(`Current user data updated ${user.email}`);
             return this.responseWithTokenAndUser(user.email, userDetails.password, user, false);
         } catch (err) {
-            logger.error(`Unable to patch user ${userDetails.email}`+err);
+            logger.error(`Unable to patch user ${userDetails.email}` + err);
             return response.status(400).send({
-                name: 'unexpected_error', message: 'Failed to update the user.'
+                name: 'unexpected_error',
+                message: 'Failed to update the user.'
             });
         }
     }
@@ -236,24 +298,23 @@ export class UserController extends BaseController {
     @Authorized()
     @Get('/childProfiles')
     async getChildProfile(
-      @QueryParam('ids', {required: true}) ids: number[], // Here ids should be user id's
-      @Res() response: Response
+        @QueryParam('ids', {required: true}) ids: number[], // Here ids should be user id's
+        @Res() response: Response
     ) {
         let childUserList = await this.userService.findChildPlayerUserDetails(ids);
         if (childUserList) {
-          const promises = childUserList.map(async user => {
-            let userPass = user.password;
-            await this.checkFirestoreDatabase(user);
-            return await this.responseWithTokenAndUser(user.email.toLowerCase(), userPass, user);
-          });
+            const promises = childUserList.map(async user => {
+                let userPass = user.password;
+                await this.checkFirestoreDatabase(user);
+                return await this.responseWithTokenAndUser(user.email.toLowerCase(), userPass, user);
+            });
 
-          return await Promise.all(promises);
-        }
-        else {
-          return response.status(400).send({
-            name: 'validation_error',
-            message: 'Could not find any user'
-          });
+            return await Promise.all(promises);
+        } else {
+            return response.status(400).send({
+                name: 'validation_error',
+                message: 'Could not find any user'
+            });
         }
     }
 
@@ -263,16 +324,16 @@ export class UserController extends BaseController {
         @HeaderParam("authorization") user: User,
         @Res() response: Response
     ) {
-      try {
-        await this.checkFirestoreDatabase(user);
-        return response.status(200).send({verified: true});
-      } catch (error) {
-        return response.status(500).send({verified: false, message: error});
-      }
+        try {
+            await this.checkFirestoreDatabase(user);
+            return response.status(200).send({verified: true});
+        } catch (error) {
+            return response.status(500).send({verified: false, message: error});
+        }
     }
 
     private async responseWithTokenAndUser(login, password, user: User, checkFirebase = true) {
-      if (checkFirebase) await this.checkFirebaseUser(user, password);
+        if (checkFirebase) await this.checkFirebaseUser(user, password);
         user.password = undefined;
         user.reset = undefined;
         return {
@@ -295,22 +356,22 @@ export class UserController extends BaseController {
         await this.checkFirestoreDatabase(user);
     }
 
-    /// First we will check if user is having firebaseUID or not. If not we
-    /// will create one and then verify for firestore database for the user.
+    // First we will check if user is having firebaseUID or not. If not we
+    // will create one and then verify for firestore database for the user.
     private async checkUserForFirestore(user: User) {
-      user.email = user.email.toLowerCase();
-      user['linkedEntity'] = JSON.parse(user['linkedEntity']);
-      if (user.email != null && user.email != undefined &&
-          (user.firebaseUID == null || user.firebaseUID == undefined)) {
-        // Commenting this code will have issues in the messages chat flows
-        const result = await this.userService.findUserFullDetailsById(user.id);
-        let userDetails = result[0];
-        if (userDetails.email != null && userDetails.email != undefined) {
-            await this.checkFirebaseUser(user, userDetails.password);
+        user.email = user.email.toLowerCase();
+        user['linkedEntity'] = JSON.parse(user['linkedEntity']);
+        if (user.email !== null && user.email !== undefined &&
+            (user.firebaseUID === null || user.firebaseUID === undefined)) {
+            // Commenting this code will have issues in the messages chat flows
+            const result = await this.userService.findUserFullDetailsById(user.id);
+            let userDetails = result[0];
+            if (userDetails.email !== null && userDetails.email !== undefined) {
+                await this.checkFirebaseUser(user, userDetails.password);
+            }
+        } else {
+            await this.checkFirestoreDatabase(user);
         }
-      } else {
-        await this.checkFirestoreDatabase(user);
-      }
     }
 
     @Authorized()
@@ -320,16 +381,13 @@ export class UserController extends BaseController {
         @HeaderParam("authorization") user: User,
         @Res() response: Response
     ) {
-      try {
+        try {
             let res = await this.userService.friendDashboard(requestBody)
-
             return response.status(200).send(res)
-      }
-      catch(error){
-        logger.error(`Unable to get Friend details `,error)
-        return response.status(500).send('Something Went wrong')
-
-      }
+        } catch (error) {
+            logger.error(`Unable to get Friend details `, error)
+            return response.status(500).send('Something went wrong')
+        }
     }
 
     @Authorized()
@@ -339,24 +397,21 @@ export class UserController extends BaseController {
         @HeaderParam("authorization") user: User,
         @Res() response: Response
     ) {
-      try {
+        try {
             let res = await this.userService.referFriendDashboard(requestBody)
             return response.status(200).send(res)
-            
-      }
-      catch(error){
-        logger.error(`Unable to get Refer friend details `,error)
-        return response.status(500).send('Something Went wrong')
-        
-      }
+        } catch (error) {
+            logger.error(`Unable to get Refer friend details `, error)
+            return response.status(500).send('Something went wrong')
+        }
     }
 
     @Authorized()
     @Get('/byRole/export')
     async exportUserByRole(
-        @QueryParam('roleId', { required: true }) roleId: number,
-        @QueryParam('entityTypeId', { required: true }) entityTypeId: number,
-        @QueryParam('entityId', { required: true }) entityId: number,
+        @QueryParam('roleId', {required: true}) roleId: number,
+        @QueryParam('entityTypeId', {required: true}) entityTypeId: number,
+        @QueryParam('entityId', {required: true}) entityId: number,
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
@@ -406,17 +461,18 @@ export class UserController extends BaseController {
 
         response.setHeader('Content-disposition', 'attachment; filename=file.csv');
         response.setHeader('content-type', 'text/csv');
-        fastcsv.write(getManagersData, { headers: true })
-            .on("finish", function () { })
+        fastcsv.write(getManagersData, {headers: true})
+            .on("finish", function () {
+            })
             .pipe(response);
     }
 
     @Authorized()
     @Get('/byRole/export/org')
     async exportUserByRoleOrgs(
-        @QueryParam('roleId', { required: true }) roleId: number,
-        @QueryParam('entityTypeId', { required: true }) entityTypeId: number,
-        @QueryParam('entityId', { required: true }) entityId: number,
+        @QueryParam('roleId', {required: true}) roleId: number,
+        @QueryParam('entityTypeId', {required: true}) entityTypeId: number,
+        @QueryParam('entityId', {required: true}) entityId: number,
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
@@ -461,8 +517,9 @@ export class UserController extends BaseController {
 
         response.setHeader('Content-disposition', 'attachment; filename=file.csv');
         response.setHeader('content-type', 'text/csv');
-        fastcsv.write(userData, { headers: true })
-            .on("finish", function () { })
+        fastcsv.write(userData, {headers: true})
+            .on("finish", function () {
+            })
             .pipe(response);
     }
 }

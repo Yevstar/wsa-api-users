@@ -10,6 +10,11 @@ export function authToken(email: string, password: string): string {
     return encrypt(jwt.encode({ data }, process.env.SECRET));
 }
 
+export function tfaToken(email: string): string {
+    const data = `${email.toLowerCase()}:tfa`;
+    return encrypt(jwt.encode({ data }, process.env.SECRET));
+}
+
 export function isNullOrEmpty(value: string): boolean {
     return (!value || 0 === value.length);
 }
