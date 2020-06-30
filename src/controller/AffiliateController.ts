@@ -1,6 +1,6 @@
 import { BaseController } from "./BaseController";
 import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Param, Get, UploadedFile, Delete } from "routing-controllers";
-import { isArrayPopulated, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty } from "../utils/Utils";
+import { isArrayPopulated, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty, isPdf } from "../utils/Utils";
 import { Response, response } from 'express';
 import { Affiliate } from "../models/Affiliate";
 import { logger } from "../logger";
@@ -22,6 +22,7 @@ export class AffiliateController extends BaseController {
         @QueryParam("userId") userId: number,
         @HeaderParam("authorization") currentUser: User,
         @UploadedFile("organisationLogo") organisationLogoFile: Express.Multer.File,
+        @UploadedFile("termsAndCondition") termsAndConditionFile: Express.Multer.File,
         @Body() requestBody: any,
         @Res() response: Response) {
         try {
@@ -94,6 +95,8 @@ export class AffiliateController extends BaseController {
                         organisation.stateRefId = requestBody.stateRefId;
                         organisation.email = (requestBody.email != undefined && requestBody.email != null) ? requestBody.email.toLowerCase() : null;
                         organisation.statusRefId = 2;
+                        organisation.termsAndConditionsRefId = requestBody.termsAndConditionsRefId;
+                        organisation.termsAndConditions = requestBody.termsAndConditions;
 
                         organisation.whatIsTheLowestOrgThatCanAddChild = requestBody.whatIsTheLowestOrgThatCanAddChild;
                         if (requestBody.affiliateOrgId == "" || requestBody.affiliateOrgId == 0) {
@@ -104,8 +107,21 @@ export class AffiliateController extends BaseController {
                             let affiliateOrgId = await this.organisationService.findByUniquekey(requestBody.affiliateOrgId);
                             organisation.id = affiliateOrgId;
                             organisation.updatedBy = userId;
+                            organisation.organisationUniqueKey = requestBody.affiliateOrgId;
                             organisation.updatedOn = new Date();
                         }
+
+                        if(termsAndConditionFile!= null){
+                            if (isPdf(termsAndConditionFile.mimetype)) {
+                                //   let organisation_logo_file = requestBody.organisationLogo ;
+                                let filename = `/organisation/termsAndCondition_org_${organisation.organisationUniqueKey}_${timestamp()}.${fileExt(termsAndConditionFile.originalname)}`;
+                                let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile);
+                                if (fileUploaded) {
+                                    organisation.termsAndConditions = fileUploaded['url'];
+                                }
+                            }
+                        }
+
                         let organisationRes = await this.organisationService.createOrUpdate(organisation);
                         let affiliatedToOrgId = await this.organisationService.findByUniquekey(requestBody.affiliatedToOrgId);
                         let affiliate = new Affiliate();

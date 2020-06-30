@@ -118,6 +118,8 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         organisationLogo: "",
                         organisationPhotos: JSON.parse(aff.organisationPhotos),
                         whatIsTheLowestOrgThatCanAddChild: aff.whatIsTheLowestOrgThatCanAddChild,
+                        termsAndConditionsRefId: aff.termsAndConditionsRefId,
+                        termsAndConditions: aff.termsAndConditions,
                         contacts:[]
                     }
                     contactsObj.permissions.push(permissionObj);
