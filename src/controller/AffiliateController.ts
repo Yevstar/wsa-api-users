@@ -124,8 +124,10 @@ export class AffiliateController extends BaseController {
 
                         let affiliateRes = await this.affiliateService.createOrUpdate(affiliate);
 
-                        if (requestBody.organisationTypeRefId == 4) {
-                            await this.affiliateAction(affiliatedToOrgId, OrgObject, affiliateRes, userId)
+                        if(requestBody.affiliateId == 0){
+                            if (requestBody.organisationTypeRefId == 4) {
+                                await this.affiliateAction(affiliatedToOrgId, OrgObject, affiliateRes, userId)
+                            }
                         }
 
                         let orgLogoDb = await this.organisationLogoService.findByOrganisationId(affiliateRes.affiliateOrgId)
