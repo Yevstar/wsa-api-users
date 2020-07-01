@@ -3,7 +3,7 @@ const AppConstants = {
     loginAccessErrMsg: "Login is invalid with this endpoint. Please use other endpoint.",
     loginUnsuccessfulMsg : "Login Unsuccessful. Incorrect Username or Password",
     loginInvalidMsg: "Invalid username or password.",
-    tfaUnsuccessfulMsg : "TFA Unsuccessful. Incorrect Username or Password",
+    tfaUnsuccessfulMsg : "TFA Unsuccessful. Incorrect code",
     sourceSystem: "WebAdmin",
     bwsa: "BWSA"
 };

@@ -25,7 +25,8 @@ export default class UserService extends BaseService<User> {
     public async findByEmail(email: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', {email: email.toLowerCase()})
-            .addSelect("user.password").addSelect("user.reset")
+            .addSelect("user.password")
+            .addSelect("user.reset")
             .getOne();
     }
 
@@ -666,7 +667,7 @@ export default class UserService extends BaseService<User> {
         const secret = speakeasy.generateSecret({
             issuer: 'Netball Live Scores',
             name: `Netball Live Scores (${user.email})`,
-            length: 64
+            length: 6
         });
 
         user.tfaSecret = secret.base32;
@@ -675,5 +676,19 @@ export default class UserService extends BaseService<User> {
         await this.update(user.email, user);
 
         return await QRcode.toDataURL(secret.otpauth_url);
+    }
+
+    public confirmTfaSecret(user: User, code: string) {
+        return speakeasy.totp.verify({
+            secret: user.tfaSecret,
+            encoding: 'base32',
+            window: 1, // let user enter previous totp token because ux
+            token: code
+        });
+    }
+
+    public async updateTfaStatus(user) {
+        user.tfaEnabled = true;
+        await user.save();
     }
 }

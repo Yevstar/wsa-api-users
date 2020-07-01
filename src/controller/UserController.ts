@@ -75,7 +75,6 @@ export class UserController extends BaseController {
 
             let user;
             let sourcesystem = request.headers.sourcesystem;
-
             if (sourcesystem !== AppConstants.sourceSystem) {
                 throw new LoginError(AppConstants.loginAccessErrMsg);
             }
@@ -92,14 +91,14 @@ export class UserController extends BaseController {
                 if (user.tfaEnabled) {
                     return {
                         tfaEnabled: true,
-                        token: tfaToken(user.email)
-                    }
+                    };
                 }
 
+                const qrCode = await this.userService.generateTfaSecret(user);
                 return {
                     tfaEnabled: false,
-                    qr: this.userService.generateTfaSecret(user)
-                }
+                    qrCode,
+                };
             }
         } else {
             throw new LoginError(AppConstants.loginUnsuccessfulMsg);
@@ -111,7 +110,40 @@ export class UserController extends BaseController {
         @Req() request: Request,
         @Res() response: Response
     ) {
+        const auth = request.headers.authorization || "";
+        if (auth.startsWith(AppConstants.bwsa)) {
+            const token = atob(auth.replace('BWSA ', '')).split(':');
+            const email = token[0].toLowerCase();
+            const password = token[1];
+            const code = token[2];
 
+            let user;
+            let sourcesystem = request.headers.sourcesystem;
+            if (sourcesystem !== AppConstants.sourceSystem) {
+                throw new LoginError(AppConstants.loginAccessErrMsg);
+            }
+
+            user = await this.userService.findByCredentials(email, password);
+            if (!user || !this.userService.confirmTfaSecret(user, code)) {
+                throw new LoginError(AppConstants.tfaUnsuccessfulMsg);
+            } else {
+                const userWithRoles = await this.userService.findByCredentialsForWeb(email, password);
+                if (!userWithRoles) {
+                    throw new LoginError(AppConstants.loginErrMsg);
+                }
+
+                if (userWithRoles) {
+                    if (!user.tfaEnabled) {
+                        await this.userService.updateTfaStatus(user);
+                    }
+                    return this.responseWithTokenAndUser(email, password, userWithRoles);
+                } else {
+                    throw new LoginError(AppConstants.loginUnsuccessfulMsg);
+                }
+            }
+        } else {
+            throw new LoginError(AppConstants.tfaUnsuccessfulMsg);
+        }
     }
 
     @Authorized()
