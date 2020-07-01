@@ -16,11 +16,13 @@ import {decode as atob} from 'base-64';
 import * as fastcsv from 'fast-csv';
 
 import {User} from '../models/User';
-import {authToken, fileExt, isPhoto, timestamp, isArrayPopulated, tfaToken} from '../utils/Utils';
+import {authToken, fileExt, isPhoto, timestamp, isArrayPopulated} from '../utils/Utils';
 import {LoginError} from '../exceptions/LoginError';
 import {BaseController} from './BaseController';
 import {logger} from '../logger';
 import AppConstants from '../constants/AppConstants';
+
+const tfaOptionEnabled = parseInt(process.env.TFA_ENABLED, 10);
 
 @JsonController('/users')
 export class UserController extends BaseController {
@@ -88,17 +90,25 @@ export class UserController extends BaseController {
                     throw new LoginError(AppConstants.loginErrMsg);
                 }
 
-                if (user.tfaEnabled) {
+                if (tfaOptionEnabled === 1) {
+                    if (user.tfaEnabled) {
+                        return {
+                            tfaEnabled: true,
+                        };
+                    }
+
+                    const qrCode = await this.userService.generateTfaSecret(user);
                     return {
-                        tfaEnabled: true,
+                        tfaEnabled: false,
+                        qrCode,
                     };
                 }
 
-                const qrCode = await this.userService.generateTfaSecret(user);
-                return {
-                    tfaEnabled: false,
-                    qrCode,
-                };
+                if (user) {
+                    return this.responseWithTokenAndUser(email, password, user);
+                } else {
+                    throw new LoginError(AppConstants.loginUnsuccessfulMsg);
+                }
             }
         } else {
             throw new LoginError(AppConstants.loginUnsuccessfulMsg);
