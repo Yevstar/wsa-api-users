@@ -13,6 +13,7 @@ import { OrganisationPhoto } from "../models/OrganisationPhoto";
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 
+
 @JsonController("/api")
 export class AffiliateController extends BaseController {
 
@@ -21,7 +22,7 @@ export class AffiliateController extends BaseController {
     async affiliateSave(
         @QueryParam("userId") userId: number,
         @HeaderParam("authorization") currentUser: User,
-        @UploadedFiles("organisationLogo", { required: false }) organisationLogoFile: Express.Multer.File[],
+        @UploadedFiles("organisationLogo") organisationLogoFile: any,
         @Body() requestBody: any,
         @Res() response: Response) {
         try {
@@ -107,10 +108,18 @@ export class AffiliateController extends BaseController {
                             organisation.updatedOn = new Date();
                         }
                         if(organisationLogoFile && organisationLogoFile.length > 0){
-                            if(organisationLogoFile[1]!= null){
-                                if (isPdf(organisationLogoFile[1].mimetype)) {
-                                    let filename = `/organisation/termsAndCondition_org_${organisation.organisationUniqueKey}_${timestamp()}.${fileExt(organisationLogoFile[1].originalname)}`;
-                                    let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile[1]);
+                            
+                            if(requestBody.termsAndConditionId == 0){
+                                let termAndConditionfile = null;
+                                if(requestBody.organisationLogoId == 0){
+                                    termAndConditionfile = organisationLogoFile[1];
+                                }
+                                else{
+                                    termAndConditionfile = organisationLogoFile[0]
+                                }
+                                if (isPdf(termAndConditionfile.mimetype)) {
+                                    let filename = `/organisation/termsAndCondition_org_${organisation.organisationUniqueKey}_${timestamp()}.${fileExt(termAndConditionfile.originalname)}`;
+                                    let fileUploaded = await this.firebaseService.upload(filename, termAndConditionfile);
                                     if (fileUploaded) {
                                         organisation.termsAndConditions = fileUploaded['url'];
                                     }
@@ -143,7 +152,7 @@ export class AffiliateController extends BaseController {
 
                         let orgLogoDb = await this.organisationLogoService.findByOrganisationId(affiliateRes.affiliateOrgId)
                         if (organisationLogoFile != null && organisationLogoFile.length > 0 
-                                && organisationLogoFile[0] != null) {
+                                && organisationLogoFile[0] != null && requestBody.organisationLogoId == 0) {
                             if (isPhoto(organisationLogoFile[0].mimetype)) {
                                 //   let organisation_logo_file = requestBody.organisationLogo ;
                                 let filename = `/organisation/logo_org_${affiliateRes.affiliateOrgId}_${timestamp()}.${fileExt(organisationLogoFile[0].originalname)}`;
