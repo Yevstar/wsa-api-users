@@ -108,7 +108,7 @@ export class AffiliateController extends BaseController {
                             organisation.updatedOn = new Date();
                         }
                         if(organisationLogoFile && organisationLogoFile.length > 0){
-                            
+                           
                             if(requestBody.termsAndConditionId == 0){
                                 let termAndConditionfile = null;
                                 if(requestBody.organisationLogoId == 0){
@@ -117,9 +117,11 @@ export class AffiliateController extends BaseController {
                                 else{
                                     termAndConditionfile = organisationLogoFile[0]
                                 }
+
                                 if (isPdf(termAndConditionfile.mimetype)) {
                                     let filename = `/organisation/termsAndCondition_org_${organisation.organisationUniqueKey}_${timestamp()}.${fileExt(termAndConditionfile.originalname)}`;
                                     let fileUploaded = await this.firebaseService.upload(filename, termAndConditionfile);
+                                  
                                     if (fileUploaded) {
                                         organisation.termsAndConditions = fileUploaded['url'];
                                     }
