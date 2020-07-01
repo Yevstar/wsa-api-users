@@ -59,7 +59,7 @@ export class User extends BaseEntity {
     @IsString()
     @Column()
     firebaseUID: string;
-    
+
     @IsString()
     @Column()
     street1: string;
@@ -75,7 +75,7 @@ export class User extends BaseEntity {
     @IsNumber()
     @Column()
     stateRefId: number;
-    
+
     @IsString()
     @Column()
     emergencyContactName: string;
@@ -103,4 +103,16 @@ export class User extends BaseEntity {
     @IsNumber()
     @Column({ default: 0 })
     isDeleted: number;
+
+    @IsBoolean()
+    @Column()
+    tfaEnabled: boolean;
+
+    @IsString()
+    @Column({select: false})
+    tfaSecret: string;
+
+    @IsString()
+    @Column({select: false})
+    tfaSecretUrl: string;
 }
