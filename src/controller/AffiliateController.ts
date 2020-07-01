@@ -22,7 +22,7 @@ export class AffiliateController extends BaseController {
     async affiliateSave(
         @QueryParam("userId") userId: number,
         @HeaderParam("authorization") currentUser: User,
-        @UploadedFiles("organisationLogo") organisationLogoFile: any,
+        @UploadedFiles("organisationLogo") organisationLogoFile: Express.Multer.File[],
         @Body() requestBody: any,
         @Res() response: Response) {
         try {
