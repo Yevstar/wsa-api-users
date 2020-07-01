@@ -278,7 +278,7 @@ export class AffiliateController extends BaseController {
                             message: 'Empty Body'
                         });
                     }
-                }
+                } 
                 else {
                     return response.status(401).send({
                         errorCode: 2,
@@ -299,7 +299,6 @@ export class AffiliateController extends BaseController {
             });
         }
     }
-
 
     @Authorized()
     @Delete('/affiliate/user/delete/:userId')
