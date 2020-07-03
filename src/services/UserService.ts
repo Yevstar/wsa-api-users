@@ -45,6 +45,15 @@ export default class UserService extends BaseService<User> {
             .getOne();
     }
 
+    public async findByCredentialsForTFA(email: string, password: string): Promise<User> {
+        return this.entityManager.createQueryBuilder(User, 'user')
+            .andWhere('LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
+                {email: email.toLowerCase(), password: password})
+            .addSelect("user.tfaEnabled")
+            .addSelect("user.tfaSecret")
+            .getOne();
+    }
+
     public async findByCredentialsForWeb(email: string, password: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .innerJoin(UserRoleEntity, 'ure', 'user.id = ure.userId and ure.entityType = 2 and ure.isDeleted = 0')

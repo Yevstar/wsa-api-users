@@ -1,6 +1,6 @@
 import { BaseController } from "./BaseController";
-import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Param, Get, UploadedFile, Delete } from "routing-controllers";
-import { isArrayPopulated, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty } from "../utils/Utils";
+import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Param, Get, UploadedFiles,UploadedFile, Delete } from "routing-controllers";
+import { isArrayPopulated, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty, isPdf } from "../utils/Utils";
 import { Response, response } from 'express';
 import { Affiliate } from "../models/Affiliate";
 import { logger } from "../logger";
@@ -13,6 +13,7 @@ import { OrganisationPhoto } from "../models/OrganisationPhoto";
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 
+
 @JsonController("/api")
 export class AffiliateController extends BaseController {
 
@@ -21,7 +22,7 @@ export class AffiliateController extends BaseController {
     async affiliateSave(
         @QueryParam("userId") userId: number,
         @HeaderParam("authorization") currentUser: User,
-        @UploadedFile("organisationLogo") organisationLogoFile: Express.Multer.File,
+        @UploadedFiles("organisationLogo") organisationLogoFile: Express.Multer.File[],
         @Body() requestBody: any,
         @Res() response: Response) {
         try {
@@ -31,14 +32,12 @@ export class AffiliateController extends BaseController {
 
                     let OrgObject = await this.organisationService.findOrgByUniquekey(requestBody.organisationId);
 
-
                     if (requestBody != null) {
                         if (isStringNullOrEmpty(requestBody.contacts)) {
                             requestBody.contacts = JSON.parse(requestBody.contacts);
                             if (isArrayPopulated(requestBody.contacts)) {
                                 let arr = [];
                                 for (let contact of requestBody.contacts) {
-
                                     if (contact.userId == 0) {
                                         let userDb = await this.userService.findByEmail(contact.email.toLowerCase())
                                         if (userDb) {
@@ -94,7 +93,8 @@ export class AffiliateController extends BaseController {
                         organisation.stateRefId = requestBody.stateRefId;
                         organisation.email = (requestBody.email != undefined && requestBody.email != null) ? requestBody.email.toLowerCase() : null;
                         organisation.statusRefId = 2;
-
+                        organisation.termsAndConditionsRefId = requestBody.termsAndConditionsRefId;
+                        organisation.termsAndConditions = requestBody.termsAndConditions;
                         organisation.whatIsTheLowestOrgThatCanAddChild = requestBody.whatIsTheLowestOrgThatCanAddChild;
                         if (requestBody.affiliateOrgId == "" || requestBody.affiliateOrgId == 0) {
                             organisation.id = 0;
@@ -104,7 +104,29 @@ export class AffiliateController extends BaseController {
                             let affiliateOrgId = await this.organisationService.findByUniquekey(requestBody.affiliateOrgId);
                             organisation.id = affiliateOrgId;
                             organisation.updatedBy = userId;
+                            organisation.organisationUniqueKey = requestBody.affiliateOrgId;
                             organisation.updatedOn = new Date();
+                        }
+                        if(organisationLogoFile && organisationLogoFile.length > 0){
+                           
+                            if(requestBody.termsAndConditionId == 0){
+                                let termAndConditionfile = null;
+                                if(requestBody.organisationLogoId == 0){
+                                    termAndConditionfile = organisationLogoFile[1];
+                                }
+                                else{
+                                    termAndConditionfile = organisationLogoFile[0]
+                                }
+
+                                if (isPdf(termAndConditionfile.mimetype)) {
+                                    let filename = `/organisation/termsAndCondition_org_${organisation.organisationUniqueKey}_${timestamp()}.${fileExt(termAndConditionfile.originalname)}`;
+                                    let fileUploaded = await this.firebaseService.upload(filename, termAndConditionfile);
+                                  
+                                    if (fileUploaded) {
+                                        organisation.termsAndConditions = fileUploaded['url'];
+                                    }
+                                }
+                            }
                         }
                         let organisationRes = await this.organisationService.createOrUpdate(organisation);
                         let affiliatedToOrgId = await this.organisationService.findByUniquekey(requestBody.affiliatedToOrgId);
@@ -124,16 +146,19 @@ export class AffiliateController extends BaseController {
 
                         let affiliateRes = await this.affiliateService.createOrUpdate(affiliate);
 
-                        if (requestBody.organisationTypeRefId == 4) {
-                            await this.affiliateAction(affiliatedToOrgId, OrgObject, affiliateRes, userId)
+                        if(requestBody.affiliateId == 0){
+                            if (requestBody.organisationTypeRefId == 4) {
+                                await this.affiliateAction(affiliatedToOrgId, OrgObject, affiliateRes, userId)
+                            }
                         }
 
                         let orgLogoDb = await this.organisationLogoService.findByOrganisationId(affiliateRes.affiliateOrgId)
-                        if (organisationLogoFile != null) {
-                            if (isPhoto(organisationLogoFile.mimetype)) {
+                        if (organisationLogoFile != null && organisationLogoFile.length > 0 
+                                && organisationLogoFile[0] != null && requestBody.organisationLogoId == 0) {
+                            if (isPhoto(organisationLogoFile[0].mimetype)) {
                                 //   let organisation_logo_file = requestBody.organisationLogo ;
-                                let filename = `/organisation/logo_org_${affiliateRes.affiliateOrgId}_${timestamp()}.${fileExt(organisationLogoFile.originalname)}`;
-                                let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile);
+                                let filename = `/organisation/logo_org_${affiliateRes.affiliateOrgId}_${timestamp()}.${fileExt(organisationLogoFile[0].originalname)}`;
+                                let fileUploaded = await this.firebaseService.upload(filename, organisationLogoFile[0]);
                                 if (fileUploaded) {
                                     let orgLogoModel = new OrganisationLogo();
                                     if (orgLogoDb) {
@@ -255,7 +280,7 @@ export class AffiliateController extends BaseController {
                             message: 'Empty Body'
                         });
                     }
-                }
+                } 
                 else {
                     return response.status(401).send({
                         errorCode: 2,
@@ -276,7 +301,6 @@ export class AffiliateController extends BaseController {
             });
         }
     }
-
 
     @Authorized()
     @Delete('/affiliate/user/delete/:userId')

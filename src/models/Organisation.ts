@@ -66,6 +66,15 @@ export class Organisation extends BaseEntity {
 
     @IsNumber()
     @Column()
+    termsAndConditionsRefId: number;
+
+    @IsString()
+    @Column()
+    termsAndConditions: string;
+
+
+    @IsNumber()
+    @Column()
     createdBy: number;
 
     @IsNumber()

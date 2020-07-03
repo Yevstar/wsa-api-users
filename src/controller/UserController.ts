@@ -133,7 +133,7 @@ export class UserController extends BaseController {
                 throw new LoginError(AppConstants.loginAccessErrMsg);
             }
 
-            user = await this.userService.findByCredentials(email, password);
+            user = await this.userService.findByCredentialsForTFA(email, password);
             if (!user || !this.userService.confirmTfaSecret(user, code)) {
                 throw new LoginError(AppConstants.tfaUnsuccessfulMsg);
             } else {
