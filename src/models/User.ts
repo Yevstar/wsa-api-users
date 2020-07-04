@@ -1,5 +1,5 @@
 import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
-import {IsBoolean, IsDate, IsNumber, IsString} from "class-validator";
+import {IsBoolean, IsDate, IsNumber, IsString, IsObject} from "class-validator";
 
 @Entity()
 export class User extends BaseEntity {
@@ -105,14 +105,14 @@ export class User extends BaseEntity {
     isDeleted: number;
 
     @IsBoolean()
-    @Column()
+    @Column({ default: false })
     tfaEnabled: boolean;
 
     @IsString()
-    @Column({select: false})
+    @Column({ nullable: true, default: null, select: false })
     tfaSecret: string;
 
     @IsString()
-    @Column({select: false})
+    @Column({ nullable: true, default: null, select: false })
     tfaSecretUrl: string;
 }
