@@ -44,6 +44,7 @@
     "routing-controllers": "^0.7.7",
     "routing-controllers-openapi": "^1.7.0",
     "speakeasy": "^2.0.0",
+    "twilio": "^3.47.0",
     "typedi": "^0.8.0",
     "typeorm": "^0.2.22",
     "typeorm-routing-controllers-extensions": "^0.2.0",

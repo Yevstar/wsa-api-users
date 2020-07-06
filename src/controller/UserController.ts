@@ -231,7 +231,7 @@ export class UserController extends BaseController {
 
     @Authorized()
     @Get('/byIds')
-    async getUsersbyIds(
+    async getUsersByIds(
         @QueryParam('ids', {required: true}) ids: number[],
         @Res() response: Response
     ) {
