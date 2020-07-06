@@ -98,7 +98,7 @@ export class PasswordController extends BaseController {
 
             return response.status(200).send({
                 name: 'success',
-                message: 'A password reset link was sent to your email address.',
+                message: `A password reset link was sent to your ${type === 'email' ? 'email address' : 'phone'}.`,
             });
         } catch (err) {
             logger.error(`Failed to send a password reset email to ${email}` + err);
@@ -134,6 +134,7 @@ export class PasswordController extends BaseController {
         if (!password) {
             return response.render('password/change.ejs', {token, error: 'Please enter a new password.'});
         }
+
         // Reset the password
         user.password = md5(password);
         user.reset = null;
