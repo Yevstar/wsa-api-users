@@ -1,16 +1,20 @@
 import {Service} from "typedi";
-import {User} from "../models/User";
+import {Brackets} from "typeorm";
+import nodeMailer from "nodemailer";
+import speakeasy from "speakeasy";
+import QRcode from "qrcode";
+
 import BaseService from "./BaseService";
+import {User} from "../models/User";
 import {RoleFunction} from "../models/security/RoleFunction";
 import {Function} from "../models/security/Function";
 import {Role} from "../models/security/Role";
 import {EntityType} from "../models/security/EntityType";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
 import {LinkedEntities} from "../models/views/LinkedEntities";
-import {Brackets} from "typeorm";
-import { logger } from "../logger";
-import nodeMailer from "nodemailer";
-import { paginationData, stringTONumber, isArrayPopulated } from "../utils/Utils";
+import {logger} from "../logger";
+import {paginationData, stringTONumber, isArrayPopulated} from "../utils/Utils";
+
 @Service()
 export default class UserService extends BaseService<User> {
 
@@ -21,16 +25,17 @@ export default class UserService extends BaseService<User> {
     public async findByEmail(email: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', {email: email.toLowerCase()})
-            .addSelect("user.password").addSelect("user.reset")
+            .addSelect("user.password")
+            .addSelect("user.reset")
             .getOne();
     }
 
-    public async DeleteUser(userId: number, loginUserId: number){
+    public async DeleteUser(userId: number, loginUserId: number) {
         return this.entityManager.createQueryBuilder(User, 'user')
-        .update(User)
-        .set({isDeleted: 1, updatedBy: loginUserId, updatedOn: new Date()})
-        .andWhere('user.id = :userId', {userId})
-        .execute();
+            .update(User)
+            .set({isDeleted: 1, updatedBy: loginUserId, updatedOn: new Date()})
+            .andWhere('user.id = :userId', {userId})
+            .execute();
     }
 
     public async findByCredentials(email: string, password: string): Promise<User> {
@@ -39,6 +44,16 @@ export default class UserService extends BaseService<User> {
                 {email: email.toLowerCase(), password: password})
             .getOne();
     }
+
+    public async findByCredentialsForTFA(email: string, password: string): Promise<User> {
+        return this.entityManager.createQueryBuilder(User, 'user')
+            .andWhere('LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
+                {email: email.toLowerCase(), password: password})
+            .addSelect("user.tfaEnabled")
+            .addSelect("user.tfaSecret")
+            .getOne();
+    }
+
     public async findByCredentialsForWeb(email: string, password: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .innerJoin(UserRoleEntity, 'ure', 'user.id = ure.userId and ure.entityType = 2 and ure.isDeleted = 0')
@@ -70,22 +85,22 @@ export default class UserService extends BaseService<User> {
     }
 
     public async findChildPlayerUserDetails(ids: number[]): Promise<User[]> {
-      return await this.entityManager.query(
-          'select u.id as id, LOWER(u.email) as email, u.firstName as firstName,\n' +
-              'u.lastName as lastName, u.mobileNumber as mobileNumber,\n' +
-              'u.genderRefId as genderRefId, u.marketingOptIn as marketingOptIn,\n' +
-              'u.photoUrl as photoUrl, u.password as password,\n' +
-              'u.dateOfBirth as dateOfBirth, u.firebaseUID as firebaseUID,\n' +
-              'u.statusRefId as statusRefId\n' +
-              'from wsa_users.user u \n' +
-              'where u.id in (?);'
-          , [ids]);
+        return await this.entityManager.query(
+            'select u.id as id, LOWER(u.email) as email, u.firstName as firstName,\n' +
+            'u.lastName as lastName, u.mobileNumber as mobileNumber,\n' +
+            'u.genderRefId as genderRefId, u.marketingOptIn as marketingOptIn,\n' +
+            'u.photoUrl as photoUrl, u.password as password,\n' +
+            'u.dateOfBirth as dateOfBirth, u.firebaseUID as firebaseUID,\n' +
+            'u.statusRefId as statusRefId\n' +
+            'from wsa_users.user u \n' +
+            'where u.id in (?);'
+            , [ids]);
     }
 
     public async findUserFullDetailsById(id: number): Promise<User> {
-      return await this.entityManager.query(
-          'select * from wsa_users.user user where user.id = ?;'
-          , [id]);
+        return await this.entityManager.query(
+            'select * from wsa_users.user user where user.id = ?;'
+            , [id]);
     }
 
     public async userExist(email: string): Promise<number> {
@@ -110,40 +125,38 @@ export default class UserService extends BaseService<User> {
             .execute();
     }
 
-    public async friendDashboard(requestBody: any){
-        try{
+    public async friendDashboard(requestBody: any) {
+        try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
-            let result = await this.entityManager.query("call wsa_users.usp_friend_dashboard(?,?,?,?)",[requestBody.yearRefId,requestBody.organisationUniqueKey, limit, offset]);
+            let result = await this.entityManager.query("call wsa_users.usp_friend_dashboard(?,?,?,?)", [requestBody.yearRefId, requestBody.organisationUniqueKey, limit, offset]);
 
             if (isArrayPopulated(result[1])) {
-                let totalCount = result[0].find(x=>x).totalCount;
+                let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["friends"] = result[1];
                 return responseObject;
-            }
-            else
-            return [];
-        }catch(error){
+            } else
+                return [];
+        } catch (error) {
             throw error
         }
     }
 
-    public async referFriendDashboard(requestBody: any){
-        try{
+    public async referFriendDashboard(requestBody: any) {
+        try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
-            let result = await this.entityManager.query("call wsa_users.usp_refer_friend_dashboard(?,?,?,?)",[requestBody.yearRefId,requestBody.organisationUniqueKey, limit, offset]);
-           
+            let result = await this.entityManager.query("call wsa_users.usp_refer_friend_dashboard(?,?,?,?)", [requestBody.yearRefId, requestBody.organisationUniqueKey, limit, offset]);
+
             if (isArrayPopulated(result[1])) {
-                let totalCount = result[0].find(x=>x).totalCount;
+                let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["referFriends"] = result[1];
                 return responseObject;
-            }
-            else
-            return [];
-        }catch(error){
+            } else
+                return [];
+        } catch (error) {
             throw error
         }
     }
@@ -245,8 +258,12 @@ export default class UserService extends BaseService<User> {
             .getRawOne();
     }
 
-    public async getUsersBySecurity(entityTypeId: number, entityId: number, userName: string,
-                                    sec: { functionId?: number, roleId?: number }): Promise<User[]> {
+    public async getUsersBySecurity(
+        entityTypeId: number,
+        entityId: number,
+        userName: string,
+        sec: { functionId?: number, roleId?: number }
+    ): Promise<User[]> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
@@ -285,23 +302,19 @@ export default class UserService extends BaseService<User> {
         return query.getRawMany()
     }
 
-    public async sentMail( templateObj,OrganisationName ,receiverData, password) {
-
-
-        let url =process.env.liveScoresWebHost;
+    public async sentMail(templateObj, OrganisationName, receiverData, password) {
+        let url = process.env.liveScoresWebHost;
         logger.info(`TeamService - sendMail : url ${url}`);
-        console.log("*****Template---:"+templateObj +"--"+ JSON.stringify(templateObj))
-      //  let html = ``;
+        console.log("*****Template---:" + templateObj + "--" + JSON.stringify(templateObj))
+        //  let html = ``;
         let subject = templateObj.emailSubject;
-        
 
-        templateObj.emailBody = templateObj.emailBody.replace('${user.firstName}',receiverData.firstName);
-        templateObj.emailBody = templateObj.emailBody.replace('${Organisation}',OrganisationName);
-        templateObj.emailBody = templateObj.emailBody.replace('${user.lastName}',receiverData.lastName);
-        templateObj.emailBody = templateObj.emailBody.replace('${userName}',receiverData.email.toLowerCase());
-        templateObj.emailBody = templateObj.emailBody.replace('${password}',password);
-        templateObj.emailBody = templateObj.emailBody.replace('${process.env.liveScoresWebHost}',url);
-
+        templateObj.emailBody = templateObj.emailBody.replace('${user.firstName}', receiverData.firstName);
+        templateObj.emailBody = templateObj.emailBody.replace('${Organisation}', OrganisationName);
+        templateObj.emailBody = templateObj.emailBody.replace('${user.lastName}', receiverData.lastName);
+        templateObj.emailBody = templateObj.emailBody.replace('${userName}', receiverData.email.toLowerCase());
+        templateObj.emailBody = templateObj.emailBody.replace('${password}', password);
+        templateObj.emailBody = templateObj.emailBody.replace('${process.env.liveScoresWebHost}', url);
 
         const transporter = nodeMailer.createTransport({
             host: "smtp.gmail.com",
@@ -311,12 +324,10 @@ export default class UserService extends BaseService<User> {
                 user: process.env.MAIL_USERNAME, // generated ethereal user
                 pass: process.env.MAIL_PASSWORD // generated ethereal password
             },
-
             tls: {
                 // do not fail on invalid certs
                 rejectUnauthorized: false
             }
-
         });
 
         const mailOptions = {
@@ -328,32 +339,28 @@ export default class UserService extends BaseService<User> {
             replyTo: "donotreply@worldsportaction.com",
             subject: subject,
             html: templateObj.emailBody
-
         };
 
         logger.info(`TeamService - sendMail : mailOptions ${mailOptions}`);
         await transporter.sendMail(mailOptions, (err, info) => {
-          logger.info(`TeamService - sendMail : ${err}, ${info}`);
+            logger.info(`TeamService - sendMail : ${err}, ${info}`);
             return Promise.resolve();
-       });
+        });
     }
 
-    public async userPersonalDetails(userId: number, organisationUniqueKey: any){
-        try{
+    public async userPersonalDetails(userId: number, organisationUniqueKey: any) {
+        try {
             let result = await this.entityManager.query("call wsa_users.usp_user_personal_details(?,?)",
-            [userId, organisationUniqueKey]);
+                [userId, organisationUniqueKey]);
 
             let competitionMap = new Map();
             let teamMap = new Map();
             let userMap = new Map();
             let divisionMap = new Map();
             let userObj = null;
-            if(result!= null)
-            {
-                if(isArrayPopulated(result[0]))
-                {
-                    for(let item of result[0])
-                    {
+            if (result != null) {
+                if (isArrayPopulated(result[0])) {
+                    for (let item of result[0]) {
                         let userTemp = userMap.get(item.userId);
                         let competitionTemp = competitionMap.get(item.competitionId);
                         let teamTemp = teamMap.get(item.teamId);
@@ -364,7 +371,7 @@ export default class UserService extends BaseService<User> {
                             competitionUniqueKey: item.competitionUniqueKey,
                             divisionId: item.divisionId,
                             divisionName: item.divisionName,
-                            yearRefId: Number(item.yearRefId) ,
+                            yearRefId: Number(item.yearRefId),
                             teams: [],
                             divisions: []
                         }
@@ -378,8 +385,7 @@ export default class UserService extends BaseService<User> {
                             divisionName: item.divisionName
                         }
 
-                        if(userTemp == undefined)
-                        {
+                        if (userTemp == undefined) {
                             userObj = {
                                 userId: item.userId,
                                 firstName: item.firstName,
@@ -402,14 +408,13 @@ export default class UserService extends BaseService<User> {
                                 competitions: []
                             }
 
-                            if(competitionObj.competitionId!= null){
-                                if(item.teamId!= null)
-                                {
+                            if (competitionObj.competitionId != null) {
+                                if (item.teamId != null) {
                                     competitionObj.teams.push(teamObj);
                                     teamMap.set(item.teamId, teamObj);
                                 }
 
-                                if(item.divisionId != null){
+                                if (item.divisionId != null) {
                                     competitionObj.divisions.push(divisionObj);
                                     divisionMap.set(item.divisionId, divisionObj);
                                 }
@@ -417,33 +422,26 @@ export default class UserService extends BaseService<User> {
                                 competitionMap.set(item.competitionId, competitionObj)
                             }
                             userMap.set(item.userId, userObj);
-                        }
-                        else{
-                            if(competitionTemp == undefined)
-                            {
-                                if(competitionObj.competitionId!= null)
-                                {
-                                    if(item.teamId != null && teamTemp == undefined)
-                                    {
+                        } else {
+                            if (competitionTemp == undefined) {
+                                if (competitionObj.competitionId != null) {
+                                    if (item.teamId != null && teamTemp == undefined) {
                                         competitionObj.teams.push(teamObj);
                                         teamMap.set(item.teamId, teamObj);
                                     }
-                                    if(item.divisionId != null && divTemp == undefined){
+                                    if (item.divisionId != null && divTemp == undefined) {
                                         competitionObj.divisions.push(divisionObj);
                                         divisionMap.set(item.divisionId, divisionObj);
                                     }
                                     userTemp.competitions.push(competitionObj);
                                     competitionMap.set(item.competitionId, competitionObj)
                                 }
-                            }
-                            else{
-                                if(item.teamId!= null  && teamTemp == undefined)
-                                {
+                            } else {
+                                if (item.teamId != null && teamTemp == undefined) {
                                     competitionTemp.teams.push(teamObj);
                                     teamMap.set(item.teamId, teamObj);
                                 }
-                                if(item.divisionId!= null && divTemp == undefined)
-                                {
+                                if (item.divisionId != null && divTemp == undefined) {
                                     competitionTemp.divisions.push(divisionObj);
                                     divisionMap.set(item.divisionId, divisionObj);
                                 }
@@ -454,17 +452,17 @@ export default class UserService extends BaseService<User> {
             }
 
             return userObj;
-        }catch(error){
+        } catch (error) {
             throw error;
         }
     }
 
-    public async userPersonalDetailsByCompetition(requestBody: any){
-        try{
+    public async userPersonalDetailsByCompetition(requestBody: any) {
+        try {
             let userId = requestBody.userId;
             let competitionUniqueKey = requestBody.competitionUniqueKey;
             let result = await this.entityManager.query("call wsa_users.usp_user_personal_details_by_competition(?,?)",
-            [userId, competitionUniqueKey]);
+                [userId, competitionUniqueKey]);
             // if(isArrayPopulated(result[0]))
             // {
             //     for(let item of result[0])
@@ -475,98 +473,93 @@ export default class UserService extends BaseService<User> {
             // }
 
             return result[0];
-        }catch(error){
+        } catch (error) {
             throw error;
         }
     }
 
-    public async userActivitiesPlayer(requestBody: any){
-        try{
+    public async userActivitiesPlayer(requestBody: any) {
+        try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let yearRefId = requestBody.yearRefId;
             let result = await this.entityManager.query("call wsa_users.usp_user_activity_player(?,?,?,?,?)",
-            [userId, competitionId, yearRefId, limit, offset]);
-            if(result != null){
+                [userId, competitionId, yearRefId, limit, offset]);
+            if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["activityPlayers"] = result[1];
                 return responseObject;
             }
-        }catch(error){
+        } catch (error) {
             throw error;
         }
-
     }
-    public async userActivitiesParent(requestBody: any){
-        try{
+
+    public async userActivitiesParent(requestBody: any) {
+        try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let yearRefId = requestBody.yearRefId;
             let result = await this.entityManager.query("call wsa_users.usp_user_activity_parent(?,?,?,?,?,?)",
-            [userId, competitionId, yearRefId, limit, offset, requestBody.organisationId]);
-            if(result != null){
+                [userId, competitionId, yearRefId, limit, offset, requestBody.organisationId]);
+            if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["activityParents"] = result[1];
                 return responseObject;
             }
-        }catch(error){
+        } catch (error) {
             throw error;
         }
-
     }
 
-    public async userActivitiesScorer(requestBody: any){
-        try{
+    public async userActivitiesScorer(requestBody: any) {
+        try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let yearRefId = requestBody.yearRefId;
             let result = await this.entityManager.query("call wsa_users.usp_user_activity_scorer(?,?,?,?,?)",
-            [userId, competitionId, yearRefId, limit, offset]);
-            if(result != null){
+                [userId, competitionId, yearRefId, limit, offset]);
+            if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["activityScorer"] = result[1];
                 return responseObject;
             }
-        }catch(error){
+        } catch (error) {
             throw error;
         }
-
     }
 
-    public async userActivitiesManager(requestBody: any){
-        try{
+    public async userActivitiesManager(requestBody: any) {
+        try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let yearRefId = requestBody.yearRefId;
             let result = await this.entityManager.query("call wsa_users.usp_user_activity_manager(?,?,?,?,?)",
-            [userId, competitionId, yearRefId, limit, offset]);
-            if(result != null){
+                [userId, competitionId, yearRefId, limit, offset]);
+            if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["activityManager"] = result[1];
                 return responseObject;
             }
-
-        }catch(error){
+        } catch (error) {
             throw error;
         }
-
     }
 
-
-    public async userRegistrationDetails(requestBody: any){
-        try{
+    public async userRegistrationDetails(requestBody: any) {
+        try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
@@ -574,14 +567,13 @@ export default class UserService extends BaseService<User> {
             let organisationId = requestBody.organisationId;
             let yearRefId = requestBody.yearRefId;
             let result = await this.entityManager.query("call wsa_users.usp_user_registration_details(?,?,?,?,?,?)",
-            [limit, offset, userId, yearRefId, competitionId, organisationId]);
+                [limit, offset, userId, yearRefId, competitionId, organisationId]);
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 let arr = [];
-                if(isArrayPopulated(result[1])){
-            
-                    for(let item of result[1]){
+                if (isArrayPopulated(result[1])) {
+                    for (let item of result[1]) {
                         let obj = {
                             key: item.key,
                             affiliate: item.affiliate,
@@ -590,13 +582,14 @@ export default class UserService extends BaseService<User> {
                             feesPaid: item.feesPaid,
                             vouchers: item.vouchers,
                             shopPurchases: item.shopPurchases,
+                            paymentStatus: item.paymentStatus,
                             registrationForm: []
                         }
 
-                        if(isArrayPopulated(result[2])){
-                            let filterRes = result[2].filter(x=>x.orgRegId == item.orgRegId);
-                            if(isArrayPopulated(filterRes)){
-                                for(let i of filterRes){
+                        if (isArrayPopulated(result[2])) {
+                            let filterRes = result[2].filter(x => x.orgRegId == item.orgRegId);
+                            if (isArrayPopulated(filterRes)) {
+                                for (let i of filterRes) {
                                     let regObj = {
                                         registrationSettingsRefId: i.registrationSettingsRefId,
                                         description: i.description,
@@ -607,9 +600,9 @@ export default class UserService extends BaseService<User> {
                                         volunteers: [],
                                         favourites: []
                                     }
-                                    if(i.registrationSettingsRefId == 7){
-                                        regObj.contentValue = item.playedBefore == 0 ? 'No': 'Yes';
-                                        if(item.playedBefore ==  1){
+                                    if (i.registrationSettingsRefId == 7) {
+                                        regObj.contentValue = item.playedBefore == 0 ? 'No' : 'Yes';
+                                        if (item.playedBefore == 1) {
                                             let objPl = {
                                                 key: i.registrationSettingsRefId,
                                                 playedBefore: regObj.contentValue,
@@ -621,49 +614,44 @@ export default class UserService extends BaseService<User> {
                                             regObj.playedBefore.push(objPl);
                                         }
                                         obj.registrationForm.push(regObj);
-                                    }
-                                    else if(i.registrationSettingsRefId == 6){
-                                        regObj.contentValue = (item.positionId1!= null ? item.positionId1 : '' ) + 
-                                                            ((item.positionId1!= null && item.positionId2!= null) ? ', ' : '') + 
-                                                    (item.positionId2!= null ? item.positionId2 : '') ;
+                                    } else if (i.registrationSettingsRefId == 6) {
+                                        regObj.contentValue = (item.positionId1 != null ? item.positionId1 : '') +
+                                            ((item.positionId1 != null && item.positionId2 != null) ? ', ' : '') +
+                                            (item.positionId2 != null ? item.positionId2 : '');
                                         obj.registrationForm.push(regObj);
                                     }
-                                    // else if(i.registrationSettingsRefId == 7){
-                                    //     regObj.contentValue = item.lastCaptainName;
-                                    //     obj.registrationForm.push(regObj);
+                                        // else if(i.registrationSettingsRefId == 7){
+                                        //     regObj.contentValue = item.lastCaptainName;
+                                        //     obj.registrationForm.push(regObj);
                                     // }
-                                    else if(i.registrationSettingsRefId == 8){
-                                        if(isArrayPopulated(result[3])){
-                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 1);
-                                            if(isArrayPopulated(filteredFriend)){
+                                    else if (i.registrationSettingsRefId == 8) {
+                                        if (isArrayPopulated(result[3])) {
+                                            let filteredFriend = result[3].filter(x => x.playerId == item.playerId && x.friendRelationshipTypeRefId == 1);
+                                            if (isArrayPopulated(filteredFriend)) {
                                                 regObj.friends = filteredFriend;
                                             }
                                         }
                                         obj.registrationForm.push(regObj);
-                                    }
-                                    else if(i.registrationSettingsRefId == 9){
-                                        if(isArrayPopulated(result[3])){
-                                            let filteredFriend = result[3].filter(x=>x.playerId == item.playerId && x.friendRelationshipTypeRefId == 2);
-                                            if(isArrayPopulated(filteredFriend)){
+                                    } else if (i.registrationSettingsRefId == 9) {
+                                        if (isArrayPopulated(result[3])) {
+                                            let filteredFriend = result[3].filter(x => x.playerId == item.playerId && x.friendRelationshipTypeRefId == 2);
+                                            if (isArrayPopulated(filteredFriend)) {
                                                 regObj.referFriends = filteredFriend;
                                             }
                                         }
                                         obj.registrationForm.push(regObj);
-                                    }
-                                    else if(i.registrationSettingsRefId == 11){
-                                        regObj.contentValue = item.isConsentPhotosGiven == 1 ? "Yes": "No";
+                                    } else if (i.registrationSettingsRefId == 11) {
+                                        regObj.contentValue = item.isConsentPhotosGiven == 1 ? "Yes" : "No";
                                         obj.registrationForm.push(regObj);
-                                    }
-                                    else if(i.registrationSettingsRefId == 12){
-                                        if(isArrayPopulated(result[4])){
-                                            let volunteers = result[4].filter(x=>x.registrationId == item.registrationId);
-                                            if(isArrayPopulated(volunteers)){
+                                    } else if (i.registrationSettingsRefId == 12) {
+                                        if (isArrayPopulated(result[4])) {
+                                            let volunteers = result[4].filter(x => x.registrationId == item.registrationId);
+                                            if (isArrayPopulated(volunteers)) {
                                                 regObj.volunteers = volunteers;
                                             }
                                         }
                                         obj.registrationForm.push(regObj);
-                                    }
-                                    else if(i.registrationSettingsRefId == 10){
+                                    } else if (i.registrationSettingsRefId == 10) {
                                         let objFav = {
                                             favouriteFireBird: item.favouriteFireBird,
                                             favouriteTeam: item.favouriteTeamName
@@ -680,8 +668,37 @@ export default class UserService extends BaseService<User> {
                 responseObject["registrationDetails"] = arr;
                 return responseObject;
             }
-        }catch(error){
+        } catch (error) {
             throw error;
         }
+    }
+
+    public async generateTfaSecret(user: User) {
+        const secret = speakeasy.generateSecret({
+            issuer: 'Netball Live Scores',
+            name: `Netball Live Scores (${user.email})`,
+            length: 6
+        });
+
+        user.tfaSecret = secret.base32;
+        user.tfaSecretUrl = secret.otpauth_url;
+
+        await this.update(user.email, user);
+
+        return await QRcode.toDataURL(secret.otpauth_url);
+    }
+
+    public confirmTfaSecret(user: User, code: string) {
+        return speakeasy.totp.verify({
+            secret: user.tfaSecret,
+            encoding: 'base32',
+            window: 1, // let user enter previous totp token because ux
+            token: code
+        });
+    }
+
+    public async updateTfaStatus(user) {
+        user.tfaEnabled = true;
+        await user.save();
     }
 }

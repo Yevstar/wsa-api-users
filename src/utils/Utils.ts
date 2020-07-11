@@ -40,6 +40,10 @@ export function fileExt(fileName: string): string {
     return fileName.split('.').pop();
 }
 
+export function isPdf(mimetype: string): boolean {
+    return mimetype && mimetype == 'application/pdf';
+}
+
 export function isVideo(mimetype: string): boolean {
     if (!mimetype) return false;
     switch (mimetype) {
