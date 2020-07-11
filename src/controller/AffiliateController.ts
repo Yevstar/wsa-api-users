@@ -40,9 +40,9 @@ export class AffiliateController extends BaseController {
                                 for (let contact of requestBody.contacts) {
 
                                     if (contact.userId == 0) {
-                                        let userDb = await this.userService.findByEmail(contact.email.toLowerCase())
+                                        let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
                                         if (userDb) {
-                                            if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
+                                            if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && contact.mobileNumber.trim() == userDb.mobileNumber.trim()) {
                                                 contact.userId = userDb.id
                                                 continue;
                                             }
@@ -56,16 +56,16 @@ export class AffiliateController extends BaseController {
                                     } else if (contact.userId != 0) {
                                         if (currentUser.id != contact.userId) {
                                             let userDb1 = await this.userService.findById(contact.userId)
-                                            if (userDb1.email.toLowerCase() != contact.email.toLowerCase()) {
+                                            if (userDb1.email.toLowerCase().trim() != contact.email.toLowerCase().trim()) {
                                                 return response.status(212).send({
                                                     errorCode: 7,
                                                     message: 'Email address cannot be modified'
                                                 });
                                             }
                                         } else {
-                                            let userDb = await this.userService.findByEmail(contact.email.toLowerCase())
+                                            let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
                                             if (userDb.id != contact.userId) {
-                                                if (contact.firstName == userDb.firstName && contact.lastName == userDb.lastName && contact.mobileNumber == userDb.mobileNumber) {
+                                                if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && contact.mobileNumber.trim() == userDb.mobileNumber.trim()) {
                                                     contact.userId = userDb.id
                                                     continue;
                                                 } else {
@@ -176,11 +176,11 @@ export class AffiliateController extends BaseController {
                                 // if (userDb == null) {
                                 let user = new User();
                                 user.id = Number(contact.userId);
-                                user.firstName = contact.firstName;
-                                user.middleName = contact.middleName;
-                                user.lastName = contact.lastName;
-                                user.mobileNumber = contact.mobileNumber;
-                                user.email = contact.email.toLowerCase();
+                                user.firstName = contact.firstName.trim();
+                                user.middleName = contact.middleName.trim();
+                                user.lastName = contact.lastName.trim();
+                                user.mobileNumber = contact.mobileNumber.trim();
+                                user.email = contact.email.toLowerCase().trim();
                                 let password = Math.random().toString(36).slice(-8);
                                 if (contact.userId == 0) {
                                     user.createdBy = userId;
