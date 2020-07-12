@@ -350,4 +350,28 @@ export class UserDashboardController extends BaseController {
         }
         
     }
+
+
+    @Authorized()
+    @Post('/user/history')
+    async userHistory(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                let validateUserId = validateReqFilter(requestBody.userId, 'userId');
+                if (validateUserId != null) {
+                    return response.status(212).send(validateUserId);
+                }
+                const userCompRes = await this.userService.userHistory(requestBody);
+                return response.status(200).send(userCompRes);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in user history `+error);
+            return response.status(500).send({
+                message: 'Something went wrong. Please contact administrator'
+            });
+        }
+    }
 }

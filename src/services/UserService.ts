@@ -701,4 +701,22 @@ export default class UserService extends BaseService<User> {
         user.tfaEnabled = true;
         await user.save();
     }
+
+    public async userHistory(requestBody: any) {
+        try {
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
+            let userId = requestBody.userId;
+            let result = await this.entityManager.query("call wsa_users.usp_user_history(?)",
+                [userId,limit, offset]);
+            if (result != null) {
+                let totalCount = result[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["userHistory"] = result[1];
+                return responseObject;
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
 }
