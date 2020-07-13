@@ -16,7 +16,7 @@ import {decode as atob} from 'base-64';
 import * as fastcsv from 'fast-csv';
 
 import {User} from '../models/User';
-import {authToken, fileExt, isPhoto, timestamp, isArrayPopulated} from '../utils/Utils';
+import {authToken, fileExt, isPhoto, timestamp, isArrayPopulated, md5} from '../utils/Utils';
 import {LoginError} from '../exceptions/LoginError';
 import {BaseController} from './BaseController';
 import {logger} from '../logger';
@@ -301,7 +301,6 @@ export class UserController extends BaseController {
         @Body() user: User,
         @Res() response: Response
     ) {
-        logger.info('user', user);
         user.email = user.email.toLowerCase();
         const result = await this.userService.findUserFullDetailsById(currentUser.id);
         let userDetails = result[0];
@@ -335,6 +334,51 @@ export class UserController extends BaseController {
             return response.status(400).send({
                 name: 'unexpected_error',
                 message: 'Failed to update the user.'
+            });
+        }
+    }
+
+    @Authorized()
+    @Patch('/updatePassword')
+    async updatePassword(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response
+    ) {
+        if (!requestBody.password) {
+            return response.status(400).send({
+                name: 'validation_error',
+                message: 'Password is required'
+            });
+        }
+
+        if (!requestBody.newPassword) {
+            return response.status(400).send({
+                name: 'validation_error',
+                message: 'New password is required'
+            });
+        }
+
+        try {
+            const user = await this.userService.findByCredentials(currentUser.email, md5(requestBody.password));
+            if (!user) {
+                return response.status(400).send({
+                    name: 'validation_error',
+                    message: 'Password is incorrect'
+                });
+            }
+
+            user.password = md5(requestBody.newPassword);
+            await this.userService.createOrUpdate(user);
+            await this.updateFirebaseData(user, user.password);
+
+            return response.status(200).send({
+                message: 'Password is updated successfully.'
+            });
+        } catch (e) {
+            return response.status(500).send({
+                name: 'upload_error',
+                message: 'Failed to update password.'
             });
         }
     }

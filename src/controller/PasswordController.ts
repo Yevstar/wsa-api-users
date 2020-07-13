@@ -1,5 +1,17 @@
-import {BodyParam, Controller, Get, Post, QueryParam, Render, Res, UseBefore} from 'routing-controllers';
-import {Response} from 'express';
+import {
+    Authorized,
+    Body,
+    BodyParam,
+    Controller,
+    Get, HeaderParam,
+    Patch,
+    Post,
+    QueryParam,
+    Render, Req,
+    Res,
+    UseBefore
+} from 'routing-controllers';
+import {Request, Response} from 'express';
 import * as bodyParser from 'body-parser';
 import uuid from 'uuid/v1';
 import nodeMailer from 'nodemailer';
@@ -8,6 +20,7 @@ import twilio from 'twilio';
 import {logger} from '../logger';
 import {md5} from '../utils/Utils';
 import {BaseController} from './BaseController';
+import {User} from "../models/User";
 
 @Controller('/password')
 export class PasswordController extends BaseController {
@@ -122,7 +135,6 @@ export class PasswordController extends BaseController {
         @BodyParam('password', {required: true}) password: string,
         @Res() response: Response
     ) {
-
         const user = await this.userService.findByToken(token);
         if (!user) {
             return response.render('password/change.ejs', {
