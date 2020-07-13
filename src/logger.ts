@@ -9,7 +9,6 @@ const logger = winston.createLogger ({
   exitOnError: false
 });
 
-
 let config = {
   level: process.env.LOG_LEVEL,
   logGroupName: process.env.CLOUDWATCH_GROUP_NAME,
