@@ -214,7 +214,7 @@ export class UserController extends BaseController {
         } catch (e) {
             return response.status(500).send({
                 name: 'upload_error',
-                message: 'Unexpectable error on load image. Try again later.'
+                message: 'Unexpected error on load image. Try again later.'
             });
         }
     }
@@ -231,7 +231,7 @@ export class UserController extends BaseController {
 
     @Authorized()
     @Get('/byIds')
-    async getUsersbyIds(
+    async getUsersByIds(
         @QueryParam('ids', {required: true}) ids: number[],
         @Res() response: Response
     ) {
@@ -301,6 +301,7 @@ export class UserController extends BaseController {
         @Body() user: User,
         @Res() response: Response
     ) {
+        logger.info('user', user);
         user.email = user.email.toLowerCase();
         const result = await this.userService.findUserFullDetailsById(currentUser.id);
         let userDetails = result[0];
@@ -311,6 +312,7 @@ export class UserController extends BaseController {
                 message: 'You are trying to change another user\'s data'
             });
         }
+
         try {
             if (userDetails.email.toLowerCase() != user.email) {
                 let exist = await this.userService.userExist(user.email);

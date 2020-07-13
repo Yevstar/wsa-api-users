@@ -35,18 +35,21 @@ export class OrganisationController extends BaseController {
     async userOrganisation(
         @QueryParam('userId') userId: number,
         @HeaderParam("authorization") currentUser: User,
-        @Res() response: Response) {
+        @Res() response: Response,
+    ) {
         try {
             if (userId) {
                 if (userId && userId == currentUser.id) {
-
                     const organisationRes = await this.organisationService.userOrganisation(userId);
                     return response.status(200).send(organisationRes);
-
                 }
             }
+
+            return response.status(400).send({
+                message: 'Invalid request'
+            });
         } catch (error) {
-            logger.error(`Error Occurred in organisation list  ${userId}`+error);
+            logger.error(`Error Occurred in organisation list ${userId}`+error);
             return response.status(500).send({
                 message: 'Something went wrong. Please contact administrator'
             });

@@ -1,6 +1,7 @@
-import {ExpressMiddlewareInterface, Middleware,} from "routing-controllers"
+import {ExpressMiddlewareInterface, Middleware,} from "routing-controllers";
 import * as jwt from "jwt-simple";
 import {Inject} from "typedi";
+
 import UserService from "../services/UserService";
 import {User} from "../models/User";
 
@@ -12,14 +13,15 @@ export class AuthenticationMiddleware implements ExpressMiddlewareInterface {
 
     public async use(req: any, res: any, next: any) {
         if (req.url.startsWith("/users/") || req.url === "favicon.ico") {
-            return next()
+            return next();
         }
+
         const authorization: string = req.headers.authorization || "";
         let user: User;
         if (authorization.length > 0) {
             try {
                 const data = jwt.decode(authorization, process.env.SECRET).data.split(':');
-                //tODO need add REDIS!!!!!
+                // TODO need add REDIS!!!!!
                 let loginUser = await this.userService.findByCredentials(data[0], data[1]);
                 if (loginUser) {
                     user = loginUser;
@@ -29,7 +31,8 @@ export class AuthenticationMiddleware implements ExpressMiddlewareInterface {
                 return;
             }
         }
+
         req.headers.authorization = user;
-        next()
+        next();
     }
 }
