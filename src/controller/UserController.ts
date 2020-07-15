@@ -295,6 +295,27 @@ export class UserController extends BaseController {
     }
 
     @Authorized()
+    @Get('/profile')
+    async getUser(
+        @HeaderParam("authorization") currentUser: User,
+        @Res() response: Response
+    ) {
+        const result = await this.userService.findUserDetailsById(currentUser.id);
+        let userDetails = result[0];
+
+        try {
+            logger.info(`Current user data fetched ${userDetails.email}`);
+            return userDetails;
+        } catch (err) {
+            logger.error(`Unable to patch user ${userDetails.email}` + err);
+            return response.status(400).send({
+                name: 'unexpected_error',
+                message: 'Failed to update the user.'
+            });
+        }
+    }
+
+    @Authorized()
     @Patch('/profile')
     async updateUser(
         @HeaderParam("authorization") currentUser: User,
@@ -328,7 +349,8 @@ export class UserController extends BaseController {
             await this.updateFirebaseData(user, userDetails.password);
 
             logger.info(`Current user data updated ${user.email}`);
-            return this.responseWithTokenAndUser(user.email, userDetails.password, user, false);
+            const updatedUser = this.userService.findUserDetailsById(user.id);
+            return updatedUser;
         } catch (err) {
             logger.error(`Unable to patch user ${userDetails.email}` + err);
             return response.status(400).send({
