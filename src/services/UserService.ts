@@ -114,7 +114,7 @@ export default class UserService extends BaseService<User> {
     public async userExist(email: string): Promise<number> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .where('LOWER(user.email) = :email', {email: email.toLowerCase()})
-            .getCount()
+            .getCount();
     }
 
     public async update(email: string, user: User) {
@@ -122,6 +122,19 @@ export default class UserService extends BaseService<User> {
             .update(User)
             .set(user)
             .andWhere('LOWER(user.email) = :email', {email: email.toLowerCase()})
+            .execute();
+    }
+
+    public async updateUserDetail(userId: number, user: User) {
+        return this.entityManager.createQueryBuilder(User, 'user')
+            .update(User)
+            .set({
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                mobileNumber: user.mobileNumber,
+            })
+            .andWhere('user.id = :userId', {userId})
             .execute();
     }
 

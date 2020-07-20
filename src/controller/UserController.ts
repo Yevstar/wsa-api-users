@@ -191,26 +191,26 @@ export class UserController extends BaseController {
                     if (result) {
                         user.photoUrl = result['url'];
                         this.checkFirestoreDatabase(user, true);
-                        await this.userService.createOrUpdate(user);
-                        return user;
-                    } else {
-                        return response.status(400).send({
-                            name: 'save_error',
-                            message: 'Image not saved, try again later.'
-                        });
+                        await this.userService.updatePhoto(user.id, user.photoUrl);
+                        return this.userService.findUserDetailsById(user.id);
                     }
-                } else {
+
                     return response.status(400).send({
-                        name: 'validation_error',
-                        message: 'File mime type not supported'
+                        name: 'save_error',
+                        message: 'Image not saved, try again later.'
                     });
                 }
-            } else {
+
                 return response.status(400).send({
                     name: 'validation_error',
-                    message: 'User does not exist.'
+                    message: 'File mime type not supported'
                 });
             }
+
+            return response.status(400).send({
+                name: 'validation_error',
+                message: 'User does not exist.'
+            });
         } catch (e) {
             return response.status(500).send({
                 name: 'upload_error',
@@ -393,9 +393,10 @@ export class UserController extends BaseController {
             await this.userService.createOrUpdate(user);
             await this.updateFirebaseData(user, user.password);
 
-            return response.status(200).send({
-                message: 'Password is updated successfully.'
-            });
+            const res = await this.userService.findUserDetailsById(currentUser.id);
+            let updatedUser = res[0];
+            logger.info(`Current user password updated ${user.email}`);
+            return this.responseWithTokenAndUser(updatedUser.email, user.password, updatedUser, false);
         } catch (e) {
             return response.status(500).send({
                 name: 'upload_error',
