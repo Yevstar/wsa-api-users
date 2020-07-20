@@ -105,7 +105,9 @@ export default class UserService extends BaseService<User> {
 
     public async findUserDetailsById(id: number): Promise<User> {
         return await this.entityManager.query(
-            'select firstName, lastName, mobileNumber, email, photoUrl from wsa_users.user user where user.id = ?;'
+            'select id, email, firstName, lastName, mobileNumber, genderRefId, \n' +
+            'statusRefId, marketingOptIn, photoUrl, firebaseUID \n' +
+            'from wsa_users.user user where user.id = ?;'
             , [id]);
     }
 

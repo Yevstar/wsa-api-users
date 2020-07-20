@@ -28,7 +28,7 @@ export class PasswordController extends BaseController {
     @Get('/forgot')
     async forgot(
         @QueryParam('email') email: string,
-        @QueryParam('type') type: string,
+        @QueryParam('type') type: string = "email",
         @Res() response: Response
     ) {
         try {

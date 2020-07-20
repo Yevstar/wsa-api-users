@@ -349,8 +349,7 @@ export class UserController extends BaseController {
             await this.updateFirebaseData(user, userDetails.password);
 
             logger.info(`Current user data updated ${user.email}`);
-            const updatedUser = this.userService.findUserDetailsById(user.id);
-            return updatedUser;
+            return this.responseWithTokenAndUser(user.email, userDetails.password, user, false);
         } catch (err) {
             logger.error(`Unable to patch user ${userDetails.email}` + err);
             return response.status(400).send({
