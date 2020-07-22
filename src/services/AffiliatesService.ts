@@ -123,9 +123,33 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         termsAndConditionsLink: aff.termsAndConditionsRefId == 1 ? aff.termsAndConditions : null,
                         termsAndConditionsFile: aff.termsAndConditionsRefId == 2 ? aff.termsAndConditions : null,
                         contacts:[],
-                        charityRoundUp: aff.charityRoundUp,
-                        charity: aff.charity
+                        charityRoundUp: [],
+                        charity: []
                     }
+                   
+                    if(!isArrayPopulated(aff.charityRoundUp)){
+                        let obj = {
+                            'charityRoundUpId': 0, 
+                            'charityRoundUpRefId': null
+                        }
+                        affiliateObj.charityRoundUp.push(obj);
+                    }
+                    else{
+                        affiliateObj.charityRoundUp = JSON.parse(aff.charityRoundUp)
+                    }
+                    
+                    if(!isArrayPopulated(aff.charity)){
+                        let obj = {
+                            'charityId': 0, 
+                            'title': "",
+                            'description': ''
+                        }
+                        affiliateObj.charity.push(obj);
+                    }
+                    else{
+                        affiliateObj.charity = JSON.parse(aff.charity);
+                    }
+
                     contactsObj.permissions.push(permissionObj);
                     if(aff.userId!= null){
                         affiliateObj.contacts.push(contactsObj);
