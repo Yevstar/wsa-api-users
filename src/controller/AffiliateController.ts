@@ -388,8 +388,11 @@ export class AffiliateController extends BaseController {
                     });
 
                     await this.charityService.batchCreateOrUpdate(charityArr);
-                    
-                    return response.status(200).send({charityRoundUp: charityRoundUpArr, charity: charityArr});
+
+                    let getCurrentCharityRoundUp = await this.charityRoundUpService.checkPreviousCharityRoundUp(organisationId);
+                    let getCurrentCharity = await this.charityService.checkPreviousCharity(organisationId);
+
+                    return response.status(200).send({charityRoundUp: getCurrentCharityRoundUp, charity: getCurrentCharity});
                 }
                 else{
                     return response.status(212).send({
