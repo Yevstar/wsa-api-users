@@ -192,7 +192,7 @@ export class UserController extends BaseController {
                         user.photoUrl = result['url'];
                         this.checkFirestoreDatabase(user, true);
                         await this.userService.updatePhoto(user.id, user.photoUrl);
-                        return this.userService.findUserDetailsById(user.id);
+                        return this.userService.findById(user.id);
                     }
 
                     return response.status(400).send({
@@ -300,14 +300,12 @@ export class UserController extends BaseController {
         @HeaderParam("authorization") currentUser: User,
         @Res() response: Response
     ) {
-        const result = await this.userService.findUserDetailsById(currentUser.id);
-        let userDetails = result[0];
-
         try {
+            let userDetails = await this.userService.findById(currentUser.id);
             logger.info(`Current user data fetched ${userDetails.email}`);
             return userDetails;
         } catch (err) {
-            logger.error(`Unable to patch user ${userDetails.email}` + err);
+            logger.error(`Unable to patch user ${currentUser.email}` + err);
             return response.status(400).send({
                 name: 'unexpected_error',
                 message: 'Failed to update the user.'
@@ -393,8 +391,7 @@ export class UserController extends BaseController {
             await this.userService.createOrUpdate(user);
             await this.updateFirebaseData(user, user.password);
 
-            const res = await this.userService.findUserDetailsById(currentUser.id);
-            let updatedUser = res[0];
+            let updatedUser = await this.userService.findById(currentUser.id);
             logger.info(`Current user password updated ${user.email}`);
             return this.responseWithTokenAndUser(updatedUser.email, user.password, updatedUser, false);
         } catch (e) {

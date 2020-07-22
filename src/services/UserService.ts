@@ -103,14 +103,6 @@ export default class UserService extends BaseService<User> {
             , [id]);
     }
 
-    public async findUserDetailsById(id: number): Promise<User> {
-        return await this.entityManager.query(
-            'select id, email, firstName, lastName, mobileNumber, genderRefId, \n' +
-            'statusRefId, marketingOptIn, photoUrl, firebaseUID \n' +
-            'from wsa_users.user user where user.id = ?;'
-            , [id]);
-    }
-
     public async userExist(email: string): Promise<number> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .where('LOWER(user.email) = :email', {email: email.toLowerCase()})
