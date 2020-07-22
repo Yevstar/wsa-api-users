@@ -409,7 +409,7 @@ export class AffiliateController extends BaseController {
     @Post("/termsandcondition/update")
     async updateTermsAndCondition(
         @HeaderParam("authorization") currentUser: User,
-        @UploadedFiles("termsAndConditionFile") termsAndConditionFile: Express.Multer.File,
+        @UploadedFile("termsAndConditionFile") termsAndConditionFile: Express.Multer.File,
         @Body() requestBody: any,
         @Res() response: Response
     ){
