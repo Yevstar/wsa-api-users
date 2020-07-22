@@ -321,7 +321,7 @@ export class AffiliateController extends BaseController {
                     if(isArrayPopulated(requestBody.charityRoundUp)){
                         requestBody.charityRoundUp.map((x, index) => {
                             let obj = new CharityRoundUp();
-                            if(isNullOrEmpty(x.id)){
+                            if(isNullOrEmpty(x.id) || x.id == 0){
                                 obj.createdBy = currentUser.id;
                             }
                             else{
@@ -351,11 +351,12 @@ export class AffiliateController extends BaseController {
                         }
                     });
 
+                    await this.charityRoundUpService.batchCreateOrUpdate(charityRoundUpArr);
 
                     if(isArrayPopulated(requestBody.charity)){
                         requestBody.charity.map((x, index) => {
                             let obj = new Charity();
-                            if(isNullOrEmpty(x.id)){
+                            if(isNullOrEmpty(x.id) || x.id == 0){
                                 obj.createdBy = currentUser.id;
                             }
                             else{
