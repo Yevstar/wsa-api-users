@@ -321,14 +321,14 @@ export class AffiliateController extends BaseController {
                     if(isArrayPopulated(requestBody.charityRoundUp)){
                         requestBody.charityRoundUp.map((x, index) => {
                             let obj = new CharityRoundUp();
-                            if(isNullOrEmpty(x.charityRoundUpId)){
+                            if(isNullOrEmpty(x.id)){
                                 obj.createdBy = currentUser.id;
                             }
                             else{
                                 obj.updatedBy = currentUser.id;
                                 obj.updatedOn = new Date();
                             }
-                            obj.id = x.charityRoundUpId;
+                            obj.id = x.id;
                             obj.organisationId = organisationId;
                             obj.charityRoundUpRefId = x.charityRoundUpRefId;
                             charityRoundUpArr.push(obj);
@@ -355,14 +355,14 @@ export class AffiliateController extends BaseController {
                     if(isArrayPopulated(requestBody.charity)){
                         requestBody.charity.map((x, index) => {
                             let obj = new Charity();
-                            if(isNullOrEmpty(x.charityId)){
+                            if(isNullOrEmpty(x.id)){
                                 obj.createdBy = currentUser.id;
                             }
                             else{
                                 obj.updatedBy = currentUser.id;
                                 obj.updatedOn = new Date();
                             }
-                            obj.id = x.charityId;
+                            obj.id = x.id;
                             obj.organisationId = organisationId;
                             obj.name = x.title;
                             obj.description = x.description;
