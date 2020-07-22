@@ -129,7 +129,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                    
                     if(!isArrayPopulated(aff.charityRoundUp)){
                         let obj = {
-                            'charityRoundUpId': 0, 
+                            'id': 0, 
                             'charityRoundUpRefId': null
                         }
                         affiliateObj.charityRoundUp.push(obj);
@@ -137,10 +137,10 @@ export default class AffiliateService extends BaseService<Affiliate> {
                     else{
                         affiliateObj.charityRoundUp = JSON.parse(aff.charityRoundUp)
                     }
-                    
+
                     if(!isArrayPopulated(aff.charity)){
                         let obj = {
-                            'charityId': 0, 
+                            'id': 0, 
                             'title': "",
                             'description': ''
                         }
