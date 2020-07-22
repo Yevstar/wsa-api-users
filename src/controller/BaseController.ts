@@ -13,6 +13,8 @@ import UserRegistrationService from "../services/UserRegistrationService";
 import admin from "firebase-admin";
 import OrganisationPhotoService from "../services/OrganisationPhotoService";
 import ActionsService from "../services/ActionsService";
+import CharityRoundUpService from "../services/CharityRoundUpService";
+import CharityService from "../services/CharityService";
 
 export class BaseController {
 
@@ -51,6 +53,13 @@ export class BaseController {
 
     @Inject()
     protected userDashboardService: UserDashboardService;
+
+    @Inject()
+    protected charityRoundUpService:CharityRoundUpService;
+
+    @Inject()
+    protected charityService: CharityService;
+    
 
     protected async updateFirebaseData(user: User, password: string) {
         user.password = password;

@@ -1,6 +1,6 @@
 import { BaseController } from "./BaseController";
 import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Param, Get, UploadedFiles,UploadedFile, Delete } from "routing-controllers";
-import { isArrayPopulated, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty, isPdf } from "../utils/Utils";
+import { isArrayPopulated, uuidv4, timestamp, fileExt, md5, stringTONumber, isPhoto, isStringNullOrEmpty, isPdf, isNullOrEmpty } from "../utils/Utils";
 import { Response, response } from 'express';
 import { Affiliate } from "../models/Affiliate";
 import { logger } from "../logger";
@@ -12,6 +12,8 @@ import { OrganisationLogo } from "../models/OrganisationLogo";
 import { OrganisationPhoto } from "../models/OrganisationPhoto";
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
+import { CharityRoundUp } from "../models/CharityRoundUp";
+import { Charity } from "src/models/Charity";
 
 
 @JsonController("/api")
@@ -298,6 +300,154 @@ export class AffiliateController extends BaseController {
             logger.error(`Error Occurred in Competition Timeslot Save ${userId}` + error);
             return response.status(500).send({
                 message: `Something went wrong. Please contact administrator:  ${error}`
+            });
+        }
+    }
+
+    @Authorized()
+    @Post("/charity/update")
+    async updateCharity(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response
+    ){
+        try {
+            if (currentUser.id) {
+                if (requestBody != null) {
+                    let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
+                    let charityRoundUpArr = [];
+                    let charityArr = [];
+                    
+                    if(isArrayPopulated(requestBody.charityRoundUp)){
+                        requestBody.charityRoundUp.map((x, index) => {
+                            let obj = new CharityRoundUp();
+                            if(isNullOrEmpty(x.charityRoundUpId)){
+                                obj.createdBy = currentUser.id;
+                            }
+                            else{
+                                obj.updatedBy = currentUser.id;
+                                obj.updatedOn = new Date();
+                            }
+                            obj.id = x.charityRoundUpId;
+                            obj.organisationId = organisationId;
+                            obj.charityRoundUpRefId = x.charityRoundUpRefId;
+                            charityRoundUpArr.push(obj);
+                        });
+                    }
+
+                    const checkPreviousCharityRoundUp = await this.charityRoundUpService.checkPreviousCharityRoundUp(organisationId);
+                    let previousCharityRoundUp = [];
+                    if (isArrayPopulated(checkPreviousCharityRoundUp)) {
+                        for (let i of checkPreviousCharityRoundUp) previousCharityRoundUp.push(i.id);
+                    }
+
+                    previousCharityRoundUp.forEach(async e => {
+                        const index = charityRoundUpArr.findIndex(g => g.id === e);
+                        if (index === -1) {
+                            let charityRoundUp = new CharityRoundUp();
+                            charityRoundUp.isDeleted = 1;
+                            charityRoundUp.id = e;
+                            await this.charityRoundUpService.createOrUpdate(charityRoundUp);
+                        }
+                    });
+
+
+                    if(isArrayPopulated(requestBody.charity)){
+                        requestBody.charity.map((x, index) => {
+                            let obj = new Charity();
+                            if(isNullOrEmpty(x.charityId)){
+                                obj.createdBy = currentUser.id;
+                            }
+                            else{
+                                obj.updatedBy = currentUser.id;
+                                obj.updatedOn = new Date();
+                            }
+                            obj.id = x.charityId;
+                            obj.organisationId = organisationId;
+                            obj.name = x.title;
+                            obj.description = x.description;
+                            charityArr.push(obj);
+                        });
+                    }
+
+                    const checkPreviousCharity = await this.charityService.checkPreviousCharity(organisationId);
+                    let previousCharity = [];
+                    if (isArrayPopulated(checkPreviousCharity)) {
+                        for (let i of checkPreviousCharity) previousCharity.push(i.id);
+                    }
+
+                    previousCharity.forEach(async e => {
+                        const index = charityArr.findIndex(g => g.id === e);
+                        if (index === -1) {
+                            // user deleted some payments
+                            let charity = new Charity();
+                            charity.isDeleted = 1;
+                            charity.id = e;
+                            await this.charityService.createOrUpdate(charity);
+                        }
+                    });
+
+                    await this.charityService.batchCreateOrUpdate(charityArr);
+                    
+                    return response.status(200).send({charityRoundUp: charityRoundUpArr, charity: charityArr});
+                }
+                else{
+                    return response.status(212).send({
+                        message: 'Request body cannot be null'
+                    });
+                }
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in updateCharity ${currentUser.id}` + error);
+            return response.status(500).send({
+                message: 'Something went wrong. Please contact administrator'
+            });
+        }
+    }
+
+    @Authorized()
+    @Post("/termsandcondition/update")
+    async updateTermsAndCondition(
+        @HeaderParam("authorization") currentUser: User,
+        @UploadedFiles("termsAndConditionFile") termsAndConditionFile: Express.Multer.File,
+        @Body() requestBody: any,
+        @Res() response: Response
+    ){
+        try {
+            if (currentUser.id) {
+                if (requestBody != null) {
+                    let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
+                    let organisation = new Organisation();
+                    organisation.id = organisationId;
+                    organisation.termsAndConditionsRefId = requestBody.termsAndConditionsRefId;
+                    organisation.termsAndConditions = requestBody.termsAndConditions;
+                    organisation.updatedBy = currentUser.id;
+                    organisation.updatedOn = new Date();
+
+                    if(termsAndConditionFile && termsAndConditionFile!= null){
+                        if (isPdf(termsAndConditionFile.mimetype)) {
+                            let filename = `/organisation/termsAndCondition_org_${requestBody.organisationId}_${timestamp()}.${fileExt(termsAndConditionFile.originalname)}`;
+                            let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile);
+                            
+                            if (fileUploaded) {
+                                organisation.termsAndConditions = fileUploaded['url'];
+                            }
+                        }
+                    }
+
+                    await this.organisationService.createOrUpdate(organisation);
+                    return response.status(200).send({organisation});
+                }
+                else{
+                    return response.status(212).send({
+                        message: 'Request body cannot be null'
+                    });
+                }
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in updateTermsAndCondition ${currentUser.id}` + error);
+            return response.status(500).send({
+                message: 'Something went wrong. Please contact administrator'
             });
         }
     }
