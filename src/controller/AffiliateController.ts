@@ -364,7 +364,7 @@ export class AffiliateController extends BaseController {
                             }
                             obj.id = x.id;
                             obj.organisationId = organisationId;
-                            obj.name = x.title;
+                            obj.name = x.name;
                             obj.description = x.description;
                             charityArr.push(obj);
                         });

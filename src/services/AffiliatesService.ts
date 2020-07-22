@@ -126,28 +126,33 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         charityRoundUp: [],
                         charity: []
                     }
+
+                    console.log("****" + JSON.stringify(aff));
+
+                    
                    
-                    if(!isArrayPopulated(aff.charityRoundUp)){
+                    if(aff.charityRoundUp!= null){
+                        affiliateObj.charityRoundUp = JSON.parse(aff.charityRoundUp)
+                    }
+                    else{
                         let obj = {
                             'id': 0, 
                             'charityRoundUpRefId': null
                         }
                         affiliateObj.charityRoundUp.push(obj);
                     }
-                    else{
-                        affiliateObj.charityRoundUp = JSON.parse(aff.charityRoundUp)
-                    }
 
-                    if(!isArrayPopulated(aff.charity)){
+                    
+                    if(aff.charity!= null){
+                        affiliateObj.charity = JSON.parse(aff.charity);
+                    }
+                    else{
                         let obj = {
                             'id': 0, 
                             'title': "",
                             'description': ''
                         }
                         affiliateObj.charity.push(obj);
-                    }
-                    else{
-                        affiliateObj.charity = JSON.parse(aff.charity);
                     }
 
                     contactsObj.permissions.push(permissionObj);
