@@ -122,7 +122,9 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         termsAndConditions: aff.termsAndConditions,
                         termsAndConditionsLink: aff.termsAndConditionsRefId == 1 ? aff.termsAndConditions : null,
                         termsAndConditionsFile: aff.termsAndConditionsRefId == 2 ? aff.termsAndConditions : null,
-                        contacts:[]
+                        contacts:[],
+                        charityRoundUp: aff.charityRoundUp,
+                        charity: aff.charity
                     }
                     contactsObj.permissions.push(permissionObj);
                     if(aff.userId!= null){
