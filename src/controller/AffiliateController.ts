@@ -409,7 +409,7 @@ export class AffiliateController extends BaseController {
     @Post("/termsandcondition/update")
     async updateTermsAndCondition(
         @HeaderParam("authorization") currentUser: User,
-        @UploadedFile("termsAndConditionFile") termsAndConditionFile: Express.Multer.File,
+        @UploadedFile("termsAndCondition") termsAndConditionFile: Express.Multer.File,
         @Body() requestBody: any,
         @Res() response: Response
     ){
@@ -424,7 +424,7 @@ export class AffiliateController extends BaseController {
                     organisation.updatedBy = currentUser.id;
                     organisation.updatedOn = new Date();
 
-                    if(termsAndConditionFile && termsAndConditionFile!= null){
+                    if(termsAndConditionFile!= null){
                         if (isPdf(termsAndConditionFile.mimetype)) {
                             let filename = `/organisation/termsAndCondition_org_${requestBody.organisationId}_${timestamp()}.${fileExt(termsAndConditionFile.originalname)}`;
                             let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile);
