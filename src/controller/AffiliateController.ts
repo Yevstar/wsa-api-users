@@ -13,7 +13,7 @@ import { OrganisationPhoto } from "../models/OrganisationPhoto";
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 import { CharityRoundUp } from "../models/CharityRoundUp";
-import { Charity } from "src/models/Charity";
+import { Charity } from "../models/Charity";
 
 
 @JsonController("/api")
