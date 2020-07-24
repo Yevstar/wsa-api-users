@@ -192,6 +192,7 @@ export default class UserService extends BaseService<User> {
     public async getRoles(): Promise<any[]> {
         return this.entityManager.createQueryBuilder(Role, 'r')
             .select(['r.id as id', 'r.name as name', 'r.description as description', 'r.applicableToWeb as applicableToWeb'])
+            .where('r.isDeleted = 0')
             .getRawMany();
     }
 
