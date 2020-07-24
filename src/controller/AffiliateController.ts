@@ -43,7 +43,9 @@ export class AffiliateController extends BaseController {
                                     if (contact.userId == 0) {
                                         let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
                                         if (userDb) {
-                                            if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && contact.mobileNumber.trim() == userDb.mobileNumber.trim()) {
+                                            if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && 
+                                            ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) == 
+                                                    (userDb.mobileNumber!= null ? userDb.mobileNumber.trim() : userDb.mobileNumber)) ) {
                                                 contact.userId = userDb.id
                                                 continue;
                                             }
@@ -66,7 +68,9 @@ export class AffiliateController extends BaseController {
                                         } else {
                                             let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
                                             if (userDb.id != contact.userId) {
-                                                if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && contact.mobileNumber.trim() == userDb.mobileNumber.trim()) {
+                                                if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && 
+                                                ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) == 
+                                                (userDb.mobileNumber!= null ? userDb.mobileNumber.trim() : userDb.mobileNumber) )) {
                                                     contact.userId = userDb.id
                                                     continue;
                                                 } else {
@@ -202,9 +206,9 @@ export class AffiliateController extends BaseController {
                                 let user = new User();
                                 user.id = Number(contact.userId);
                                 user.firstName = contact.firstName.trim();
-                                user.middleName = contact.middleName.trim();
+                                user.middleName = contact.middleName!= null ? contact.middleName.trim() : "";
                                 user.lastName = contact.lastName.trim();
-                                user.mobileNumber = contact.mobileNumber.trim();
+                                user.mobileNumber = contact.mobileNumber!= null ? contact.mobileNumber.trim() : "";
                                 user.email = contact.email.toLowerCase().trim();
                                 let password = Math.random().toString(36).slice(-8);
                                 if (contact.userId == 0) {
