@@ -15,6 +15,7 @@ import OrganisationPhotoService from "../services/OrganisationPhotoService";
 import ActionsService from "../services/ActionsService";
 import CharityRoundUpService from "../services/CharityRoundUpService";
 import CharityService from "../services/CharityService";
+import {isNullOrEmpty} from "../utils/Utils";
 
 export class BaseController {
 
@@ -59,75 +60,92 @@ export class BaseController {
 
     @Inject()
     protected charityService: CharityService;
-    
+
 
     protected async updateFirebaseData(user: User, password: string) {
         user.password = password;
 
         let fbUser;
         /// If there an existing firebaseUID get the firebase user via that
-        if (user.firebaseUID) {
-            fbUser = await this.firebaseService.loadUserByUID(user.firebaseUID);
+        if (!isNullOrEmpty(user.firebaseUID)) {
+          fbUser = await this.firebaseService.loadUserByUID(user.firebaseUID);
         } else {
-            /// Also we will check once if there an user already with that email
-            /// in-order to make sure we don't call create of firebase user
-            /// with an already existing email.
-            fbUser = await this.firebaseService.loadUserByEmail(user.email);
-            if (fbUser && fbUser.uid) {
-                user.firebaseUID = fbUser.uid;
-            }
+          /// Also we will check once if there an user alreay with that email
+          /// in-order to make sure we don't call create of firebase user
+          /// with an already existing email.
+          fbUser = await this.firebaseService.loadUserByEmail(user.email);
+          if (fbUser && fbUser.uid) {
+            user.firebaseUID = fbUser.uid;
+          }
         }
 
         if (!fbUser || !fbUser.uid) {
-            fbUser = await this.firebaseService.createUser(user.email.toLowerCase(), password);
+            fbUser = await this.firebaseService.createUser(
+                user.email.toLowerCase(),
+                password
+            );
         } else {
-            fbUser = await this.firebaseService.updateUserByUID(user.firebaseUID, user.email.toLowerCase(), user.password);
+            if (user && isNullOrEmpty(user.firebaseUID)) {
+                fbUser = await this.firebaseService.createUser(
+                    user.email.toLowerCase(),
+                    password
+                );
+            } else if (user) {
+                fbUser = await this.firebaseService.updateUserByUID(
+                    user.firebaseUID,
+                    user.email.toLowerCase(),
+                    user.password
+                );
+            }
         }
         if (fbUser && fbUser.uid) {
             user.firebaseUID = fbUser.uid;
             await User.save(user);
         }
-
         await this.checkFirestoreDatabase(user, true);
     }
 
     protected async checkFirestoreDatabase(user, update = false) {
-        if (user.firebaseUID) {
-            let db = admin.firestore();
-            let usersCollectionRef = await db.collection('users');
-            let queryRef = usersCollectionRef.where('uid', '==', user.firebaseUID);
-            let querySnapshot = await queryRef.get();
-            if (querySnapshot.empty) {
-                usersCollectionRef.doc(user.firebaseUID).set({
-                    'email': user.email.toLowerCase(),
-                    'firstName': user.firstName,
-                    'lastName': user.lastName,
-                    'uid': user.firebaseUID,
-                    'avatar': (user.photoUrl != null && user.photoUrl != undefined) ? user.photoUrl : null,
-                    'created_at': admin.firestore.FieldValue.serverTimestamp(),
-                    'searchKeywords': [
-                        `${user.firstName} ${user.lastName}`,
-                        user.firstName,
-                        user.lastName,
-                        user.email.toLowerCase()
-                    ]
-                });
-            } else if (update) {
-                usersCollectionRef.doc(user.firebaseUID).update({
-                    'email': user.email.toLowerCase(),
-                    'firstName': user.firstName,
-                    'lastName': user.lastName,
-                    'uid': user.firebaseUID,
-                    'avatar': (user.photoUrl != null && user.photoUrl != undefined) ? user.photoUrl : null,
-                    'updated_at': admin.firestore.FieldValue.serverTimestamp(),
-                    'searchKeywords': [
-                        `${user.firstName} ${user.lastName}`,
-                        user.firstName,
-                        user.lastName,
-                        user.email.toLowerCase()
-                    ]
-                });
-            }
+      if (!isNullOrEmpty(user.firebaseUID)) {
+        let db = admin.firestore();
+        let usersCollectionRef = await db.collection('users');
+        let queryRef = usersCollectionRef.where('uid', '==', user.firebaseUID);
+        let querySnapshot = await queryRef.get();
+        if (querySnapshot.empty) {
+          usersCollectionRef.doc(user.firebaseUID).set({
+              'email': user.email.toLowerCase(),
+              'firstName': user.firstName,
+              'lastName': user.lastName,
+              'uid': user.firebaseUID,
+              'avatar': (user.photoUrl != null && user.photoUrl != undefined) ?
+                  user.photoUrl :
+                  null,
+              'created_at': admin.firestore.FieldValue.serverTimestamp(),
+              'searchKeywords': [
+                  `${user.firstName} ${user.lastName}`,
+                  user.firstName,
+                  user.lastName,
+                  user.email.toLowerCase()
+              ]
+          });
+        } else if (update) {
+          usersCollectionRef.doc(user.firebaseUID).update({
+            'email': user.email.toLowerCase(),
+            'firstName': user.firstName,
+            'lastName': user.lastName,
+            'uid': user.firebaseUID,
+            'avatar': (user.photoUrl != null && user.photoUrl != undefined) ?
+                user.photoUrl :
+                null,
+            'updated_at': admin.firestore.FieldValue.serverTimestamp(),
+            'searchKeywords': [
+                `${user.firstName} ${user.lastName}`,
+                user.firstName,
+                user.lastName,
+                user.email.toLowerCase()
+            ]
+          });
         }
+      }
     }
 }
