@@ -346,10 +346,9 @@ export class UserController extends BaseController {
             }
 
             await this.userService.update(userDetails.email.toLowerCase(), user);
-            await this.updateFirebaseData(user, userDetails.password);
 
             logger.info(`Current user data updated ${user.email}`);
-            return this.responseWithTokenAndUser(user.email, userDetails.password, user, false);
+            return this.responseWithTokenAndUser(user.email, userDetails.password, user);
         } catch (err) {
             logger.error(`Unable to patch user ${userDetails.email}` + err);
             return response.status(400).send({
@@ -391,11 +390,10 @@ export class UserController extends BaseController {
 
             user.password = md5(requestBody.newPassword);
             await this.userService.createOrUpdate(user);
-            await this.updateFirebaseData(user, user.password);
 
             let updatedUser = await this.userService.findById(currentUser.id);
             logger.info(`Current user password updated ${user.email}`);
-            return this.responseWithTokenAndUser(updatedUser.email, user.password, updatedUser, false);
+            return this.responseWithTokenAndUser(updatedUser.email, user.password, updatedUser);
         } catch (e) {
             return response.status(500).send({
                 name: 'upload_error',
@@ -441,28 +439,14 @@ export class UserController extends BaseController {
         }
     }
 
-    private async responseWithTokenAndUser(login, password, user: User, checkFirebase = true) {
-        if (checkFirebase) await this.checkFirebaseUser(user, password);
+    private async responseWithTokenAndUser(login, password, user: User) {
+        await this.updateFirebaseData(user, password);
         user.password = undefined;
         user.reset = undefined;
         return {
             authToken: authToken(login, password),
             user: user
         };
-    }
-
-    private async checkFirebaseUser(user, password: string) {
-        if (!user.firebaseUID) {
-            let fbUser = await this.firebaseService.loadUserByEmail(user.email.toLowerCase());
-            if (!fbUser || !fbUser.uid) {
-                fbUser = await this.firebaseService.createUser(user.email.toLowerCase(), password);
-            }
-            if (fbUser.uid) {
-                user.firebaseUID = fbUser.uid;
-                await User.save(user);
-            }
-        }
-        await this.checkFirestoreDatabase(user);
     }
 
     // First we will check if user is having firebaseUID or not. If not we
@@ -476,7 +460,7 @@ export class UserController extends BaseController {
             const result = await this.userService.findUserFullDetailsById(user.id);
             let userDetails = result[0];
             if (userDetails.email !== null && userDetails.email !== undefined) {
-                await this.checkFirebaseUser(user, userDetails.password);
+                await this.updateFirebaseData(user, userDetails.password);
             }
         } else {
             await this.checkFirestoreDatabase(user);
