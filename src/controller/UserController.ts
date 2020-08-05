@@ -262,7 +262,7 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, {functionId: functionId});
+        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { functionId });
 
         if (result) {
             // Here we are checking every user with firestore inorder to make sure
@@ -281,13 +281,15 @@ export class UserController extends BaseController {
     @Authorized()
     @Get('/byRole')
     async loadUserByRole(
-        @QueryParam('roleId', {required: true}) roleId: number,
-        @QueryParam('entityTypeId', {required: true}) entityTypeId: number,
-        @QueryParam('entityId', {required: true}) entityId: number,
+        @QueryParam('roleId', { required: true }) roleId: number,
+        @QueryParam('entityTypeId', { required: true }) entityTypeId: number,
+        @QueryParam('entityId', { required: true }) entityId: number,
         @QueryParam('userName') userName: string,
-        @Res() response: Response
+        @Res() response: Response,
+        @QueryParam('sortBy', { required: false }) sortBy?: string,
+        @QueryParam('sortOrder', { required: false }) sortOrder?: "ASC" | "DESC",
     ) {
-        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, {roleId: roleId});
+        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { roleId }, sortBy, sortOrder);
         for (let u of result) {
             u['linkedEntity'] = JSON.parse(u['linkedEntity']);
         }

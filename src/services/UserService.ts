@@ -276,7 +276,9 @@ export default class UserService extends BaseService<User> {
         entityTypeId: number,
         entityId: number,
         userName: string,
-        sec: { functionId?: number, roleId?: number }
+        sec: { functionId?: number, roleId?: number },
+        sortBy?: string,
+        sortOrder?: "ASC" | "DESC"
     ): Promise<User[]> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
@@ -288,8 +290,7 @@ export default class UserService extends BaseService<User> {
                 'as linkedEntity')
             .innerJoin(UserRoleEntity, 'ure', 'u.id = ure.userId')
             .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId')
-            .innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND ' +
-                'le.linkedEntityId = ure.entityId');
+            .innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId');
 
         if (sec.functionId) {
             let id = sec.functionId;
@@ -312,6 +313,20 @@ export default class UserService extends BaseService<User> {
                     .orWhere('LOWER(u.lastName) like :query', {query: `${userName.toLowerCase()}%`});
             }));
         }
+
+        if (sortBy) {
+            if (sortBy.indexOf('linkedEntity') > -1) {
+                const sortStr = sortBy.split('.')[1];
+                if (sortStr === 'name') {
+                    query.orderBy('le.linkedEntityName', sortOrder);
+                } else if (sortStr === 'parentName') {
+                    query.orderBy('le.linkedParentName', sortOrder);
+                }
+            } else {
+                query.orderBy(`u.${sortBy}`, sortOrder);
+            }
+        }
+
         query.groupBy('u.id');
         return query.getRawMany()
     }
