@@ -88,6 +88,14 @@ export class User extends BaseEntity {
     @Column()
     postalCode: string;
 
+    @IsDate()
+    @Column()
+    childrenCheckExpiryDate: Date;
+
+    @IsString()
+    @Column()
+    childrenCheckNumber: string;
+
     @IsNumber()
     @Column()
     createdBy: number;

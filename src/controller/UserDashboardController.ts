@@ -326,6 +326,8 @@ export class UserDashboardController extends BaseController {
 
                 user.id = requestBody.userId;
                 user.genderRefId = requestBody.genderRefId;
+                user.childrenCheckNumber = requestBody.childrenCheckNumber;
+                user.childrenCheckExpiryDate = requestBody.childrenCheckExpiryDate;
                 await this.userService.createOrUpdate(user);
 
                 return response.status(200).send({message: "Successfully updated"})
