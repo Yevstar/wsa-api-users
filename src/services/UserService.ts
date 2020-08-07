@@ -276,7 +276,8 @@ export default class UserService extends BaseService<User> {
         entityTypeId: number,
         entityId: number,
         userName: string,
-        sec: { functionId?: number, roleId?: number }
+        sec: { functionId?: number, roleId?: number },
+        sortBy: string = undefined, sortOrder: "ASC" | "DESC" = undefined
     ): Promise<User[]> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
@@ -313,6 +314,21 @@ export default class UserService extends BaseService<User> {
             }));
         }
         query.groupBy('u.id');
+
+        if (sortBy) {
+            if (sortBy === 'firstName') {
+                query.orderBy('firstName', sortOrder);
+            } else if (sortBy === 'lastName') {
+                query.orderBy('lastName', sortOrder);
+            } else if (sortBy === 'email') {
+                query.orderBy('email', sortOrder);
+            } else if (sortBy === 'mobileNumber') {
+                query.orderBy('mobileNumber', sortOrder);
+            } else if (sortBy === 'linkedEntityName') {
+                query.orderBy('le.linkedEntityName', sortOrder);
+            }
+        }
+
         return query.getRawMany()
     }
 

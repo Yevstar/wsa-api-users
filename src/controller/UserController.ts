@@ -285,9 +285,11 @@ export class UserController extends BaseController {
         @QueryParam('entityTypeId', {required: true}) entityTypeId: number,
         @QueryParam('entityId', {required: true}) entityId: number,
         @QueryParam('userName') userName: string,
+        @QueryParam('sortBy') sortBy: string = undefined,
+        @QueryParam('sortOrder') sortOrder: "ASC" | "DESC" = undefined,
         @Res() response: Response
     ) {
-        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, {roleId: roleId});
+        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, {roleId: roleId}, sortBy, sortOrder);
         for (let u of result) {
             u['linkedEntity'] = JSON.parse(u['linkedEntity']);
         }
@@ -506,7 +508,7 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let getManagersData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response);
+        let getManagersData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, undefined, undefined, response);
         if (isArrayPopulated(getManagersData)) {
             getManagersData.map(e => {
                 e['First Name'] = e['firstName'];
@@ -567,7 +569,7 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let userData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response);
+        let userData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, undefined, undefined, response);
         if (isArrayPopulated(userData)) {
             userData.map(e => {
                 e['ID'] = e['id'];
