@@ -20,6 +20,15 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
         .execute();
     }
 
+    public async deleteImpersonationUre(entityId: number, userId: number, currentUserId: number){
+        return this.entityManager.createQueryBuilder(UserRoleEntity, 'userRoleEntity')
+          .update(UserRoleEntity)
+          .set({isDeleted: 1, updatedBy: currentUserId, updatedAt: new Date()})
+          .andWhere('userRoleEntity.entityId = :entityId and userRoleEntity.userId = :userId',
+            {entityId: entityId, userId: userId})
+          .execute();
+    }
+
     public async findByTemplateId(entityId: number): Promise<UserRoleEntity[]> {
         let query = this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
         query.select(['ure.userId','ure.id'])

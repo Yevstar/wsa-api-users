@@ -508,7 +508,7 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let getManagersData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, undefined, undefined, response);
+        let getManagersData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, undefined, undefined);
         if (isArrayPopulated(getManagersData)) {
             getManagersData.map(e => {
                 e['First Name'] = e['firstName'];
@@ -569,7 +569,7 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let userData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, undefined, undefined, response);
+        let userData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, undefined, undefined);
         if (isArrayPopulated(userData)) {
             userData.map(e => {
                 e['ID'] = e['id'];

@@ -3,6 +3,7 @@ import {UserRoleEntity} from "../models/security/UserRoleEntity";
 import {BaseController} from "./BaseController";
 import {Response} from "express";
 import {User} from "../models/User";
+import {logger} from "../logger";
 
 
 @JsonController('/ure')
@@ -48,6 +49,45 @@ export class UserRoleEntityController extends BaseController {
         } else {
             return response.status(200).send({delete: false});
         }
+    }
+
+    @Authorized()
+    @Post('/impersonation')
+    async impersonation(
+        @QueryParam('userId') userId: number,
+        @QueryParam('entityId') entityId: number,
+        @QueryParam('entityTypeId') entityTypeId: number,
+        @QueryParam('access') access: boolean,
+        @HeaderParam("authorization") currentUser: User,
+        @Res() response: Response) {
+            try {
+                if (userId === currentUser.id) {
+                    let userRoleEntity = new UserRoleEntity();
+                    if (access) {
+                        userRoleEntity.createdBy = userId;
+                        userRoleEntity.createdAt = new Date();
+                        userRoleEntity.roleId = 10;
+                        userRoleEntity.userId = userId;
+                        userRoleEntity.entityId = entityId;
+                        userRoleEntity.entityTypeId = entityTypeId;
+                        userRoleEntity.isDeleted = 0;
+
+                        await this.ureService.createOrUpdate(userRoleEntity);
+                    } else {
+                        await this.ureService.deleteImpersonationUre(entityId, userId, currentUser.id);
+                    }
+
+                    return response.status(200).send({
+                        success: true,
+                    });
+                }
+            } catch (error) {
+                logger.error(`Error Occurred in impersonation ${userId}`+error);
+                return response.status(500).send({
+                    message: 'Error Occurred in impersonation access.',
+                    success: false,
+                });
+            }
     }
 
     private async notifyChangeRole(ure) {
