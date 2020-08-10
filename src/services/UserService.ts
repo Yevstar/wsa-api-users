@@ -627,6 +627,7 @@ export default class UserService extends BaseService<User> {
                             vouchers: item.vouchers,
                             shopPurchases: item.shopPurchases,
                             paymentStatus: item.paymentStatus,
+                            paymentType: item.paymentType,
                             registrationForm: []
                         }
 
