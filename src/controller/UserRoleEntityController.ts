@@ -55,26 +55,28 @@ export class UserRoleEntityController extends BaseController {
     @Post('/impersonation')
     async impersonation(
         @QueryParam('userId') userId: number,
-        @QueryParam('entityId') entityId: number,
+        @QueryParam('organisationUniqueKey') organisationUniqueKey: string,
         @QueryParam('entityTypeId') entityTypeId: number,
         @QueryParam('access') access: boolean,
         @HeaderParam("authorization") currentUser: User,
         @Res() response: Response) {
             try {
                 if (userId === currentUser.id) {
+                    const organisationId = await this.organisationService.findByUniquekey(organisationUniqueKey);
                     let userRoleEntity = new UserRoleEntity();
+
                     if (access) {
                         userRoleEntity.createdBy = userId;
                         userRoleEntity.createdAt = new Date();
                         userRoleEntity.roleId = 10;
                         userRoleEntity.userId = userId;
-                        userRoleEntity.entityId = entityId;
+                        userRoleEntity.entityId = organisationId;
                         userRoleEntity.entityTypeId = entityTypeId;
                         userRoleEntity.isDeleted = 0;
 
                         await this.ureService.createOrUpdate(userRoleEntity);
                     } else {
-                        await this.ureService.deleteImpersonationUre(entityId, userId, currentUser.id);
+                        await this.ureService.deleteImpersonationUre(organisationId, userId, currentUser.id);
                     }
 
                     return response.status(200).send({
