@@ -2,7 +2,7 @@ import {BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn
 import {User} from "./User";
 import {IsNumber, IsString, ValidateNested} from "class-validator";
 
-@Entity('userDevice')
+@Entity('userDevice',{ database: "wsa" })
 export class UserDevice extends BaseEntity {
 
     @IsNumber()
@@ -23,4 +23,3 @@ export class UserDevice extends BaseEntity {
     deviceId: string;
 
 }
-
