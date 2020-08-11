@@ -56,7 +56,6 @@ export class UserRoleEntityController extends BaseController {
     async impersonation(
         @QueryParam('userId') userId: number,
         @QueryParam('organisationUniqueKey') organisationUniqueKey: string,
-        @QueryParam('entityTypeId') entityTypeId: number,
         @QueryParam('access') access: boolean,
         @HeaderParam("authorization") currentUser: User,
         @Res() response: Response) {
@@ -71,7 +70,7 @@ export class UserRoleEntityController extends BaseController {
                         userRoleEntity.roleId = 10;
                         userRoleEntity.userId = userId;
                         userRoleEntity.entityId = organisationId;
-                        userRoleEntity.entityTypeId = entityTypeId;
+                        userRoleEntity.entityTypeId = 2;
                         userRoleEntity.isDeleted = 0;
 
                         await this.ureService.createOrUpdate(userRoleEntity);

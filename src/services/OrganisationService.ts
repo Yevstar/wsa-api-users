@@ -21,13 +21,6 @@ export default class OrganisationService extends BaseService<Organisation> {
         return (await query.getOne());
     }
 
-    public async findImpersonationById(organisationId: number): Promise<Organisation> {
-        let query = this.entityManager.createQueryBuilder(Organisation, 'organisation');
-        query.where('organisation.id = :organisationId and isDeleted = 0', {organisationId});
-
-        return (await query.getOne());
-    }
-
     public async organisation(){
         try{
             let query = this.entityManager.createQueryBuilder(Organisation, 'org')
