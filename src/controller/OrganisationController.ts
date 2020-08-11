@@ -38,7 +38,6 @@ export class OrganisationController extends BaseController {
         @Res() response: Response,
     ) {
         try {
-            return response.status(200).send('dm: [test]-organization ctrl');
             if (userId) {
                 if (userId && userId == currentUser.id) {
                     const roles = await this.ureService.findByUser(userId);
@@ -58,10 +57,8 @@ export class OrganisationController extends BaseController {
                             name: organisation.name,
                             organisationId: organisation.id,
                             mobileNumber: organisation.phoneNo || '',
-                            organisationType: {
-                                id: organisation.organisationTypeRefId,
-                                name: organisationType,
-                            },
+                            organisationType: organisationType.name,
+                            organisationTypeRefId: organisation.organisationTypeRefId,
                             organisationUniqueKey: organisation.organisationUniqueKey,
                         }];
 
@@ -69,7 +66,7 @@ export class OrganisationController extends BaseController {
                     }
 
 
-                    return response.status(200).send('dm: [test]-organization ctrl');
+                    return response.status(200).send(organisationRes);
                 }
             }
 
