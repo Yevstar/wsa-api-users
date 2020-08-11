@@ -377,7 +377,7 @@ export default class UserService extends BaseService<User> {
         const mailOptions = {
             from: {
                 name: "World Sport Action",
-                address: "admin@worldsportaction.com"
+                address: "mail@worldsportaction.com"
             },
             to: receiverData.email.toLowerCase(),
             replyTo: "donotreply@worldsportaction.com",
