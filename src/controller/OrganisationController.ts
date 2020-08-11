@@ -57,8 +57,10 @@ export class OrganisationController extends BaseController {
                             name: organisation.name,
                             organisationId: organisation.id,
                             mobileNumber: organisation.phoneNo || '',
-                            organisationType,
-                            organisationTypeRefId: organisation.organisationTypeRefId,
+                            organisationType: {
+                                id: organisation.organisationTypeRefId,
+                                name: organisationType,
+                            },
                             organisationUniqueKey: organisation.organisationUniqueKey,
                         }];
 
