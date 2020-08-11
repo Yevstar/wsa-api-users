@@ -45,7 +45,7 @@ export class OrganisationController extends BaseController {
                     let organisationRes = await this.organisationService.userOrganisation(userId);
 
                     if (impersonationRole) {
-                        const organisation = await this.organisationService.findById(impersonationRole.entityId);
+                        const organisation = await this.organisationService.findImpersonationById(impersonationRole.entityId);
                         const {organisationTypes} = await this.affiliateService.affiliateToOrg(impersonationRole.entityId);
                         const organisationType = organisationTypes && organisationTypes.length > 0
                             ? organisationTypes.find((type) => type.id === organisation.organisationTypeRefId)
