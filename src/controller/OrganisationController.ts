@@ -49,7 +49,7 @@ export class OrganisationController extends BaseController {
                         const {organisationTypes} = await this.affiliateService.affiliateToOrg(impersonationRole.entityId);
                         const organisationType = organisationTypes && organisationTypes.length > 0
                             ? organisationTypes.find((type) => type.id === organisation.organisationTypeRefId)
-                            : '';
+                            : null;
 
                         organisationRes = [{
                             ...organisationRes[0],
@@ -57,7 +57,7 @@ export class OrganisationController extends BaseController {
                             name: organisation.name,
                             organisationId: organisation.id,
                             mobileNumber: organisation.phoneNo || '',
-                            organisationType: organisationType.name,
+                            organisationType: organisationType ? organisationType.name : '',
                             organisationTypeRefId: organisation.organisationTypeRefId,
                             organisationUniqueKey: organisation.organisationUniqueKey,
                         }];
