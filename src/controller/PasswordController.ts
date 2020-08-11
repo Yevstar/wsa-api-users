@@ -89,7 +89,7 @@ export class PasswordController extends BaseController {
                     to: user.email.toLowerCase(),
                     replyTo: "donotreply@worldsportaction.com",
                     subject: 'Reset your password.',
-                    html: `Go here to reset your password: <a href="${url}">${url}</a>`
+                    html: `Click here to reset your password: <a href="${url}">${url}</a>`
                 };
 
                 // Send the mail via nodeMailer
