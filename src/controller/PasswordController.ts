@@ -84,7 +84,7 @@ export class PasswordController extends BaseController {
                 const mailOptions = {
                     from: {
                         name: "World Sport Action",
-                        address: "admin@worldsportaction.com"
+                        address: "mail@worldsportaction.com"
                     },
                     to: user.email.toLowerCase(),
                     replyTo: "donotreply@worldsportaction.com",
