@@ -491,12 +491,14 @@ export class AffiliateController extends BaseController {
         @QueryParam('userId') userId: number,
         @HeaderParam("authorization") currentUser: User,
         @Body() requestFilter: any,
-        @Res() response: Response) {
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC") {
         try {
             if (userId) {
                 if (userId && userId == currentUser.id) {
                     if (requestFilter != null) {
-                        const affiliateListRes = await this.affiliateService.affiliatesList(requestFilter);
+                        const affiliateListRes = await this.affiliateService.affiliatesList(requestFilter, sortBy, sortOrder);
                         return response.status(200).send(affiliateListRes);
                     }
                 }
@@ -728,11 +730,13 @@ export class AffiliateController extends BaseController {
     async affiliateDirectory(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestFilter: any,
-        @Res() response: Response) {
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC") {
         try {
             if (currentUser.id) {
                 if (requestFilter != null) {
-                    const affiliateListRes = await this.affiliateService.affiliateDirectory(requestFilter);
+                    const affiliateListRes = await this.affiliateService.affiliateDirectory(requestFilter, sortBy, sortOrder);
                     return response.status(200).send(affiliateListRes);
                 }
             }

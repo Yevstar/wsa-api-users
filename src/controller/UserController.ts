@@ -472,10 +472,12 @@ export class UserController extends BaseController {
     async friendDashboard(
         @Body() requestBody: any,
         @HeaderParam("authorization") user: User,
-        @Res() response: Response
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC"
     ) {
         try {
-            let res = await this.userService.friendDashboard(requestBody)
+            let res = await this.userService.friendDashboard(requestBody, sortBy, sortOrder)
             return response.status(200).send(res)
         } catch (error) {
             logger.error(`Unable to get Friend details `, error)
@@ -488,10 +490,12 @@ export class UserController extends BaseController {
     async referFriendDashboard(
         @Body() requestBody: any,
         @HeaderParam("authorization") user: User,
-        @Res() response: Response
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC"
     ) {
         try {
-            let res = await this.userService.referFriendDashboard(requestBody)
+            let res = await this.userService.referFriendDashboard(requestBody, sortBy, sortOrder)
             return response.status(200).send(res)
         } catch (error) {
             logger.error(`Unable to get Refer friend details `, error)

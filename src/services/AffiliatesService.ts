@@ -10,7 +10,8 @@ export default class AffiliateService extends BaseService<Affiliate> {
         return Affiliate.name;
     }
 
-    public async affiliatesList(requestFilter: any) {
+    public async affiliatesList(requestFilter: any, sortBy:string=undefined, sortOrder:"ASC"|"DESC" = undefined) {
+        try{
         let organisationId = requestFilter.organisationId;
         let affiliatedToOrgId = requestFilter.affiliatedToOrgId;
         let organisationTypeRefId = requestFilter.organisationTypeRefId;
@@ -20,8 +21,8 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
         let affiliateArray = [];
 
-        let result = await this.entityManager.query("call wsa_users.usp_affiliates_list(?,?,?,?,?,?)",
-            [organisationId, affiliatedToOrgId, organisationTypeRefId, statusRefId, limit, offset]);
+        let result = await this.entityManager.query("call wsa_users.usp_affiliates_list(?,?,?,?,?,?,?,?)",
+            [organisationId, affiliatedToOrgId, organisationTypeRefId, statusRefId, limit, offset, sortBy, sortOrder]);
 
         if (result != null) {
             let totalCount = result[1].find(x=>x).totalCount;
@@ -62,6 +63,9 @@ export default class AffiliateService extends BaseService<Affiliate> {
         }
         else{
             return [];
+        }
+        } catch(err) {
+            console.log('err  :::: ',err)
         }
     }
 
@@ -258,7 +262,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
         }
     }
 
-    public async affiliateDirectory(requestFilter: any) {
+    public async affiliateDirectory(requestFilter: any, sortBy:string = undefined, sortOrder:"ASC"|"DESC"=undefined) {
         try{
             let organisationId = requestFilter.organisationUniqueKey;
             let yearRefId = requestFilter.yearRefId;
@@ -269,8 +273,8 @@ export default class AffiliateService extends BaseService<Affiliate> {
     
             let affiliateArray = [];
     
-            let result = await this.entityManager.query("call wsa_users.usp_affiliate_directory(?,?,?,?,?,?,?)",
-                [organisationId, yearRefId, organisationTypeRefId, searchText, limit, offset, 1]);
+            let result = await this.entityManager.query("call wsa_users.usp_affiliate_directory(?,?,?,?,?,?,?,?,?)",
+                [organisationId, yearRefId, organisationTypeRefId, searchText, limit, offset, 1, sortBy, sortOrder]);
     
             if (result != null) {
                 let totalCount = result[1].find(x=>x).totalCount;
