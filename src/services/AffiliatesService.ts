@@ -21,7 +21,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
         let affiliateArray = [];
 
-        let result = await this.entityManager.query("call wsa_users.usp_affiliates_list__(?,?,?,?,?,?,?,?)",
+        let result = await this.entityManager.query("call wsa_users.usp_affiliates_list(?,?,?,?,?,?,?,?)",
             [organisationId, affiliatedToOrgId, organisationTypeRefId, statusRefId, limit, offset, sortBy, sortOrder]);
 
         if (result != null) {
@@ -273,7 +273,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
     
             let affiliateArray = [];
     
-            let result = await this.entityManager.query("call wsa_users.usp_affiliate_directory__(?,?,?,?,?,?,?,?,?)",
+            let result = await this.entityManager.query("call wsa_users.usp_affiliate_directory(?,?,?,?,?,?,?,?,?)",
                 [organisationId, yearRefId, organisationTypeRefId, searchText, limit, offset, 1, sortBy, sortOrder]);
     
             if (result != null) {

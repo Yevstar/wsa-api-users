@@ -28,7 +28,7 @@ export default class UserDashboardService extends BaseService<User> {
             let dobTo = requestBody.dobTo;
             let userArr = [];
             logger.info("UserInfoTextualDashboardInput"+JSON.stringify(requestBody));
-            let result = await this.entityManager.query("call wsa_users.usp_user_dashboard_textual__(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            let result = await this.entityManager.query("call wsa_users.usp_user_dashboard_textual(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 [organisationId, yearRefId, competitionUniqueKey, roleId, genderRefId, linkedEntityId, 
                     postCode, searchText,  limit, offset, userId, dobFrom, dobTo, sortBy, sortOrder ]);
     
