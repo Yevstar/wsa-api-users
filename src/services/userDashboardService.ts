@@ -12,7 +12,7 @@ export default class UserDashboardService extends BaseService<User> {
         return User.name;
     }
 
-    public async userDashboardTextualList(requestBody: any, userId: any) {
+    public async userDashboardTextualList(requestBody: any, userId: any, sortBy:string = undefined, sortOrder:'ASC'|'DESC'=undefined) {
         try{
             let organisationId = requestBody.organisationId;
             let yearRefId = requestBody.yearRefId;
@@ -28,9 +28,9 @@ export default class UserDashboardService extends BaseService<User> {
             let dobTo = requestBody.dobTo;
             let userArr = [];
             logger.info("UserInfoTextualDashboardInput"+JSON.stringify(requestBody));
-            let result = await this.entityManager.query("call wsa_users.usp_user_dashboard_textual(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            let result = await this.entityManager.query("call wsa_users.usp_user_dashboard_textual__(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 [organisationId, yearRefId, competitionUniqueKey, roleId, genderRefId, linkedEntityId, 
-                    postCode, searchText,  limit, offset, userId, dobFrom, dobTo ]);
+                    postCode, searchText,  limit, offset, userId, dobFrom, dobTo, sortBy, sortOrder ]);
     
             if (result != null) {
                 logger.info("UserInfoTextualDashboard" +JSON.stringify(result[0]));

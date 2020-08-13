@@ -16,10 +16,12 @@ export class UserDashboardController extends BaseController {
     async userDashboardTextual(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC") {
         try {
             if (requestBody != null) {
-                const affiliateListRes = await this.userDashboardService.userDashboardTextualList(requestBody, currentUser.id);
+                const affiliateListRes = await this.userDashboardService.userDashboardTextualList(requestBody, currentUser.id, sortBy, sortOrder);
                 return response.status(200).send(affiliateListRes);
             }
         } catch (error) {

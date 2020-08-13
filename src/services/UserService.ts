@@ -138,11 +138,11 @@ export default class UserService extends BaseService<User> {
             .execute();
     }
 
-    public async friendDashboard(requestBody: any) {
+    public async friendDashboard(requestBody: any, sortBy:string = undefined, sortOrder:"ASC"|"DESC"=undefined) {
         try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
-            let result = await this.entityManager.query("call wsa_users.usp_friend_dashboard(?,?,?,?)", [requestBody.yearRefId, requestBody.organisationUniqueKey, limit, offset]);
+            let result = await this.entityManager.query("call wsa_users.usp_friend_dashboard(?,?,?,?,?,?)", [requestBody.yearRefId, requestBody.organisationUniqueKey, limit, offset, sortBy, sortOrder]);
 
             if (isArrayPopulated(result[1])) {
                 let totalCount = result[0].find(x => x).totalCount;
@@ -156,11 +156,11 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async referFriendDashboard(requestBody: any) {
+    public async referFriendDashboard(requestBody: any, sortBy:string=undefined, sortOrder:"ASC"|"DESC" = undefined) {
         try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
-            let result = await this.entityManager.query("call wsa_users.usp_refer_friend_dashboard(?,?,?,?)", [requestBody.yearRefId, requestBody.organisationUniqueKey, limit, offset]);
+            let result = await this.entityManager.query("call wsa_users.usp_refer_friend_dashboard(?,?,?,?,?,?)", [requestBody.yearRefId, requestBody.organisationUniqueKey, limit, offset, sortBy, sortOrder]);
 
             if (isArrayPopulated(result[1])) {
                 let totalCount = result[0].find(x => x).totalCount;
