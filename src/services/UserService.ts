@@ -764,4 +764,18 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
+
+    public async userDelete(userId: number, entityId: number): Promise<UserRoleEntity>{
+        try{
+            let query = await this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
+                        .where('ure.userId = :userId and ure.entityId = :entityId and ure.entityTypeId = 2 and ure.roleId = 2 and ure.isDeleted = 0',
+                        {userId: userId, entityId: entityId})
+                        .getOne();
+
+            return query;
+        }
+        catch(error){
+            throw error;
+        }
+    }
 }

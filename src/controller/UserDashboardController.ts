@@ -376,4 +376,42 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+
+    @Authorized()
+    @Post('/user/delete')
+    async userDelete(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                let validateUserId = validateReqFilter(requestBody.userId, 'userId');
+                if (validateUserId != null) {
+                    return response.status(212).send(validateUserId);
+                }
+                
+                let validateOrg = validateReqFilter(requestBody.organisationId, 'organisation');
+                if (validateOrg != null) {
+                    return response.status(212).send(validateOrg);
+                }
+                let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
+
+                let ureRes = await this.userService.userDelete(requestBody.userId,organisationId);
+                if(ureRes != undefined){
+                    ureRes.isDeleted = 1;
+                    ureRes.updatedBy = currentUser.id;
+                    ureRes.updatedAt = new Date();
+                    await this.ureService.createOrUpdate(ureRes);
+                }
+
+                return response.status(200).send({message: 'Successfully deleted user'});
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in user delete `+error);
+            return response.status(500).send({
+                message: 'Something went wrong. Please contact administrator'
+            });
+        }
+    }
 }
