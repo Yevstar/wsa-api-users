@@ -399,10 +399,10 @@ export class UserDashboardController extends BaseController {
                     return response.status(212).send(validateOrg);
                 }
                 if(isArrayPopulated(requestBody.organisations)){
-                    for(let organisationId of  requestBody.organisations){
+                    for(let organisation of  requestBody.organisations){
                    //     let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
 
-                        let ureRes = await this.userService.userDelete(requestBody.userId,organisationId);
+                        let ureRes = await this.userService.userDelete(requestBody.userId,organisation.linkedEntityId);
                         if(ureRes != undefined){
                             ureRes.isDeleted = 1;
                             ureRes.updatedBy = currentUser.id;
