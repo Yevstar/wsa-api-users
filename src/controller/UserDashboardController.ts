@@ -7,6 +7,7 @@ import e = require("express");
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 import { UserRegistration } from "../models/UserRegistration";
+import { isArrayPopulated } from "../utils/Utils";
 
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
@@ -397,15 +398,20 @@ export class UserDashboardController extends BaseController {
                 if (validateOrg != null) {
                     return response.status(212).send(validateOrg);
                 }
-                let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
+                if(isArrayPopulated(requestBody.organisations)){
+                    for(let organisation of  requestBody.organisations){
+                   //     let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
 
-                let ureRes = await this.userService.userDelete(requestBody.userId,organisationId);
-                if(ureRes != undefined){
-                    ureRes.isDeleted = 1;
-                    ureRes.updatedBy = currentUser.id;
-                    ureRes.updatedAt = new Date();
-                    await this.ureService.createOrUpdate(ureRes);
+                        let ureRes = await this.userService.userDelete(requestBody.userId,organisation.linkedEntityId);
+                        if(ureRes != undefined){
+                            ureRes.isDeleted = 1;
+                            ureRes.updatedBy = currentUser.id;
+                            ureRes.updatedAt = new Date();
+                            await this.ureService.createOrUpdate(ureRes);
+                        }
+                    }
                 }
+               
 
                 return response.status(200).send({message: 'Successfully deleted user'});
             }
