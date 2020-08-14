@@ -3,7 +3,7 @@ import {BaseController} from "./BaseController";
 import { User } from '../models/User';
 import { Response, response } from 'express';
 import { logger } from '../logger';
-import AppConstants from '../utils/AppConstants';
+import AppConstants from '../constants/AppConstants';
 
 @JsonController('/api')
 export class OrganisationController extends BaseController {
