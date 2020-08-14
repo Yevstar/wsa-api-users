@@ -3,6 +3,7 @@ import {BaseController} from "./BaseController";
 import { User } from '../models/User';
 import { Response, response } from 'express';
 import { logger } from '../logger';
+import AppConstants from '../utils/AppConstants';
 
 @JsonController('/api')
 export class OrganisationController extends BaseController {
@@ -25,7 +26,7 @@ export class OrganisationController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in organisation list ${userId}`+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -76,7 +77,7 @@ export class OrganisationController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in organisation list ${userId}`+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
