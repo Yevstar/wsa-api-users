@@ -8,6 +8,7 @@ import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 import { UserRegistration } from "../models/UserRegistration";
 import { isArrayPopulated } from "../utils/Utils";
+import AppConstants from '../constants/AppConstants';
 
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
@@ -28,7 +29,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in dashboard textual`+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -51,7 +52,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in affilatelist ${userId}`+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -70,7 +71,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in user Personal Details By Competition `+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -97,7 +98,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in user activity player `+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -124,7 +125,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in user activity parent `+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -151,7 +152,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in user activity scorer `+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -178,7 +179,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in user activity manager `+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -197,7 +198,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -219,7 +220,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -244,7 +245,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in dashboard textual`+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
         
@@ -350,7 +351,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in userProfileUpdate `+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
         
@@ -375,7 +376,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in user history `+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -414,7 +415,7 @@ export class UserDashboardController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in user delete `+error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
