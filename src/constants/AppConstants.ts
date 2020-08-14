@@ -5,7 +5,9 @@ const AppConstants = {
     loginInvalidMsg: "Invalid username or password.",
     tfaUnsuccessfulMsg : "TFA Unsuccessful. Incorrect code",
     sourceSystem: "WebAdmin",
-    bwsa: "BWSA"
+    bwsa: "BWSA",
+    errMessage:'Something went wrong. Please contact administrator. ',
+    development: 'development',
 };
 
 export default AppConstants;

@@ -121,7 +121,7 @@ export class PasswordController extends BaseController {
             logger.error(`Failed to send a password reset email to ${email}` + err);
             return response.status(400).send({
                 name: 'unexpected_error',
-                message: 'There was a problem sending your password reset email.',
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + err : AppConstants.errMessage,
             });
         }
     }
