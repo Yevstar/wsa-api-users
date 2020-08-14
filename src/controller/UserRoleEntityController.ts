@@ -4,6 +4,7 @@ import {BaseController} from "./BaseController";
 import {Response} from "express";
 import {User} from "../models/User";
 import {logger} from "../logger";
+import AppConstants from '../constants/AppConstants';
 
 
 @JsonController('/ure')
@@ -85,7 +86,7 @@ export class UserRoleEntityController extends BaseController {
             } catch (error) {
                 logger.error(`Error Occurred in impersonation ${userId}`+error);
                 return response.status(500).send({
-                    message: 'Error Occurred in impersonation access.',
+                    message: process.env.NODE_ENV == AppConstants.development? 'Error Occurred in impersonation access.' + error : 'Error Occurred in impersonation access.',
                     success: false,
                 });
             }
