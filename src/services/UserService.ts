@@ -14,7 +14,7 @@ import {UserRoleEntity} from "../models/security/UserRoleEntity";
 import {LinkedEntities} from "../models/views/LinkedEntities";
 import {logger} from "../logger";
 import {paginationData, stringTONumber, isArrayPopulated} from "../utils/Utils";
-import AppConstants from "../utils/AppConstants";
+import AppConstants from "../constants/AppConstants";
 
 @Service()
 export default class UserService extends BaseService<User> {

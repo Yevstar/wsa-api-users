@@ -21,7 +21,7 @@ import {logger} from '../logger';
 import {md5} from '../utils/Utils';
 import {BaseController} from './BaseController';
 import {User} from "../models/User";
-import AppConstants from '../utils/AppConstants';
+import AppConstants from "../constants/AppConstants";
 
 @Controller('/password')
 export class PasswordController extends BaseController {
