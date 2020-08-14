@@ -14,6 +14,7 @@ import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 import { CharityRoundUp } from "../models/CharityRoundUp";
 import { Charity } from "../models/Charity";
+import AppConstants from '../utils/AppConstants';
 
 
 @JsonController("/api")
@@ -303,7 +304,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in Competition Timeslot Save ${userId}` + error);
             return response.status(500).send({
-                message: `Something went wrong. Please contact administrator:  ${error}`
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -408,7 +409,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in updateCharity ${currentUser.id}` + error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -455,7 +456,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in updateTermsAndCondition ${currentUser.id}` + error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -506,7 +507,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in affilateslist ${userId}` + error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -531,7 +532,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in affilatelist ${userId}` + error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -555,7 +556,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in affilatelist ${userId}` + error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -579,7 +580,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in affilateslist ${userId}` + error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -659,7 +660,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in organisation Photo Save ${userId}` + error);
             return response.status(500).send({
-                message: `Something went wrong. Please contact administrator:  ${error}`
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -693,7 +694,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in organisationPhotosList ${userId}` + error);
             return response.status(500).send({
-                message: `Something went wrong. Please contact administrator:  ${error}`
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -720,7 +721,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in organisation Photo Delete ${userId}` + error);
             return response.status(500).send({
-                message: `Something went wrong. Please contact administrator:  ${error}`
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -749,7 +750,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in affiliateDirectory ${currentUser.id}` + error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
@@ -774,7 +775,7 @@ export class AffiliateController extends BaseController {
         } catch (error) {
             logger.error(`Error Occurred in dashboard textual` + error);
             return response.status(500).send({
-                message: 'Something went wrong. Please contact administrator'
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
