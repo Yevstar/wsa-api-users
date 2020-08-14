@@ -393,11 +393,7 @@ export class UserDashboardController extends BaseController {
                 if (validateUserId != null) {
                     return response.status(212).send(validateUserId);
                 }
-                
-                let validateOrg = validateReqFilter(requestBody.organisationId, 'organisation');
-                if (validateOrg != null) {
-                    return response.status(212).send(validateOrg);
-                }
+             
                 if(isArrayPopulated(requestBody.organisations)){
                     for(let organisation of  requestBody.organisations){
                    //     let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
