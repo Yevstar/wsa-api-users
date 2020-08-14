@@ -7,7 +7,7 @@ import e = require("express");
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 import { UserRegistration } from "../models/UserRegistration";
-import { isArrayPopulated } from "src/utils/Utils";
+import { isArrayPopulated } from "../utils/Utils";
 
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
