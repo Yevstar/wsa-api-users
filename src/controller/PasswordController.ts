@@ -21,6 +21,7 @@ import {logger} from '../logger';
 import {md5} from '../utils/Utils';
 import {BaseController} from './BaseController';
 import {User} from "../models/User";
+import AppConstants from '../utils/AppConstants';
 
 @Controller('/password')
 export class PasswordController extends BaseController {
@@ -91,7 +92,10 @@ export class PasswordController extends BaseController {
                     subject: 'Reset your password.',
                     html: `Click here to reset your password: <a href="${url}">${url}</a>`
                 };
-
+                if(process.env.NODE_ENV == AppConstants.development){
+                    mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html 
+                    mailOptions.to = process.env.TEMP_DEV_EMAIL
+                }
                 // Send the mail via nodeMailer
                 await transporter.sendMail(mailOptions, (err, info) => {
                     logger.info(`Password - forgot : info ${info} Error ${err}`);

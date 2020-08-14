@@ -14,6 +14,7 @@ import {UserRoleEntity} from "../models/security/UserRoleEntity";
 import {LinkedEntities} from "../models/views/LinkedEntities";
 import {logger} from "../logger";
 import {paginationData, stringTONumber, isArrayPopulated} from "../utils/Utils";
+import AppConstants from "../utils/AppConstants";
 
 @Service()
 export default class UserService extends BaseService<User> {
@@ -384,7 +385,10 @@ export default class UserService extends BaseService<User> {
             subject: subject,
             html: templateObj.emailBody
         };
-
+        if(process.env.NODE_ENV == AppConstants.development){
+            mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html 
+            mailOptions.to = process.env.TEMP_DEV_EMAIL
+        }
         logger.info(`TeamService - sendMail : mailOptions ${mailOptions}`);
         await transporter.sendMail(mailOptions, (err, info) => {
             logger.info(`TeamService - sendMail : ${err}, ${info}`);
