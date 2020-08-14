@@ -214,7 +214,8 @@ export class UserController extends BaseController {
         } catch (e) {
             return response.status(500).send({
                 name: 'upload_error',
-                message: 'Unexpected error on load image. Try again later.'
+                message: process.env.NODE_ENV == AppConstants.development?'Unexpected error on load image. Try again later.' + e : 'Unexpected error on load image. Try again later.'
+               
             });
         }
     }
@@ -310,7 +311,7 @@ export class UserController extends BaseController {
             logger.error(`Unable to patch user ${currentUser.email}` + err);
             return response.status(400).send({
                 name: 'unexpected_error',
-                message: 'Failed to update the user.'
+                message: process.env.NODE_ENV == AppConstants.development?'Failed to update the user.' + err : 'Failed to update the user.'
             });
         }
     }
@@ -353,7 +354,7 @@ export class UserController extends BaseController {
             logger.error(`Unable to patch user ${userDetails.email}` + err);
             return response.status(400).send({
                 name: 'unexpected_error',
-                message: 'Failed to update the user.'
+                message: process.env.NODE_ENV == AppConstants.development?'Failed to update the user.' + err : 'Failed to update the user.'
             });
         }
     }
@@ -397,7 +398,7 @@ export class UserController extends BaseController {
         } catch (e) {
             return response.status(500).send({
                 name: 'upload_error',
-                message: 'Failed to update password.'
+                message: process.env.NODE_ENV == AppConstants.development? 'Failed to update password.' + e : 'Failed to update password.'
             });
         }
     }
@@ -435,7 +436,7 @@ export class UserController extends BaseController {
             await this.checkFirestoreDatabase(user);
             return response.status(200).send({verified: true});
         } catch (error) {
-            return response.status(500).send({verified: false, message: error});
+            return response.status(500).send({verified: false, message: process.env.NODE_ENV == AppConstants.development? error : error});
         }
     }
 
@@ -481,7 +482,7 @@ export class UserController extends BaseController {
             return response.status(200).send(res)
         } catch (error) {
             logger.error(`Unable to get Friend details `, error)
-            return response.status(500).send('Something went wrong')
+            return response.status(500).send({ message: process.env.NODE_ENV == AppConstants.development? 'Something went wrong' + error : 'Something went wrong'});
         }
     }
 
@@ -499,7 +500,7 @@ export class UserController extends BaseController {
             return response.status(200).send(res)
         } catch (error) {
             logger.error(`Unable to get Refer friend details `, error)
-            return response.status(500).send('Something went wrong')
+            return response.status(500).send({message: process.env.NODE_ENV == AppConstants.development? 'Something went wrong' + error : 'Something went wrong'})
         }
     }
 

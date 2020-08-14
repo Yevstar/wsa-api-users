@@ -14,7 +14,7 @@ import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 import { CharityRoundUp } from "../models/CharityRoundUp";
 import { Charity } from "../models/Charity";
-import AppConstants from '../utils/AppConstants';
+import AppConstants from '../constants/AppConstants';
 
 
 @JsonController("/api")
