@@ -15,7 +15,7 @@ import * as  fastcsv from 'fast-csv';
 import { CharityRoundUp } from "../models/CharityRoundUp";
 import { Charity } from "../models/Charity";
 import AppConstants from '../constants/AppConstants';
-import { CommunicationTrack } from "src/models/CommunicationTrack";
+import { CommunicationTrack } from "../models/CommunicationTrack";
 
 
 @JsonController("/api")

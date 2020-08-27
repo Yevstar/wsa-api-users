@@ -336,8 +336,32 @@ export class UserDashboardController extends BaseController {
                 await this.userService.createOrUpdate(user);
 
                 if(!isNullOrEmpty(requestBody.childrenCheckExpiryDate)){
+                    console.log("####################" + requestBody.childrenCheckExpiryDate);
+                    this.actionsService.clearActionChildrenCheckNumber(user.id,currentUser.id);
+                    let actions = [];
+                    let masterId = 0;
                     if(moment(user.childrenCheckExpiryDate).isAfter(moment())){
-                        this.actionsService.clearActionChildrenCheckNumber(user.id,currentUser.id)
+                        actions = await this.actionsService.getActionDataForChildrenCheck13(user.id);
+                        masterId = 13;
+                        console.log("$$$$$$$$$13" + JSON.stringify(actions));
+                    }
+                    if(moment(user.childrenCheckExpiryDate).isBefore(moment())){
+                        actions = await this.actionsService.getActionDataForChildrenCheck14(user.id);
+                        masterId = 14;
+                        console.log("$$$$$$$$$14" + JSON.stringify(actions));
+                    }
+
+                    if(isArrayPopulated(actions)){
+                        let arr = [];
+                        for(let item of actions){
+                            let action = await this.actionsService.createAction13_14(item.organisationId,
+                                item.competitionOrgId, item.userId, masterId);
+                            arr.push(action);
+                        }
+                        if(isArrayPopulated(arr)){
+                            console.log("Arr::" + JSON.stringify(arr));
+                            await this.actionsService.batchCreateOrUpdate(arr);
+                        }
                     }
                 }
 
