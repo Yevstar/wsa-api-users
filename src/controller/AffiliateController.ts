@@ -15,6 +15,7 @@ import * as  fastcsv from 'fast-csv';
 import { CharityRoundUp } from "../models/CharityRoundUp";
 import { Charity } from "../models/Charity";
 import AppConstants from '../constants/AppConstants';
+import { CommunicationTrack } from "src/models/CommunicationTrack";
 
 
 @JsonController("/api")
@@ -204,6 +205,7 @@ export class AffiliateController extends BaseController {
                             for (let contact of requestBody.contacts) {
                                 // let userDb = await this.userService.findByEmail(contact.email)
                                 // if (userDb == null) {
+                           
                                 let user = new User();
                                 user.id = Number(contact.userId);
                                 user.firstName = contact.firstName.trim();
@@ -222,6 +224,16 @@ export class AffiliateController extends BaseController {
                                 contactMap.set(user.id, user);
 
                                 let userRes = await this.userService.createOrUpdate(user);
+                                if( contact.userId != '' && contact.userId != null && contact.userId != 0){
+                                    let contactDb = await this.userService.findById(Number(contact.userId));
+                                    if(contactDb.email.toLowerCase() != contact.email.toLowerCase()){
+
+                                        let cTrackOld = new CommunicationTrack();
+                                        let cTrackNew = new CommunicationTrack();
+
+                                    //    await this.userService.sentMailForEmailUpade
+                                    }
+                                }
                                 let ureDb = await this.ureService.findByUserAndEntityId(userRes.id, affiliateRes.affiliateOrgId)
                                 if (isArrayPopulated(contact.permissions)) {
                                     for (let permission of contact.permissions) {
