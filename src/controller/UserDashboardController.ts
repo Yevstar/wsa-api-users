@@ -7,8 +7,9 @@ import e = require("express");
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 import { UserRegistration } from "../models/UserRegistration";
-import { isArrayPopulated } from "../utils/Utils";
+import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
+let moment = require('moment');
 
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
@@ -333,6 +334,12 @@ export class UserDashboardController extends BaseController {
                 user.childrenCheckNumber = requestBody.childrenCheckNumber;
                 user.childrenCheckExpiryDate = requestBody.childrenCheckExpiryDate;
                 await this.userService.createOrUpdate(user);
+
+                if(!isNullOrEmpty(requestBody.childrenCheckExpiryDate)){
+                    if(moment(user.childrenCheckExpiryDate).isAfter(moment())){
+                        this.actionsService.clearActionChildrenCheckNumber(user.id,currentUser.id)
+                    }
+                }
 
                 return response.status(200).send({message: "Successfully updated"})
             }

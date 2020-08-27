@@ -806,7 +806,6 @@ export class AffiliateController extends BaseController {
             let actionObj1 = null;
             let actionObj2 = null;
             if (OrgObject.organisationTypeRefId == 4) {
-                console.log("--------4")
                 let stateOrg = await this.organisationService.findAffiliatedToOrg(affiliatedToOrgId)
                 actionObj1 = await this.actionsService.createAction12(stateOrg, organisationRes.id, contactId, userId)
                 actionObj2 = await this.actionsService.createAction12(affiliatedToOrgId, organisationRes.id, contactId, userId)
@@ -816,7 +815,6 @@ export class AffiliateController extends BaseController {
             }
             else if (OrgObject.organisationTypeRefId == 3) {
                 if (OrgObject.id == affiliatedToOrgId) {
-                    console.log("--------5")
                     let stateOrg = await this.organisationService.findAffiliatedToOrg(affiliatedToOrgId)
                     actionObj1 = await this.actionsService.createAction12(stateOrg, affiliatedToOrgId, contactId, userId)
                     actionObj2 = await this.actionsService.createAction12(organisationRes.id, affiliatedToOrgId, contactId, userId)
@@ -824,22 +822,18 @@ export class AffiliateController extends BaseController {
                     await this.actionsService.createOrUpdate(actionObj2);
                 }
                 else {
-                    console.log("--------6")
                     actionObj1 = await this.actionsService.createAction12(affiliatedToOrgId, organisationRes.id, contactId, userId)
                     await this.actionsService.createOrUpdate(actionObj1);
                 }
             }
             else if (OrgObject.organisationTypeRefId == 2) {
-                console.log("--------7")
                 if (organisationRes.organisationTypeRefId == 4) {
-                    console.log("--------8")
                     actionObj1 = await this.actionsService.createAction12(affiliatedToOrgId, OrgObject.id, contactId, userId)
                     actionObj2 = await this.actionsService.createAction12(organisationRes.id, OrgObject.id, contactId, userId)
                     await this.actionsService.createOrUpdate(actionObj1);
                     await this.actionsService.createOrUpdate(actionObj2);
                 }
                 else if (organisationRes.organisationTypeRefId == 3) {
-                    console.log("--------9")
                     actionObj1 = await this.actionsService.createAction12(organisationRes.id, affiliatedToOrgId, contactId, userId)
                     await this.actionsService.createOrUpdate(actionObj1);
                 }

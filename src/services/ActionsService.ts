@@ -44,4 +44,16 @@ export default class ActionsService extends BaseService<Actions> {
             throw error;
         }
     }
+
+    public async clearActionChildrenCheckNumber(userId, loggedInUser){
+        try {
+            await this.entityManager.query(`Update wsa_common.actions set isDeleted = 1, 
+            updatedOn = ?, updatedBy = ?
+            where createdBy = ? and actionMasterId in(13,14) and isDeleted = 0 `, 
+            [new Date(), loggedInUser, userId]);
+
+        } catch (error) {
+            throw error;
+        }
+    }
 }
