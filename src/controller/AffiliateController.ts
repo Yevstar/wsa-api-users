@@ -61,12 +61,16 @@ export class AffiliateController extends BaseController {
                                     } else if (contact.userId != 0) {
                                         if (currentUser.id != contact.userId) {
                                             let userDb1 = await this.userService.findById(contact.userId)
-                                            if (userDb1.email.toLowerCase().trim() != contact.email.toLowerCase().trim()) {
-                                                return response.status(212).send({
-                                                    errorCode: 7,
-                                                    message: 'Email address cannot be modified'
-                                                });
+                                            let userDb2 = await this.userService.findByEmail(contact.email.toLowerCase().trim())
+                                            if(userDb2 != undefined){
+                                                if (userDb1.email.toLowerCase().trim() != contact.email.toLowerCase().trim()) {
+                                                    return response.status(212).send({
+                                                        errorCode: 7,
+                                                        message: 'This email address is already in use. Please use a different email address'
+                                                    });
+                                                }
                                             }
+                                          
                                         } else {
                                             let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
                                             if (userDb.id != contact.userId) {
@@ -205,7 +209,7 @@ export class AffiliateController extends BaseController {
                             for (let contact of requestBody.contacts) {
                                 // let userDb = await this.userService.findByEmail(contact.email)
                                 // if (userDb == null) {
-                           
+                                let contactDb = await this.userService.findById(Number(contact.userId));
                                 let user = new User();
                                 user.id = Number(contact.userId);
                                 user.firstName = contact.firstName.trim();
@@ -222,16 +226,20 @@ export class AffiliateController extends BaseController {
                                     user.updatedOn = new Date();
                                 }
                                 contactMap.set(user.id, user);
-
+                                let adminUser = await this.userService.findById(userId)
                                 let userRes = await this.userService.createOrUpdate(user);
                                 if( contact.userId != '' && contact.userId != null && contact.userId != 0){
-                                    let contactDb = await this.userService.findById(Number(contact.userId));
                                     if(contactDb.email.toLowerCase() != contact.email.toLowerCase()){
 
                                         let cTrackOld = new CommunicationTrack();
-                                        let cTrackNew = new CommunicationTrack();
+                                        let mailObjOld = await this.communicationTemplateService.findById(12);
+                                        await this.userService.sentMailForEmailUpdate(contactDb, mailObjOld ,adminUser, requestBody.name, cTrackOld );
+                                        await this.communicationTrackService.createOrUpdate(cTrackOld);
 
-                                    //    await this.userService.sentMailForEmailUpade
+                                        let cTrackNew = new CommunicationTrack();
+                                        let mailObjNew = await this.communicationTemplateService.findById(13);
+                                        await this.userService.sentMailForEmailUpdate(userRes, mailObjNew ,adminUser, requestBody.name, cTrackNew )
+                                        await this.communicationTrackService.createOrUpdate(cTrackNew);
                                     }
                                 }
                                 let ureDb = await this.ureService.findByUserAndEntityId(userRes.id, affiliateRes.affiliateOrgId)

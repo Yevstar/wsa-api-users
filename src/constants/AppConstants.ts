@@ -8,6 +8,11 @@ const AppConstants = {
     bwsa: "BWSA",
     errMessage:'Something went wrong. Please contact administrator. ',
     development: 'development',
+    firstName: '$(firstName)',
+    adminFirstName : '$(admin_user_first_name)',
+    adminLastName : '$(admin_user_last_name)',
+    affiliateName: '$(affiliateName)',
+    email: '$(email)'
 };
 
 export default AppConstants;
