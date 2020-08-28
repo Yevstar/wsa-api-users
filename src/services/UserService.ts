@@ -405,7 +405,12 @@ export default class UserService extends BaseService<User> {
         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.firstName, contact.firstName);
         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.adminFirstName, adminUser.firstName);
         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.adminLastName, adminUser.lastName);
-        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.affiliateName, organisationName);
+        if(organisationName == null){
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.fromAffiliateName, '');
+        }
+        else{
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.affiliateName, organisationName);
+        }
         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.email, contact.email);
   
 

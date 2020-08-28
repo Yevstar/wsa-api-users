@@ -12,7 +12,8 @@ const AppConstants = {
     adminFirstName : '$(admin_user_first_name)',
     adminLastName : '$(admin_user_last_name)',
     affiliateName: '$(affiliateName)',
-    email: '$(email)'
+    email: '$(email)',
+    fromAffiliateName: 'from $(affiliateName)'
 };
 
 export default AppConstants;
