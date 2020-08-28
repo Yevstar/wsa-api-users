@@ -9,6 +9,7 @@ import * as  fastcsv from 'fast-csv';
 import { UserRegistration } from "../models/UserRegistration";
 import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
+import { CommunicationTrack } from "../models/CommunicationTrack";
 let moment = require('moment');
 
 @JsonController("/api")
@@ -281,8 +282,19 @@ export class UserDashboardController extends BaseController {
                 let userData = await this.userService.createOrUpdate(user);
 
                 if(userFromDb != undefined){
-                    if(userFromDb.email !== user.email){
+                    if(userFromDb.email.toLowerCase() !== user.email.toLowerCase()){
+
                         await this.updateFirebaseData(userData, userFromDb.password);
+
+                        let cTrackOld = new CommunicationTrack();
+                        let mailObjOld = await this.communicationTemplateService.findById(12);
+                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, requestBody.name, cTrackOld );
+                        await this.communicationTrackService.createOrUpdate(cTrackOld);
+
+                        let cTrackNew = new CommunicationTrack();
+                        let mailObjNew = await this.communicationTemplateService.findById(13);
+                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, requestBody.name, cTrackNew )
+                        await this.communicationTrackService.createOrUpdate(cTrackNew);
                     }
                 }
 
@@ -310,6 +322,16 @@ export class UserDashboardController extends BaseController {
                 if(userFromDb != undefined){
                     if(userFromDb.email !== user.email){
                         await this.updateFirebaseData(userData, userFromDb.password);
+                        
+                        let cTrackOld = new CommunicationTrack();
+                        let mailObjOld = await this.communicationTemplateService.findById(12);
+                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, requestBody.name, cTrackOld );
+                        await this.communicationTrackService.createOrUpdate(cTrackOld);
+
+                        let cTrackNew = new CommunicationTrack();
+                        let mailObjNew = await this.communicationTemplateService.findById(13);
+                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, requestBody.name, cTrackNew )
+                        await this.communicationTrackService.createOrUpdate(cTrackNew);
                     }
                 }
                 return response.status(200).send({message: "Successfully updated"})
