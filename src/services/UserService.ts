@@ -737,6 +737,7 @@ export default class UserService extends BaseService<User> {
                             organisationId: item.organisationUniqueKey,
                             teamId: item.teamId,
                             membershipMappingId: item.membershipProductMappingId,
+                            teamName: item.teamName,
                             registrationForm: []
                         }
 
