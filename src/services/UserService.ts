@@ -732,6 +732,11 @@ export default class UserService extends BaseService<User> {
                             shopPurchases: item.shopPurchases,
                             paymentStatus: item.paymentStatus,
                             paymentType: item.paymentType,
+                            competitionId: item.competitionUniqueKey,
+                            competitionName: item.competitionName,
+                            organisationId: item.organisationUniqueKey,
+                            teamId: item.teamId,
+                            membershipMappingId: item.membershipProductMappingId,
                             registrationForm: []
                         }
 
