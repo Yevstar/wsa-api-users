@@ -13,7 +13,7 @@ import {EntityType} from "../models/security/EntityType";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
 import {LinkedEntities} from "../models/views/LinkedEntities";
 import {logger} from "../logger";
-import {paginationData, stringTONumber, isArrayPopulated} from "../utils/Utils";
+import {paginationData, stringTONumber, isArrayPopulated, isNotNullAndUndefined} from "../utils/Utils";
 import AppConstants from "../constants/AppConstants";
 
 @Service()
@@ -279,8 +279,10 @@ export default class UserService extends BaseService<User> {
         userName: string,
         sec: { functionId?: number, roleId?: number },
         sortBy?: string,
-        sortOrder?: "ASC" | "DESC"
-    ): Promise<User[]> {
+        sortOrder?: "ASC" | "DESC",
+        offset: string = undefined,
+        limit: string = undefined
+    ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
@@ -344,7 +346,12 @@ export default class UserService extends BaseService<User> {
             }
         }
 
-        return query.getRawMany()
+        if(isNotNullAndUndefined(offset) && isNotNullAndUndefined(limit)) {
+            query.skip(stringTONumber(offset)).limit(stringTONumber(limit))
+        }
+        const userCount = await query.getCount();
+        const userData = await query.getRawMany()
+        return { userCount, userData };
     }
 
     public async sentMail(templateObj, OrganisationName, receiverData, password) {

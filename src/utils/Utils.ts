@@ -67,6 +67,10 @@ export function isStringNullOrEmpty(checkString: string): boolean {
     return typeof checkString === 'string' && checkString !== null && checkString.length > 0 ? true : false;
 }
 
+export function isNotNullAndUndefined(checkString: string): boolean {
+    return typeof checkString === 'string' && checkString !== null && checkString !== undefined;
+}
+
 export function isArrayPopulated(checkArray: any): boolean {
     if (checkArray !== 'undefined'
         && checkArray !== null
