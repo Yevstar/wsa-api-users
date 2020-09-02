@@ -16,6 +16,7 @@ import { CharityRoundUp } from "../models/CharityRoundUp";
 import { Charity } from "../models/Charity";
 import AppConstants from '../constants/AppConstants';
 import { CommunicationTrack } from "../models/CommunicationTrack";
+import { isNullOrUndefined } from "util";
 
 
 @JsonController("/api")
@@ -73,20 +74,21 @@ export class AffiliateController extends BaseController {
                                           
                                         } else {
                                             let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
-                                            if (userDb.id != contact.userId) {
-                                                if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && 
-                                                ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) == 
-                                                (userDb.mobileNumber!= null ? userDb.mobileNumber.trim() : userDb.mobileNumber) )) {
-                                                    contact.userId = userDb.id
-                                                    continue;
-                                                } else {
-                                                    return response.status(212).send({
-                                                        errorCode: 7,
-                                                        message: 'A user with this email already exists, but the details you have entered do not match'
-                                                    });
+                                            if(!(isNullOrUndefined(userDb))){
+                                                if (userDb.id != contact.userId) {
+                                                    if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && 
+                                                    ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) == 
+                                                    (userDb.mobileNumber!= null ? userDb.mobileNumber.trim() : userDb.mobileNumber) )) {
+                                                        contact.userId = userDb.id
+                                                        continue;
+                                                    } else {
+                                                        return response.status(212).send({
+                                                            errorCode: 7,
+                                                            message: 'A user with this email already exists, but the details you have entered do not match'
+                                                        });
+                                                    }
                                                 }
                                             }
-
                                         }
                                     }
                                 }

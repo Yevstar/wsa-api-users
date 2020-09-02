@@ -267,12 +267,23 @@ export class UserDashboardController extends BaseController {
             let user = new User();
             let userReg = new UserRegistration();
             let organisationName = null ;
-            if(isNullOrUndefined(organisationId)){
+            if(!(isNullOrUndefined(organisationId))){
                let organisation = await this.organisationService.findOrgByUniquekey(organisationId)
                organisationName = organisation.name;
             }
             if(section == 'address'){
+
+           
                 let userFromDb = await this.userService.findById(requestBody.userId);
+                let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                if(userDb2 != undefined){
+                    if (userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
+                        return response.status(212).send({
+                            errorCode: 7,
+                            message: 'This email address is already in use. Please use a different email address'
+                        });
+                    }
+                }
                 user.id = requestBody.userId;
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
@@ -314,6 +325,15 @@ export class UserDashboardController extends BaseController {
                     user.id = requestBody.childUserId;
                 }
                 let userFromDb = await this.userService.findById(user.id);
+                let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                if(userDb2 != undefined){
+                    if (userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
+                        return response.status(212).send({
+                            errorCode: 7,
+                            message: 'This email address is already in use. Please use a different email address'
+                        });
+                    }
+                }
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
                 user.street1 = requestBody.street1;
