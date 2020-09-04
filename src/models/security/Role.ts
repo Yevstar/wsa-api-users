@@ -1,4 +1,4 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm-plus";
 import {IsDate, IsNumber, IsString} from "class-validator";
 
 @Entity()

@@ -1,7 +1,7 @@
 import {Service} from "typedi";
 import BaseService from "./BaseService";
 import {UserDevice} from "../models/UserDevice";
-import {Brackets, DeleteResult, EntityManager} from "typeorm";
+import {Brackets, DeleteResult, EntityManager} from "typeorm-plus";
 
 @Service()
 export default class UserDeviceService extends BaseService<UserDevice> {

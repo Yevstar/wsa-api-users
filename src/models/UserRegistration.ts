@@ -1,4 +1,4 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm-plus";
 import {IsBoolean, IsDate, IsNumber, IsString} from "class-validator";
 
 @Entity('userRegistration',{ database: process.env.MYSQL_DATABASE_REG })

@@ -1,7 +1,7 @@
 import {logger} from './logger';
-import {Connection, createConnection, DefaultNamingStrategy, useContainer, createConnections} from "typeorm";
-import {MysqlConnectionOptions} from "typeorm/driver/mysql/MysqlConnectionOptions";
-import {snakeCase} from 'typeorm/util/StringUtils';
+import {Connection, createConnection, DefaultNamingStrategy, useContainer, createConnections} from "typeorm-plus";
+import {MysqlConnectionOptions} from "typeorm-plus/driver/mysql/MysqlConnectionOptions";
+import {snakeCase} from 'typeorm-plus/util/StringUtils';
 import {Container} from "typedi";
 
 let connection: Connection[];
@@ -30,7 +30,8 @@ async function connect(): Promise<Connection[]> {
             __dirname + "/models/views/*"
         ],
         namingStrategy: new NamingStrategy(),
-        // logger: "file"
+        logging: "all",
+        logger: "file"
     });
     const registrationDatabase = Object.assign({
         name: process.env.MYSQL_DATABASE_REG,

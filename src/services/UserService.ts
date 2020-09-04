@@ -1,5 +1,5 @@
 import {Service} from "typedi";
-import {Brackets} from "typeorm";
+import {Brackets} from "typeorm-plus";
 import nodeMailer from "nodemailer";
 import speakeasy from "speakeasy";
 import QRcode from "qrcode";
@@ -346,12 +346,19 @@ export default class UserService extends BaseService<User> {
             }
         }
 
-        if(isNotNullAndUndefined(offset) && isNotNullAndUndefined(limit)) {
-            query.skip(stringTONumber(offset)).limit(stringTONumber(limit))
+        const OFFSET = stringTONumber(offset);
+        const LIMIT = stringTONumber(limit);
+
+        if (offset && limit) {
+            const userCount = await query.getCount();
+            const userData = await query.offset(OFFSET).limit(LIMIT).getRawMany();
+            return { userCount, userData }
+        } else {
+            const userCount = null;
+            const userData = await query.getRawMany();
+            return { userCount, userData }
         }
-        const userCount = await query.getCount();
-        const userData = await query.getRawMany()
-        return { userCount, userData };
+
     }
 
     public async sentMail(templateObj, OrganisationName, receiverData, password) {
@@ -739,13 +746,6 @@ export default class UserService extends BaseService<User> {
                             shopPurchases: item.shopPurchases,
                             paymentStatus: item.paymentStatus,
                             paymentType: item.paymentType,
-                            competitionId: item.competitionUniqueKey,
-                            competitionName: item.competitionName,
-                            organisationId: item.organisationUniqueKey,
-                            teamId: item.teamId,
-                            membershipMappingId: item.membershipProductMappingId,
-                            teamName: item.teamName,
-                            alreadyDeRegistered: item.alreadyDeRegistered,
                             registrationForm: []
                         }
 

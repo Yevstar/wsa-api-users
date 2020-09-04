@@ -263,7 +263,7 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { functionId },null,null);
+        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { functionId },null,null,null,null);
 
         if (result && result.userData && Array.isArray(result.userData)) {
             // Here we are checking every user with firestore inorder to make sure
@@ -293,6 +293,7 @@ export class UserController extends BaseController {
         @QueryParam('limit') limit?: string,
     ) {
         let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { roleId }, sortBy, sortOrder,offset, limit);
+
         for (let u of result.userData) {
             u['linkedEntity'] = JSON.parse(u['linkedEntity']);
         }
@@ -301,8 +302,10 @@ export class UserController extends BaseController {
                 let totalCount = result.userCount;
                 let responseObject = paginationData(stringTONumber(totalCount), +limit, +offset);
                 responseObject["userData"] = result.userData;
+                
                 return responseObject;
         } else {
+            
             return result.userData;
         }
     }
