@@ -748,7 +748,8 @@ export default class UserService extends BaseService<User> {
                             //shopPurchases: item.shopPurchases,
                             paymentStatus: item.paymentStatus,
                             //paymentType: item.paymentType,
-                            registrationForm: []
+                            registrationForm: [],
+                            alreadyDeRegistered: item.alreadyDeRegistered
                         }
 
                         if (isArrayPopulated(result[2])) {
