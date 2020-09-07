@@ -16,6 +16,8 @@ import ActionsService from "../services/ActionsService";
 import CharityRoundUpService from "../services/CharityRoundUpService";
 import CharityService from "../services/CharityService";
 import {isNullOrEmpty} from "../utils/Utils";
+import CommunicationTrackService from "../services/CommunicationTrackService";
+
 
 export class BaseController {
 
@@ -60,6 +62,9 @@ export class BaseController {
 
     @Inject()
     protected charityService: CharityService;
+
+    @Inject()
+    protected communicationTrackService: CommunicationTrackService;
 
 
     protected async updateFirebaseData(user: User, password: string) {

@@ -15,6 +15,8 @@ import {LinkedEntities} from "../models/views/LinkedEntities";
 import {logger} from "../logger";
 import {paginationData, stringTONumber, isArrayPopulated} from "../utils/Utils";
 import AppConstants from "../constants/AppConstants";
+import { CommunicationTrack } from "../models/CommunicationTrack";
+
 
 @Service()
 export default class UserService extends BaseService<User> {
@@ -347,7 +349,7 @@ export default class UserService extends BaseService<User> {
         return query.getRawMany()
     }
 
-    public async sentMail(templateObj, OrganisationName, receiverData, password) {
+    public async sentMail(templateObj, OrganisationName, receiverData, password,entityId,cTrack,userId) {
         let url = process.env.liveScoresWebHost;
         logger.info(`TeamService - sendMail : url ${url}`);
         console.log("*****Template---:" + templateObj + "--" + JSON.stringify(templateObj))
@@ -390,10 +392,29 @@ export default class UserService extends BaseService<User> {
             mailOptions.to = process.env.TEMP_DEV_EMAIL
         }
         logger.info(`TeamService - sendMail : mailOptions ${mailOptions}`);
+
+        try{
+            cTrack.id= 0;
+
+            cTrack.communicationType = 1;
+            cTrack.contactNumber = receiverData.mobileNumber
+            cTrack.entityId = entityId;
+            cTrack.deliveryChannelRefId = 1;
+            cTrack.emailId = receiverData.email;
+            cTrack.userId = receiverData.id;
+            cTrack.subject = mailOptions.subject;
+            
+            cTrack.createdBy = userId;
         await transporter.sendMail(mailOptions, (err, info) => {
             logger.info(`TeamService - sendMail : ${err}, ${info}`);
             return Promise.resolve();
         });
+        templateObj.emailBody = templateObj.emailBody.replace(password,"******")
+        cTrack.content = templateObj.emailBody;
+        
+    }catch(error){
+        cTrack.statusRefId = 2;
+     }
     }
 
     public async userPersonalDetails(userId: number, organisationUniqueKey: any) {

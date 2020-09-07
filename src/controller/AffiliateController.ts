@@ -15,7 +15,7 @@ import * as  fastcsv from 'fast-csv';
 import { CharityRoundUp } from "../models/CharityRoundUp";
 import { Charity } from "../models/Charity";
 import AppConstants from '../constants/AppConstants';
-
+import { CommunicationTrack } from "src/models/CommunicationTrack";
 
 @JsonController("/api")
 export class AffiliateController extends BaseController {
@@ -237,8 +237,10 @@ export class AffiliateController extends BaseController {
                                             let password = "";
                                             let mailObj;
                                             if (contact.userId != 0) {
+                                                let cTrack = new CommunicationTrack();
                                                 mailObj = await this.communicationTemplateService.findById(3);
-                                                await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
+                                                await this.userService.sentMail(mailObj, OrgObject.name, userRes, password,affiliateRes.id,cTrack,userId)
+                                                await this.communicationTrackService.createOrUpdate(cTrack);
                                             }
                                         }
                                         userRoleEntity.roleId = permission.roleId;
@@ -253,9 +255,11 @@ export class AffiliateController extends BaseController {
                                     }
                                 }
                                 if (contact.userId == 0) {
+                                    let cTrack = new CommunicationTrack();
                                     await this.updateFirebaseData(userRes, userRes.password);
                                     let mailObj = await this.communicationTemplateService.findById(1);
-                                    await this.userService.sentMail(mailObj, OrgObject.name, userRes, password)
+                                    await this.userService.sentMail(mailObj, OrgObject.name, userRes, password,affiliateRes.id,cTrack,userId)
+                                    await this.communicationTrackService.createOrUpdate(cTrack);
                                 }
 
                                 // }
