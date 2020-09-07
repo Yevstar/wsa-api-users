@@ -7,8 +7,11 @@ import e = require("express");
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
 import { UserRegistration } from "../models/UserRegistration";
-import { isArrayPopulated } from "../utils/Utils";
+import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
+import { CommunicationTrack } from "../models/CommunicationTrack";
+import { isNullOrUndefined } from "util";
+let moment = require('moment');
 
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
@@ -256,15 +259,31 @@ export class UserDashboardController extends BaseController {
     async userProfileUpdate(
         @HeaderParam("authorization") currentUser: User,
         @QueryParam("section") section: string,
+        @QueryParam("organisationId") organisationId: string,
         @Body() requestBody: any,
         @Res() response: Response) {
         try {
 
             let user = new User();
             let userReg = new UserRegistration();
-
+            let organisationName = null ;
+            if(!(isNullOrUndefined(organisationId))){
+               let organisation = await this.organisationService.findOrgByUniquekey(organisationId)
+               organisationName = organisation.name;
+            }
             if(section == 'address'){
+
+           
                 let userFromDb = await this.userService.findById(requestBody.userId);
+                let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                if(userDb2 != undefined){
+                    if (userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
+                        return response.status(212).send({
+                            errorCode: 7,
+                            message: 'This email address is already in use. Please use a different email address'
+                        });
+                    }
+                }
                 user.id = requestBody.userId;
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
@@ -280,8 +299,19 @@ export class UserDashboardController extends BaseController {
                 let userData = await this.userService.createOrUpdate(user);
 
                 if(userFromDb != undefined){
-                    if(userFromDb.email !== user.email){
+                    if(userFromDb.email.toLowerCase() !== user.email.toLowerCase()){
+
                         await this.updateFirebaseData(userData, userFromDb.password);
+
+                        let cTrackOld = new CommunicationTrack();
+                        let mailObjOld = await this.communicationTemplateService.findById(12);
+                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName, cTrackOld );
+                        await this.communicationTrackService.createOrUpdate(cTrackOld);
+
+                        let cTrackNew = new CommunicationTrack();
+                        let mailObjNew = await this.communicationTemplateService.findById(13);
+                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName, cTrackNew )
+                        await this.communicationTrackService.createOrUpdate(cTrackNew);
                     }
                 }
 
@@ -295,6 +325,15 @@ export class UserDashboardController extends BaseController {
                     user.id = requestBody.childUserId;
                 }
                 let userFromDb = await this.userService.findById(user.id);
+                let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                if(userDb2 != undefined){
+                    if (userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
+                        return response.status(212).send({
+                            errorCode: 7,
+                            message: 'This email address is already in use. Please use a different email address'
+                        });
+                    }
+                }
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
                 user.street1 = requestBody.street1;
@@ -309,6 +348,16 @@ export class UserDashboardController extends BaseController {
                 if(userFromDb != undefined){
                     if(userFromDb.email !== user.email){
                         await this.updateFirebaseData(userData, userFromDb.password);
+
+                        let cTrackOld = new CommunicationTrack();
+                        let mailObjOld = await this.communicationTemplateService.findById(12);
+                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName, cTrackOld );
+                        await this.communicationTrackService.createOrUpdate(cTrackOld);
+
+                        let cTrackNew = new CommunicationTrack();
+                        let mailObjNew = await this.communicationTemplateService.findById(13);
+                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName, cTrackNew )
+                        await this.communicationTrackService.createOrUpdate(cTrackNew);
                     }
                 }
                 return response.status(200).send({message: "Successfully updated"})
@@ -333,6 +382,36 @@ export class UserDashboardController extends BaseController {
                 user.childrenCheckNumber = requestBody.childrenCheckNumber;
                 user.childrenCheckExpiryDate = requestBody.childrenCheckExpiryDate;
                 await this.userService.createOrUpdate(user);
+
+                if(!isNullOrEmpty(requestBody.childrenCheckExpiryDate)){
+                    console.log("####################" + requestBody.childrenCheckExpiryDate);
+                    this.actionsService.clearActionChildrenCheckNumber(user.id,currentUser.id);
+                    let actions = [];
+                    let masterId = 0;
+                    if(moment(user.childrenCheckExpiryDate).isAfter(moment())){
+                        actions = await this.actionsService.getActionDataForChildrenCheck13(user.id);
+                        masterId = 13;
+                        console.log("$$$$$$$$$13" + JSON.stringify(actions));
+                    }
+                    if(moment(user.childrenCheckExpiryDate).isBefore(moment())){
+                        actions = await this.actionsService.getActionDataForChildrenCheck14(user.id);
+                        masterId = 14;
+                        console.log("$$$$$$$$$14" + JSON.stringify(actions));
+                    }
+
+                    if(isArrayPopulated(actions)){
+                        let arr = [];
+                        for(let item of actions){
+                            let action = await this.actionsService.createAction13_14(item.organisationId,
+                                item.competitionOrgId, item.userId, masterId);
+                            arr.push(action);
+                        }
+                        if(isArrayPopulated(arr)){
+                            console.log("Arr::" + JSON.stringify(arr));
+                            await this.actionsService.batchCreateOrUpdate(arr);
+                        }
+                    }
+                }
 
                 return response.status(200).send({message: "Successfully updated"})
             }

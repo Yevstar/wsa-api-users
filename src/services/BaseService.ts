@@ -1,6 +1,6 @@
 import {Inject, Service} from "typedi";
-import {BaseEntity, DeleteResult, EntityManager} from "typeorm"
-import {InjectManager} from "typeorm-typedi-extensions"
+import {BaseEntity, DeleteResult, EntityManager} from "typeorm-plus"
+import {InjectManager} from "typeorm-plus-typedi-extensions"
 import FirebaseService from "./FirebaseService";
 
 @Service()

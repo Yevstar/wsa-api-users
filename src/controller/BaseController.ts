@@ -18,7 +18,6 @@ import CharityService from "../services/CharityService";
 import {isNullOrEmpty} from "../utils/Utils";
 import CommunicationTrackService from "../services/CommunicationTrackService";
 
-
 export class BaseController {
 
     @Inject()

@@ -1,5 +1,5 @@
 import {Service} from "typedi";
-import {Brackets} from "typeorm";
+import {Brackets} from "typeorm-plus";
 import nodeMailer from "nodemailer";
 import speakeasy from "speakeasy";
 import QRcode from "qrcode";
@@ -13,7 +13,7 @@ import {EntityType} from "../models/security/EntityType";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
 import {LinkedEntities} from "../models/views/LinkedEntities";
 import {logger} from "../logger";
-import {paginationData, stringTONumber, isArrayPopulated} from "../utils/Utils";
+import {paginationData, stringTONumber, isArrayPopulated, isNotNullAndUndefined} from "../utils/Utils";
 import AppConstants from "../constants/AppConstants";
 import { CommunicationTrack } from "../models/CommunicationTrack";
 
@@ -281,8 +281,10 @@ export default class UserService extends BaseService<User> {
         userName: string,
         sec: { functionId?: number, roleId?: number },
         sortBy?: string,
-        sortOrder?: "ASC" | "DESC"
-    ): Promise<User[]> {
+        sortOrder?: "ASC" | "DESC",
+        offset: string = undefined,
+        limit: string = undefined
+    ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
@@ -346,7 +348,19 @@ export default class UserService extends BaseService<User> {
             }
         }
 
-        return query.getRawMany()
+        const OFFSET = stringTONumber(offset);
+        const LIMIT = stringTONumber(limit);
+
+        if (offset && limit) {
+            const userCount = await query.getCount();
+            const userData = await query.offset(OFFSET).limit(LIMIT).getRawMany();
+            return { userCount, userData }
+        } else {
+            const userCount = null;
+            const userData = await query.getRawMany();
+            return { userCount, userData }
+        }
+
     }
 
     public async sentMail(templateObj, OrganisationName, receiverData, password,entityId,cTrack,userId) {
@@ -415,6 +429,106 @@ export default class UserService extends BaseService<User> {
     }catch(error){
         cTrack.statusRefId = 2;
      }
+    }
+
+    public async sentMailForEmailUpdate(contact, templateObj ,adminUser, organisationName, cTrack){
+       try{
+        let subject = templateObj.emailSubject ;
+        let url = process.env.TEAM_REGISTRATION_URL;
+        //  let html = ``;
+      //  url = url.replace(AppConstants.userRegUniquekey,playerBody.userRegUniqueKey)
+        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.firstName, contact.firstName);
+        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.adminFirstName, adminUser.firstName);
+        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.adminLastName, adminUser.lastName);
+        if(organisationName == null){
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.fromAffiliateName, '');
+        }
+        else{
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.affiliateName, organisationName);
+        }
+        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.email, contact.email);
+  
+
+        const transporter = nodeMailer.createTransport({
+            host: "smtp.gmail.com",
+            port: 587,
+            secure: false, // true for 465, false for other ports
+            auth: {
+                user: process.env.MAIL_USERNAME, // generated ethereal user
+                pass: process.env.MAIL_PASSWORD // generated ethereal password
+            },
+
+            tls: {
+                // do not fail on invalid certs
+                rejectUnauthorized: false
+            }
+
+        });
+       // fs.readFileSync("output/"+fileName);
+    //const path = require('path');
+    const mailOptions = {
+            from: {
+                name: "World Sport Action",
+                address: "mail@worldsportaction.com"
+            },
+            to: contact.email,
+            replyTo: "donotreply@worldsportaction.com",
+            subject: subject,
+            html: templateObj.emailBody
+        };
+            
+              
+       
+        if(Number(process.env.SOURCE_MAIL) == 1){
+            mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html 
+            mailOptions.to = process.env.TEMP_DEV_EMAIL
+        }
+        
+       
+
+     //   let cTrack = new CommunicationTrack();
+    console.log("email body:: "+templateObj.emailBody)
+     //   logger.info(`before - sendMail : mailOptions ${mailOptions}`);
+        try{
+           
+            cTrack.id= 0;
+         
+            cTrack.communicationType = 1;
+            cTrack.contactNumber = contact.mobileNumber
+            cTrack.entityId = contact.id;
+            cTrack.deliveryChannelRefId = 1;
+            cTrack.emailId = contact.email;
+            cTrack.userId = contact.id;
+            cTrack.subject = subject;
+            cTrack.content = templateObj.emailBody;
+            cTrack.createdBy = adminUser.id;
+          
+            await transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    cTrack.statusRefId = 2;
+                    logger.error(`TeamRegistration - sendInviteMail : ${err},  ${contact.email}`);
+                    // Here i commented the below code as the caller is not handling the promise reject
+                    // return Promise.reject(err);
+                } else {
+                    cTrack.statusRefId = 1;
+                  logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${contact.email}`);
+                }
+                transporter.close();
+                return Promise.resolve();
+            });
+           
+            //return cTrack
+        }
+        catch(error){
+            cTrack.statusRefId = 2;
+           // return cTrack;
+        }
+      
+
+    } catch (error) {
+        logger.error(` ERROR occurred in individual mail `+error)
+        throw error;
+    }
     }
 
     public async userPersonalDetails(userId: number, organisationUniqueKey: any) {
@@ -648,12 +762,15 @@ export default class UserService extends BaseService<User> {
                             affiliate: item.affiliate,
                             membershipProduct: item.membershipProduct,
                             membershipType: item.membershipType,
-                            feesPaid: item.feesPaid,
-                            vouchers: item.vouchers,
-                            shopPurchases: item.shopPurchases,
+                            competitionName: item.competitionName,
+                            divisionName: item.divisionName,
+                            // feesPaid: item.feesPaid,
+                            // vouchers: item.vouchers,
+                            //shopPurchases: item.shopPurchases,
                             paymentStatus: item.paymentStatus,
-                            paymentType: item.paymentType,
-                            registrationForm: []
+                            //paymentType: item.paymentType,
+                            registrationForm: [],
+                            alreadyDeRegistered: item.alreadyDeRegistered
                         }
 
                         if (isArrayPopulated(result[2])) {

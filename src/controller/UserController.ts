@@ -16,7 +16,7 @@ import {decode as atob} from 'base-64';
 import * as fastcsv from 'fast-csv';
 
 import {User} from '../models/User';
-import {authToken, fileExt, isPhoto, timestamp, isArrayPopulated, md5} from '../utils/Utils';
+import {authToken, fileExt, isPhoto, timestamp, isArrayPopulated, md5, isNotNullAndUndefined, paginationData, stringTONumber} from '../utils/Utils';
 import {LoginError} from '../exceptions/LoginError';
 import {BaseController} from './BaseController';
 import {logger} from '../logger';
@@ -263,12 +263,12 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { functionId });
+        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { functionId },null,null,null,null);
 
-        if (result) {
+        if (result && result.userData && Array.isArray(result.userData)) {
             // Here we are checking every user with firestore inorder to make sure
             // we have proper firebaseUID and firestore database set for the user.
-            const promises = result.map(async user => {
+            const promises = result.userData.map(async user => {
                 await this.checkUserForFirestore(user);
                 return user;
             });
@@ -289,12 +289,25 @@ export class UserController extends BaseController {
         @Res() response: Response,
         @QueryParam('sortBy', { required: false }) sortBy?: string,
         @QueryParam('sortOrder', { required: false }) sortOrder?: "ASC" | "DESC",
+        @QueryParam('offset') offset?: string,
+        @QueryParam('limit') limit?: string,
     ) {
-        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { roleId }, sortBy, sortOrder);
-        for (let u of result) {
+        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { roleId }, sortBy, sortOrder,offset, limit);
+
+        for (let u of result.userData) {
             u['linkedEntity'] = JSON.parse(u['linkedEntity']);
         }
-        return result;
+
+        if(isNotNullAndUndefined(offset) && isNotNullAndUndefined(limit)) {
+                let totalCount = result.userCount;
+                let responseObject = paginationData(stringTONumber(totalCount), +limit, +offset);
+                responseObject["userData"] = result.userData;
+                
+                return responseObject;
+        } else {
+            
+            return result.userData;
+        }
     }
 
     @Authorized()
