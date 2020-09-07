@@ -363,7 +363,7 @@ export default class UserService extends BaseService<User> {
 
     }
 
-    public async sentMail(templateObj, OrganisationName, receiverData, password,entityId,cTrack,userId) {
+    public async sentMail(templateObj, OrganisationName, receiverData, password,entityId,userId) {
         let url = process.env.liveScoresWebHost;
         logger.info(`TeamService - sendMail : url ${url}`);
         console.log("*****Template---:" + templateObj + "--" + JSON.stringify(templateObj))
@@ -406,7 +406,7 @@ export default class UserService extends BaseService<User> {
             mailOptions.to = process.env.TEMP_DEV_EMAIL
         }
         logger.info(`TeamService - sendMail : mailOptions ${mailOptions}`);
-
+        let cTrack = new CommunicationTrack();
         try{
             cTrack.id= 0;
 
@@ -420,18 +420,34 @@ export default class UserService extends BaseService<User> {
             
             cTrack.createdBy = userId;
         await transporter.sendMail(mailOptions, (err, info) => {
-            logger.info(`TeamService - sendMail : ${err}, ${info}`);
+            //logger.info(`TeamService - sendMail : ${err}, ${info}`);
+            if (err) {
+                logger.error(`TeamService - sendMail : ${err}`);
+                cTrack.statusRefId = 2;
+                templateObj.emailBody = templateObj.emailBody.replace(password,"******")
+                cTrack.content = templateObj.emailBody;
+                this.insertIntoCommunicationTrack(cTrack);
+                // Here i commented the below code as the caller is not handling the promise reject
+                // return Promise.reject(err);
+            } else {
+                logger.info(`TeamService - sendMail : Mail sent successfully`);
+                cTrack.statusRefId = 1;
+                templateObj.emailBody = templateObj.emailBody.replace(password,"******")
+                cTrack.content = templateObj.emailBody;
+                this.insertIntoCommunicationTrack(cTrack);
+            }
+            transporter.close();
             return Promise.resolve();
         });
         templateObj.emailBody = templateObj.emailBody.replace(password,"******")
         cTrack.content = templateObj.emailBody;
         
     }catch(error){
-        cTrack.statusRefId = 2;
+        //cTrack.statusRefId = 2;
      }
     }
 
-    public async sentMailForEmailUpdate(contact, templateObj ,adminUser, organisationName, cTrack){
+    public async sentMailForEmailUpdate(contact, templateObj ,adminUser, organisationName){
        try{
         let subject = templateObj.emailSubject ;
         let url = process.env.TEAM_REGISTRATION_URL;
@@ -486,7 +502,7 @@ export default class UserService extends BaseService<User> {
         
        
 
-     //   let cTrack = new CommunicationTrack();
+    let cTrack = new CommunicationTrack();
     console.log("email body:: "+templateObj.emailBody)
      //   logger.info(`before - sendMail : mailOptions ${mailOptions}`);
         try{
@@ -507,11 +523,13 @@ export default class UserService extends BaseService<User> {
                 if (err) {
                     cTrack.statusRefId = 2;
                     logger.error(`TeamRegistration - sendInviteMail : ${err},  ${contact.email}`);
+                    this.insertIntoCommunicationTrack(cTrack);
                     // Here i commented the below code as the caller is not handling the promise reject
                     // return Promise.reject(err);
                 } else {
                     cTrack.statusRefId = 1;
                   logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${contact.email}`);
+                  this.insertIntoCommunicationTrack(cTrack);
                 }
                 transporter.close();
                 return Promise.resolve();
@@ -520,7 +538,7 @@ export default class UserService extends BaseService<User> {
             //return cTrack
         }
         catch(error){
-            cTrack.statusRefId = 2;
+            //cTrack.statusRefId = 2;
            // return cTrack;
         }
       
@@ -919,5 +937,10 @@ export default class UserService extends BaseService<User> {
         catch(error){
             throw error;
         }
+    }
+
+    public async insertIntoCommunicationTrack(ctrack : CommunicationTrack ) {
+        await this.entityManager.query(`insert into wsa_common.communicationTrack(id, emailId,content,subject,contactNumber,userId,entityId,communicationType,statusRefId,deliveryChannelRefId,createdBy) values(?,?,?,?,?,?,?,?,?,?,?))`,
+        [ctrack.id,ctrack.emailId,ctrack.content,ctrack.subject,ctrack.contactNumber,ctrack.userId,ctrack.entityId,ctrack.communicationType,ctrack.statusRefId,ctrack.deliveryChannelRefId,ctrack.createdBy]);
     }
 }

@@ -232,15 +232,12 @@ export class AffiliateController extends BaseController {
                                 if( contact.userId != '' && contact.userId != null && contact.userId != 0){
                                     if(contactDb.email.toLowerCase() != contact.email.toLowerCase()){
 
-                                        let cTrackOld = new CommunicationTrack();
+                                       
                                         let mailObjOld = await this.communicationTemplateService.findById(12);
-                                        await this.userService.sentMailForEmailUpdate(contactDb, mailObjOld ,adminUser, requestBody.name, cTrackOld );
-                                        await this.communicationTrackService.createOrUpdate(cTrackOld);
+                                        await this.userService.sentMailForEmailUpdate(contactDb, mailObjOld ,adminUser, requestBody.name );
 
-                                        let cTrackNew = new CommunicationTrack();
                                         let mailObjNew = await this.communicationTemplateService.findById(13);
-                                        await this.userService.sentMailForEmailUpdate(userRes, mailObjNew ,adminUser, requestBody.name, cTrackNew )
-                                        await this.communicationTrackService.createOrUpdate(cTrackNew);
+                                        await this.userService.sentMailForEmailUpdate(userRes, mailObjNew ,adminUser, requestBody.name )
                                     }
                                 }
                                 let ureDb = await this.ureService.findByUserAndEntityId(userRes.id, affiliateRes.affiliateOrgId)
@@ -258,10 +255,9 @@ export class AffiliateController extends BaseController {
                                             let password = "";
                                             let mailObj;
                                             if (contact.userId != 0) {
-                                                let cTrack = new CommunicationTrack();
+                                               
                                                 mailObj = await this.communicationTemplateService.findById(3);
-                                                await this.userService.sentMail(mailObj, OrgObject.name, userRes, password,affiliateRes.id,cTrack,userId)
-                                                await this.communicationTrackService.createOrUpdate(cTrack);
+                                                await this.userService.sentMail(mailObj, OrgObject.name, userRes, password,affiliateRes.id,userId)
                                             }
                                         }
                                         userRoleEntity.roleId = permission.roleId;
@@ -276,11 +272,10 @@ export class AffiliateController extends BaseController {
                                     }
                                 }
                                 if (contact.userId == 0) {
-                                    let cTrack = new CommunicationTrack();
+                                   
                                     await this.updateFirebaseData(userRes, userRes.password);
                                     let mailObj = await this.communicationTemplateService.findById(1);
-                                    await this.userService.sentMail(mailObj, OrgObject.name, userRes, password,affiliateRes.id,cTrack,userId)
-                                    await this.communicationTrackService.createOrUpdate(cTrack);
+                                    await this.userService.sentMail(mailObj, OrgObject.name, userRes, password,affiliateRes.id,userId)
                                 }
 
                                 // }
