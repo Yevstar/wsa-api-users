@@ -283,7 +283,8 @@ export default class UserService extends BaseService<User> {
         sortBy?: string,
         sortOrder?: "ASC" | "DESC",
         offset: string = undefined,
-        limit: string = undefined
+        limit: string = undefined,
+        needUREs: boolean = false
     ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
@@ -307,6 +308,10 @@ export default class UserService extends BaseService<User> {
             let id = sec.roleId;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
                 .andWhere('r.id = :id', {id});
+        }
+        if (needUREs) {
+            query.leftJoinAndSelect('u.userRoleEntities', 'userRoleEntities')
+                .leftJoinAndSelect('userRoleEntities.role', 'role');
         }
 
         query.andWhere('le.inputEntityTypeId = :entityTypeId', {entityTypeId})
@@ -402,7 +407,7 @@ export default class UserService extends BaseService<User> {
             html: templateObj.emailBody
         };
         if(Number(process.env.SOURCE_MAIL) == 1){
-            mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html 
+            mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html
             mailOptions.to = process.env.TEMP_DEV_EMAIL
         }
         logger.info(`TeamService - sendMail : mailOptions ${mailOptions}`);
@@ -417,7 +422,7 @@ export default class UserService extends BaseService<User> {
             cTrack.emailId = receiverData.email;
             cTrack.userId = receiverData.id;
             cTrack.subject = mailOptions.subject;
-            
+
             cTrack.createdBy = userId;
         await transporter.sendMail(mailOptions, (err, info) => {
             //logger.info(`TeamService - sendMail : ${err}, ${info}`);
@@ -441,7 +446,7 @@ export default class UserService extends BaseService<User> {
         });
         templateObj.emailBody = templateObj.emailBody.replace(password,"******")
         cTrack.content = templateObj.emailBody;
-        
+
     }catch(error){
         //cTrack.statusRefId = 2;
      }
@@ -463,7 +468,7 @@ export default class UserService extends BaseService<User> {
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.affiliateName, organisationName);
         }
         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.email, contact.email);
-  
+
 
         const transporter = nodeMailer.createTransport({
             host: "smtp.gmail.com",
@@ -492,23 +497,23 @@ export default class UserService extends BaseService<User> {
             subject: subject,
             html: templateObj.emailBody
         };
-            
-              
-       
+
+
+
         if(Number(process.env.SOURCE_MAIL) == 1){
-            mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html 
+            mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html
             mailOptions.to = process.env.TEMP_DEV_EMAIL
         }
-        
-       
+
+
 
     let cTrack = new CommunicationTrack();
     console.log("email body:: "+templateObj.emailBody)
      //   logger.info(`before - sendMail : mailOptions ${mailOptions}`);
         try{
-           
+
             cTrack.id= 0;
-         
+
             cTrack.communicationType = 1;
             cTrack.contactNumber = contact.mobileNumber
             cTrack.entityId = contact.id;
@@ -518,7 +523,7 @@ export default class UserService extends BaseService<User> {
             cTrack.subject = subject;
             cTrack.content = templateObj.emailBody;
             cTrack.createdBy = adminUser.id;
-          
+
             await transporter.sendMail(mailOptions, (err, info) => {
                 if (err) {
                     cTrack.statusRefId = 2;
@@ -534,14 +539,14 @@ export default class UserService extends BaseService<User> {
                 transporter.close();
                 return Promise.resolve();
             });
-           
+
             //return cTrack
         }
         catch(error){
             //cTrack.statusRefId = 2;
            // return cTrack;
         }
-      
+
 
     } catch (error) {
         logger.error(` ERROR occurred in individual mail `+error)
