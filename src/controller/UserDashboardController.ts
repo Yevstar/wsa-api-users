@@ -303,15 +303,15 @@ export class UserDashboardController extends BaseController {
 
                         await this.updateFirebaseData(userData, userFromDb.password);
 
-                        let cTrackOld = new CommunicationTrack();
+                        
                         let mailObjOld = await this.communicationTemplateService.findById(12);
-                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName, cTrackOld );
-                        await this.communicationTrackService.createOrUpdate(cTrackOld);
+                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
+                        
 
-                        let cTrackNew = new CommunicationTrack();
+                        
                         let mailObjNew = await this.communicationTemplateService.findById(13);
-                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName, cTrackNew )
-                        await this.communicationTrackService.createOrUpdate(cTrackNew);
+                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
+                        
                     }
                 }
 
@@ -349,15 +349,14 @@ export class UserDashboardController extends BaseController {
                     if(userFromDb.email !== user.email){
                         await this.updateFirebaseData(userData, userFromDb.password);
 
-                        let cTrackOld = new CommunicationTrack();
+                        
                         let mailObjOld = await this.communicationTemplateService.findById(12);
-                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName, cTrackOld );
-                        await this.communicationTrackService.createOrUpdate(cTrackOld);
-
-                        let cTrackNew = new CommunicationTrack();
+                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
+                        
+                        
                         let mailObjNew = await this.communicationTemplateService.findById(13);
-                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName, cTrackNew )
-                        await this.communicationTrackService.createOrUpdate(cTrackNew);
+                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
+                        
                     }
                 }
                 return response.status(200).send({message: "Successfully updated"})
