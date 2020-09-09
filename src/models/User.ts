@@ -1,6 +1,5 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn, OneToMany} from "typeorm-plus";
-import {IsBoolean, IsDate, IsNumber, IsString, IsObject, IsArray} from "class-validator";
-import { UserRoleEntity } from "../models/security/UserRoleEntity";
+import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm-plus";
+import {IsBoolean, IsDate, IsNumber, IsString, IsObject} from "class-validator";
 
 @Entity()
 export class User extends BaseEntity {
@@ -124,8 +123,4 @@ export class User extends BaseEntity {
     @IsString()
     @Column({ nullable: true, default: null, select: false })
     tfaSecretUrl: string;
-
-    @IsArray({each: true})
-    @OneToMany(type => UserRoleEntity, userRoleEntity => userRoleEntity.user)
-    userRoleEntities: UserRoleEntity[];
 }

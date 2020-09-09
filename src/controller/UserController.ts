@@ -306,6 +306,9 @@ export class UserController extends BaseController {
 
         for (let u of result.userData) {
             u['linkedEntity'] = JSON.parse(u['linkedEntity']);
+            if (needUREs) {
+                u['userRoleEntities'] = JSON.parse(u['ure']);
+            }
         }
 
         if(isNotNullAndUndefined(offset) && isNotNullAndUndefined(limit)) {

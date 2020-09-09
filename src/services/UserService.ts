@@ -310,8 +310,10 @@ export default class UserService extends BaseService<User> {
                 .andWhere('r.id = :id', {id});
         }
         if (needUREs) {
-            query.leftJoinAndSelect('u.userRoleEntities', 'userRoleEntities')
-                .leftJoinAndSelect('userRoleEntities.role', 'role');
+            query.addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'id\', ' +
+                'ure.id, \'roleId\', ure.roleId, \'entityId\', ure.entityId, ' +
+                ' \'entityTypeId\', ure.entityTypeId, \'userId\', ure.userId)),\']\') ' +
+                'as ure');
         }
 
         query.andWhere('le.inputEntityTypeId = :entityTypeId', {entityTypeId})
