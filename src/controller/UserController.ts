@@ -300,14 +300,20 @@ export class UserController extends BaseController {
             sortBy,
             sortOrder,
             offset,
-            limit,
-            needUREs
+            limit
         );
 
+        var userIdsArray = new Array();
         for (let u of result.userData) {
             u['linkedEntity'] = JSON.parse(u['linkedEntity']);
-            if (needUREs) {
-                u['userRoleEntities'] = JSON.parse(u['ure']);
+            userIdsArray.push(u.id);
+        }
+
+        if (needUREs) {
+            let ures = await this.ureService.findByUserIds(userIdsArray);
+            for (let u of result.userData) {
+                let filterUREs = ures.filter(x => x.userId == u.id);
+                u['userRoleEntities'] = filterUREs;
             }
         }
 

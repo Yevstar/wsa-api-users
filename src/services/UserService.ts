@@ -283,8 +283,7 @@ export default class UserService extends BaseService<User> {
         sortBy?: string,
         sortOrder?: "ASC" | "DESC",
         offset: string = undefined,
-        limit: string = undefined,
-        needUREs: boolean = false
+        limit: string = undefined
     ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
@@ -308,12 +307,6 @@ export default class UserService extends BaseService<User> {
             let id = sec.roleId;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
                 .andWhere('r.id = :id', {id});
-        }
-        if (needUREs) {
-            query.addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'id\', ' +
-                'ure.id, \'roleId\', ure.roleId, \'entityId\', ure.entityId, ' +
-                ' \'entityTypeId\', ure.entityTypeId, \'userId\', ure.userId)),\']\') ' +
-                'as ure');
         }
 
         query.andWhere('le.inputEntityTypeId = :entityTypeId', {entityTypeId})
