@@ -410,8 +410,8 @@ export default class UserService extends BaseService<User> {
         try{
             cTrack.id= 0;
 
-            cTrack.communicationType = 1;
-            cTrack.contactNumber = receiverData.mobileNumber
+            cTrack.communicationType = 3;
+            //cTrack.contactNumber = receiverData.mobileNumber
             cTrack.entityId = entityId;
             cTrack.deliveryChannelRefId = 1;
             cTrack.emailId = receiverData.email;
@@ -509,8 +509,8 @@ export default class UserService extends BaseService<User> {
            
             cTrack.id= 0;
          
-            cTrack.communicationType = 1;
-            cTrack.contactNumber = contact.mobileNumber
+            cTrack.communicationType = 8;
+           // cTrack.contactNumber = contact.mobileNumber
             cTrack.entityId = contact.id;
             cTrack.deliveryChannelRefId = 1;
             cTrack.emailId = contact.email;

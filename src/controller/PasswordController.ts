@@ -102,8 +102,8 @@ export class PasswordController extends BaseController {
                 try{
                     cTrack.id= 0;
 
-                    cTrack.communicationType = 1;
-                    cTrack.contactNumber = user.mobileNumber
+                    cTrack.communicationType = 6;
+                   // cTrack.contactNumber = user.mobileNumber
                     cTrack.entityId = user.id;
                     cTrack.deliveryChannelRefId = 1;
                     cTrack.emailId = user.email;
