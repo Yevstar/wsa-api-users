@@ -15,7 +15,7 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
         return this.entityManager.createQueryBuilder(UserRoleEntity, 'userRoleEntity')
         .update(UserRoleEntity)
         .set({isDeleted: 1, updatedBy: currentUserId, updatedAt: new Date()})
-        .andWhere('userRoleEntity.entityId = :entityId and userRoleEntity.userId = :userId and entityTypeId = 2', 
+        .andWhere('userRoleEntity.entityId = :entityId and userRoleEntity.userId = :userId and entityTypeId = 2',
                     {entityId: entityId, userId: userId})
         .execute();
     }
@@ -52,11 +52,21 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
         let ureObj = await query.getOne()
         return ureObj;
     }
+
     public async findByUser(userId: number): Promise<UserRoleEntity[]> {
         return this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
             .leftJoinAndSelect('ure.role', 'r')
             .leftJoinAndSelect('ure.entityType', 'et')
             .andWhere('ure.userId = :userId', {userId})
+            .andWhere('ure.isDeleted = 0')
+            .getMany();
+    }
+
+    public async findByUserIds(userIds: number[]): Promise<UserRoleEntity[]> {
+        return this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
+            .leftJoinAndSelect('ure.role', 'r')
+            .leftJoinAndSelect('ure.entityType', 'et')
+            .andWhere('ure.userId in (:userIds)', {userIds})
             .andWhere('ure.isDeleted = 0')
             .getMany();
     }

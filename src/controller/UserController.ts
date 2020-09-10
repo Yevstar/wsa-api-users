@@ -215,7 +215,6 @@ export class UserController extends BaseController {
             return response.status(500).send({
                 name: 'upload_error',
                 message: process.env.NODE_ENV == AppConstants.development?'Unexpected error on load image. Try again later.' + e : 'Unexpected error on load image. Try again later.'
-               
             });
         }
     }
@@ -291,21 +290,41 @@ export class UserController extends BaseController {
         @QueryParam('sortOrder', { required: false }) sortOrder?: "ASC" | "DESC",
         @QueryParam('offset') offset?: string,
         @QueryParam('limit') limit?: string,
+        @QueryParam('needUREs') needUREs: boolean = false,
     ) {
-        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { roleId }, sortBy, sortOrder,offset, limit);
+        let result = await this.userService.getUsersBySecurity(
+            entityTypeId,
+            entityId,
+            userName,
+            { roleId },
+            sortBy,
+            sortOrder,
+            offset,
+            limit
+        );
 
+        var userIdsArray = new Array();
         for (let u of result.userData) {
             u['linkedEntity'] = JSON.parse(u['linkedEntity']);
+            userIdsArray.push(u.id);
+        }
+
+        if (needUREs) {
+            let ures = await this.ureService.findByUserIds(userIdsArray);
+            for (let u of result.userData) {
+                let filterUREs = ures.filter(x => x.userId == u.id);
+                u['userRoleEntities'] = filterUREs;
+            }
         }
 
         if(isNotNullAndUndefined(offset) && isNotNullAndUndefined(limit)) {
                 let totalCount = result.userCount;
                 let responseObject = paginationData(stringTONumber(totalCount), +limit, +offset);
                 responseObject["userData"] = result.userData;
-                
+
                 return responseObject;
         } else {
-            
+
             return result.userData;
         }
     }
