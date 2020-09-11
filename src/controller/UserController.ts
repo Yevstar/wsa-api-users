@@ -310,10 +310,12 @@ export class UserController extends BaseController {
         }
 
         if (needUREs) {
-            let ures = await this.ureService.findByUserIds(userIdsArray);
-            for (let u of result.userData) {
-                let filterUREs = ures.filter(x => x.userId == u.id);
-                u['userRoleEntities'] = filterUREs;
+            if(isArrayPopulated(userIdsArray)){
+                let ures = await this.ureService.findByUserIds(userIdsArray);
+                for (let u of result.userData) {
+                    let filterUREs = ures.filter(x => x.userId == u.id);
+                    u['userRoleEntities'] = filterUREs;
+                }
             }
         }
 
