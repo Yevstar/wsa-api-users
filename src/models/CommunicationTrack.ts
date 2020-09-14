@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm-plus';
 import { IsNumber, IsString, IsDate } from "class-validator";
 
 @Entity('communicationTrack', { database: process.env.MYSQL_DATABASE_COMMON })

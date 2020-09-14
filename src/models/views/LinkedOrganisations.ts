@@ -1,4 +1,4 @@
-import {ViewColumn, ViewEntity} from "typeorm";
+import {ViewColumn, ViewEntity} from "typeorm-plus";
 import {IsNumber, IsString} from "class-validator";
 
 @ViewEntity('linked_organisations')

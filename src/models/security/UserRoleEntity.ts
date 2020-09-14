@@ -1,4 +1,4 @@
-import {BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn} from "typeorm";
+import {BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn} from "typeorm-plus";
 import {EntityType} from "./EntityType";
 import {User} from "../User";
 import {Role} from "./Role";

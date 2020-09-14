@@ -22,6 +22,7 @@ import {md5} from '../utils/Utils';
 import {BaseController} from './BaseController';
 import {User} from "../models/User";
 import AppConstants from "../constants/AppConstants";
+import { CommunicationTrack } from '../models/CommunicationTrack';
 
 @Controller('/password')
 export class PasswordController extends BaseController {
@@ -65,7 +66,7 @@ export class PasswordController extends BaseController {
 
             // Generate a password reset url.
             const url = `${process.env.SERVER_URL}/password/change?token=${user.reset}`;
-
+            let cTrack = new CommunicationTrack();
             if (type === 'email') {
                 // Send out the email.
                 const transporter = nodeMailer.createTransport({
@@ -97,10 +98,30 @@ export class PasswordController extends BaseController {
                     mailOptions.to = process.env.TEMP_DEV_EMAIL
                 }
                 // Send the mail via nodeMailer
+
+                try{
+                    cTrack.id= 0;
+
+                    cTrack.communicationType = 6;
+                   // cTrack.contactNumber = user.mobileNumber
+                    cTrack.entityId = user.id;
+                    cTrack.deliveryChannelRefId = 1;
+                    cTrack.emailId = user.email;
+                    cTrack.userId = user.id;
+                    cTrack.subject = mailOptions.subject;
+                    
+                    cTrack.createdBy = user.id;
                 await transporter.sendMail(mailOptions, (err, info) => {
                     logger.info(`Password - forgot : info ${info} Error ${err}`);
                     return Promise.resolve();
                 });
+                cTrack.content = mailOptions.html;
+            }
+            catch(error){
+                cTrack.statusRefId = 2;
+            }
+            //insert to 
+            await this.communicationTrackService.createOrUpdate(cTrack);
             } else {
                 // Send sms
                 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);

@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm-plus";
 import { IsNumber, IsString, IsDate } from "class-validator";
 
 @Entity('organisationLogo',{ database: "wsa_users" })
