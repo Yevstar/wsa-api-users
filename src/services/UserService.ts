@@ -279,7 +279,7 @@ export default class UserService extends BaseService<User> {
         entityTypeId: number,
         entityId: number,
         userName: string,
-        sec: { functionId?: number, roleId?: number },
+        sec: { functionId?: number, roleIds?: number[] },
         sortBy?: string,
         sortOrder?: "ASC" | "DESC",
         offset: string = undefined,
@@ -303,10 +303,10 @@ export default class UserService extends BaseService<User> {
                 .andWhere('f.id = :id', {id});
         }
 
-        if (sec.roleId) {
-            let id = sec.roleId;
+        if (isArrayPopulated(sec.roleIds)) {
+            let ids = sec.roleIds;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
-                .andWhere('r.id = :id', {id});
+                .andWhere('r.id in (:ids)', {ids});
         }
 
         query.andWhere('le.inputEntityTypeId = :entityTypeId', {entityTypeId})
@@ -775,6 +775,9 @@ export default class UserService extends BaseService<User> {
                 let arr = [];
                 if (isArrayPopulated(result[1])) {
                     for (let item of result[1]) {
+                        let deRegisterStatusRefId = item.deRegisterStatusRefId;
+                        let paymentStatus = deRegisterStatusRefId!= null ? deRegisterStatusRefId : item.paymentStatus;
+                        let alreadyDeRegistered = deRegisterStatusRefId != null ? 1 : 0;
                         let obj = {
                             key: item.key,
                             affiliate: item.affiliate,
@@ -791,11 +794,11 @@ export default class UserService extends BaseService<User> {
                             // feesPaid: item.feesPaid,
                             // vouchers: item.vouchers,
                             //shopPurchases: item.shopPurchases,
-                            paymentStatus: item.paymentStatus,
+                            paymentStatus: paymentStatus,
                             expiryDate: item.expiryDate,
                             //paymentType: item.paymentType,
                             registrationForm: [],
-                            alreadyDeRegistered: item.alreadyDeRegistered
+                            alreadyDeRegistered: alreadyDeRegistered
                         }
 
                         if (isArrayPopulated(result[2])) {
