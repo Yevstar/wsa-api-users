@@ -497,4 +497,31 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+    @Authorized()
+    @Post('/user/activity/incident')
+    async userActivitiesIncident(
+        @Body() incidentRequest: playerIncidentRequest,
+        @Res() response: Response) {
+        try {
+            if (incidentRequest !== null) {
+                return await this.userService.getPlayerIncident(
+                    incidentRequest.userId, incidentRequest.competitionId,
+                    incidentRequest.yearId, incidentRequest.offset, incidentRequest.limit);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in user activity incident ` + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+}
+
+export interface playerIncidentRequest {
+    userId: number,
+    competitionId: string,
+    yearId: number,
+    offset: number,
+    limit: number
 }

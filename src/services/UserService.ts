@@ -950,4 +950,13 @@ export default class UserService extends BaseService<User> {
         await this.entityManager.query(`insert into wsa_common.communicationTrack(id, emailId,content,subject,contactNumber,userId,entityId,communicationType,statusRefId,deliveryChannelRefId,createdBy) values(?,?,?,?,?,?,?,?,?,?,?)`,
         [ctrack.id,ctrack.emailId,ctrack.content,ctrack.subject,ctrack.contactNumber,ctrack.userId,ctrack.entityId,ctrack.communicationType,ctrack.statusRefId,ctrack.deliveryChannelRefId,ctrack.createdBy]);
     }
+
+    public async getPlayerIncident(userId: number, competitionId: string, yearId: number, offset: number, limit: number) {
+        const result = await this.entityManager.query(`call wsa_users.usp_user_activity_incident(?,?,?,?,?)`, [userId, competitionId, yearId, limit, offset]);
+        let totalCount = (result[1] && result[1].find(x => x)) ? result[1].find(x => x).totalCount : 0;
+        let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+        responseObject["results"] = result[0];
+
+        return responseObject;
+    }
 }
