@@ -290,13 +290,41 @@ export class UserController extends BaseController {
         @QueryParam('sortOrder', { required: false }) sortOrder?: "ASC" | "DESC",
         @QueryParam('offset') offset?: string,
         @QueryParam('limit') limit?: string,
-        @QueryParam('needUREs') needUREs: boolean = false,
+        @QueryParam('needUREs') needUREs: boolean = false
+    ) {
+        return await this.loadUserByRoles(
+            [roleId],
+            entityTypeId,
+            entityId,
+            userName,
+            response,
+            sortBy,
+            sortOrder,
+            offset,
+            limit,
+            needUREs
+        );
+    }
+
+    @Authorized()
+    @Get('/byRoles')
+    async loadUserByRoles(
+        @QueryParam('roleIds', { required: true }) roleIds: number[],
+        @QueryParam('entityTypeId', { required: true }) entityTypeId: number,
+        @QueryParam('entityId', { required: true }) entityId: number,
+        @QueryParam('userName') userName: string,
+        @Res() response: Response,
+        @QueryParam('sortBy', { required: false }) sortBy?: string,
+        @QueryParam('sortOrder', { required: false }) sortOrder?: "ASC" | "DESC",
+        @QueryParam('offset') offset?: string,
+        @QueryParam('limit') limit?: string,
+        @QueryParam('needUREs') needUREs: boolean = false
     ) {
         let result = await this.userService.getUsersBySecurity(
             entityTypeId,
             entityId,
             userName,
-            { roleId },
+            { roleIds },
             sortBy,
             sortOrder,
             offset,

@@ -279,7 +279,7 @@ export default class UserService extends BaseService<User> {
         entityTypeId: number,
         entityId: number,
         userName: string,
-        sec: { functionId?: number, roleId?: number },
+        sec: { functionId?: number, roleIds?: number[] },
         sortBy?: string,
         sortOrder?: "ASC" | "DESC",
         offset: string = undefined,
@@ -303,10 +303,10 @@ export default class UserService extends BaseService<User> {
                 .andWhere('f.id = :id', {id});
         }
 
-        if (sec.roleId) {
-            let id = sec.roleId;
+        if (isArrayPopulated(sec.roleIds)) {
+            let ids = sec.roleIds;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
-                .andWhere('r.id = :id', {id});
+                .andWhere('r.id in (:ids)', {ids});
         }
 
         query.andWhere('le.inputEntityTypeId = :entityTypeId', {entityTypeId})
