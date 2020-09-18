@@ -4,6 +4,7 @@ import { User } from '../models/User';
 import { Response, response } from 'express';
 import { logger } from '../logger';
 import AppConstants from '../constants/AppConstants';
+import { isArrayPopulated } from "../utils/Utils";
 
 @JsonController('/api')
 export class OrganisationController extends BaseController {
@@ -79,6 +80,22 @@ export class OrganisationController extends BaseController {
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
+        }
+    }
+
+    @Authorized()
+    @Get('/organisationsByIds')
+    async organisationsByIds(
+        @QueryParam('ids') ids: number[],
+        @Res() response: Response
+    ) {
+        if (isArrayPopulated(ids)) {
+            return this.organisationService.findByIds(ids);
+        } else {
+          return response.status(400).send({
+                    name: 'validation_error',
+                    message: `Organisation id not provided`
+                });
         }
     }
 }
