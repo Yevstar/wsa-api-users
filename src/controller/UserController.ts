@@ -293,6 +293,15 @@ export class UserController extends BaseController {
         @QueryParam('limit') limit?: string,
         @QueryParam('needUREs') needUREs: boolean = false
     ) {
+        if (!roleId ||
+            !entityTypeId ||
+            !entityId) {
+            return response.status(400).send({
+                name: 'search_error',
+                message: `Required parameters not filled`
+            });
+        }
+
         return await this.loadUserByRoles(
             [roleId],
             entityTypeId,
@@ -321,6 +330,15 @@ export class UserController extends BaseController {
         @QueryParam('limit') limit?: string,
         @QueryParam('needUREs') needUREs: boolean = false
     ) {
+        if (!isArrayPopulated(roleIds) ||
+            !entityTypeId ||
+            !entityId) {
+            return response.status(400).send({
+                name: 'search_error',
+                message: `Required parameters not filled`
+            });
+        }
+
         let result = await this.userService.getUsersBySecurity(
             entityTypeId,
             entityId,
