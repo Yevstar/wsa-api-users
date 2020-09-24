@@ -516,6 +516,31 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+    @Authorized()
+    @Post('/user/activity/roster')
+    async userActivitiesRoster(
+        @HeaderParam("authorization") currentUser: User,
+        @QueryParam('roleId') roleId: string,
+        @QueryParam('matchStatus') matchStatus: string,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                let validateComp = validateReqFilter(requestBody.userId, 'userId');
+                if (validateComp != null) {
+                    return response.status(212).send(validateComp);
+                }
+                const userCompRes = await this.userService.userActivitiesRoster(requestBody, roleid, matchStatus);
+                return response.status(200).send(userCompRes);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in user activity roster ` + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
 }
 
 export interface playerIncidentRequest {

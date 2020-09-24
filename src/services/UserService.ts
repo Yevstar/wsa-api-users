@@ -962,4 +962,24 @@ export default class UserService extends BaseService<User> {
 
         return responseObject;
     }
+
+    public async userActivitiesRoster(requestBody: any, roleId: number, matchStatus: string) {
+        try {
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
+            let userId = requestBody.userId;
+            let competitionId = requestBody.competitionId;
+            let yearRefId = requestBody.yearRefId;
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_roster(?,?,?,?,?,?,?)",
+                [userId, competitionId, yearRefId, roleId, matchStatus, limit, offset]);
+            if (result != null) {
+                let totalCount = result[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["activityRoster"] = result[1];
+                return responseObject;
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
 }
