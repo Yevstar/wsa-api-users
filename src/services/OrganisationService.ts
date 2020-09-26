@@ -21,14 +21,12 @@ export default class OrganisationService extends BaseService<Organisation> {
         return (await query.getOne());
     }
 
-    public async organisation(){
-        try{
-            let query = this.entityManager.createQueryBuilder(Organisation, 'org')
-           .select(['org.id','org.name','org.organisationUniqueKey','org.organisationTypeRefId'])
-            query.where('org.isDeleted = 0')
-            return (await query.getMany());
-        }catch(error){
-            throw(error);
+    public async organisation(organisationUniqueKey: string) {
+        try {
+            let result = await this.entityManager.query("call `wsa_users`.`usp_get_organisations`(?)", [organisationUniqueKey]);
+            return result[0];
+        } catch (error) {
+            throw (error);
         }
     }
 

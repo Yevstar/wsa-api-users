@@ -13,13 +13,14 @@ export class OrganisationController extends BaseController {
     @Get('/organisation')
     async organisation(
         @QueryParam('userId') userId: number,
+        @QueryParam('organisationUniqueKey') organisationUniqueKey: string,
         @HeaderParam("authorization") currentUser: User,
         @Res() response: Response) {
         try {
             if (userId) {
                 if (userId && userId == currentUser.id) {
 
-                    const organisationRes = await this.organisationService.organisation();
+                    const organisationRes = await this.organisationService.organisation(organisationUniqueKey);
                     return response.status(200).send(organisationRes);
 
                 }
