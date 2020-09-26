@@ -798,7 +798,9 @@ export default class UserService extends BaseService<User> {
                             expiryDate: item.expiryDate == null ? 'Single Use' : item.expiryDate,
                             //paymentType: item.paymentType,
                             registrationForm: [],
-                            alreadyDeRegistered: alreadyDeRegistered
+                            alreadyDeRegistered: alreadyDeRegistered,
+                            paidBy: item.paidBy,
+                            paidByUserId: item.paidByUserId
                         }
 
                         if (isArrayPopulated(result[2])) {
