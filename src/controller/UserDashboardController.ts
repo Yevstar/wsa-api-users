@@ -521,7 +521,7 @@ export class UserDashboardController extends BaseController {
     @Post('/user/activity/roster')
     async userActivitiesRoster(
         @HeaderParam("authorization") currentUser: User,
-        @QueryParam('roleId') roleId: string,
+        @QueryParam('roleId') roleId: number,
         @QueryParam('matchStatus') matchStatus: string,
         @Body() requestBody: any,
         @Res() response: Response) {
@@ -531,7 +531,7 @@ export class UserDashboardController extends BaseController {
                 if (validateComp != null) {
                     return response.status(212).send(validateComp);
                 }
-                const userCompRes = await this.userService.userActivitiesRoster(requestBody, roleid, matchStatus);
+                const userCompRes = await this.userService.userActivitiesRoster(requestBody, roleId, matchStatus);
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
