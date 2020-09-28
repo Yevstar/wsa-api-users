@@ -719,19 +719,19 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async userActivitiesScorer(requestBody: any) {
+    public async userActivitiesRoster(requestBody: any, roleId: number, matchStatus: string) {
         try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let yearRefId = requestBody.yearRefId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_scorer(?,?,?,?,?)",
-                [userId, competitionId, yearRefId, limit, offset]);
+            let result = await this.entityManager.query("call wsa_users.usp_user_activity_roster(?,?,?,?,?,?,?)",
+                [userId, competitionId, yearRefId, roleId, matchStatus, limit, offset]);
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-                responseObject["activityScorer"] = result[1];
+                responseObject["activityRoster"] = result[1];
                 return responseObject;
             }
         } catch (error) {
@@ -963,25 +963,5 @@ export default class UserService extends BaseService<User> {
         responseObject["results"] = result[0];
 
         return responseObject;
-    }
-
-    public async userActivitiesRoster(requestBody: any, roleId: number, matchStatus: string) {
-        try {
-            let limit = requestBody.paging.limit;
-            let offset = requestBody.paging.offset;
-            let userId = requestBody.userId;
-            let competitionId = requestBody.competitionId;
-            let yearRefId = requestBody.yearRefId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_roster(?,?,?,?,?,?,?)",
-                [userId, competitionId, yearRefId, roleId, matchStatus, limit, offset]);
-            if (result != null) {
-                let totalCount = result[0].find(x => x).totalCount;
-                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-                responseObject["activityRoster"] = result[1];
-                return responseObject;
-            }
-        } catch (error) {
-            throw error;
-        }
     }
 }
