@@ -815,21 +815,22 @@ export default class UserService extends BaseService<User> {
                                         volunteers: [],
                                         favourites: []
                                     }
-                                    if (i.registrationSettingsRefId == 7) {
-                                        regObj.contentValue = item.playedBefore == 0 ? 'No' : 'Yes';
-                                        if (item.playedBefore == 1) {
-                                            let objPl = {
-                                                key: i.registrationSettingsRefId,
-                                                playedBefore: regObj.contentValue,
-                                                playedClub: item.playedClub,
-                                                playedGrade: item.playedGrade,
-                                                playedYear: item.playedYear,
-                                                lastCaptainName: item.lastCaptainName
-                                            }
-                                            regObj.playedBefore.push(objPl);
-                                        }
-                                        obj.registrationForm.push(regObj);
-                                    } else if (i.registrationSettingsRefId == 6) {
+                                    // if (i.registrationSettingsRefId == 7) {
+                                    //     regObj.contentValue = item.playedBefore == 0 ? 'No' : 'Yes';
+                                    //     if (item.playedBefore == 1) {
+                                    //         let objPl = {
+                                    //             key: i.registrationSettingsRefId,
+                                    //             playedBefore: regObj.contentValue,
+                                    //             playedClub: item.playedClub,
+                                    //             playedGrade: item.playedGrade,
+                                    //             playedYear: item.playedYear,
+                                    //             lastCaptainName: item.lastCaptainName
+                                    //         }
+                                    //         regObj.playedBefore.push(objPl);
+                                    //     }
+                                    //     obj.registrationForm.push(regObj);
+                                    // } else
+                                     if (i.registrationSettingsRefId == 7) {
                                         regObj.contentValue = (item.positionId1 != null ? item.positionId1 : '') +
                                             ((item.positionId1 != null && item.positionId2 != null) ? ', ' : '') +
                                             (item.positionId2 != null ? item.positionId2 : '');
@@ -855,10 +856,10 @@ export default class UserService extends BaseService<User> {
                                             }
                                         }
                                         obj.registrationForm.push(regObj);
-                                    } else if (i.registrationSettingsRefId == 11) {
-                                        regObj.contentValue = item.isConsentPhotosGiven == 1 ? "Yes" : "No";
-                                        obj.registrationForm.push(regObj);
-                                    } else if (i.registrationSettingsRefId == 12) {
+                                    // } else if (i.registrationSettingsRefId == 11) {
+                                    //     regObj.contentValue = item.isConsentPhotosGiven == 1 ? "Yes" : "No";
+                                    //     obj.registrationForm.push(regObj);
+                                    } else if (i.registrationSettingsRefId == 10) {
                                         if (isArrayPopulated(result[4])) {
                                             let volunteers = result[4].filter(x => x.registrationId == item.registrationId);
                                             if (isArrayPopulated(volunteers)) {
