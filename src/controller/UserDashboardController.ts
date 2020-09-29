@@ -134,9 +134,11 @@ export class UserDashboardController extends BaseController {
     }
 
     @Authorized()
-    @Post('/user/activity/scorer')
-    async userActivitiesScorer(
+    @Post('/user/activity/roster')
+    async userActivitiesRoster(
         @HeaderParam("authorization") currentUser: User,
+        @QueryParam('roleId') roleId: number,
+        @QueryParam('matchStatus') matchStatus: string,
         @Body() requestBody: any,
         @Res() response: Response) {
         try {
@@ -149,11 +151,11 @@ export class UserDashboardController extends BaseController {
                 if (validateComp != null) {
                     return response.status(212).send(validateComp);
                 }
-                const userCompRes = await this.userService.userActivitiesScorer(requestBody);
+                const userCompRes = await this.userService.userActivitiesRoster(requestBody, roleId, matchStatus);
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user activity scorer `+error);
+            logger.error(`Error Occurred in user activity roster ` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -497,4 +499,31 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+    @Authorized()
+    @Post('/user/activity/incident')
+    async userActivitiesIncident(
+        @Body() incidentRequest: playerIncidentRequest,
+        @Res() response: Response) {
+        try {
+            if (incidentRequest !== null) {
+                return await this.userService.getPlayerIncident(
+                    incidentRequest.userId, incidentRequest.competitionId,
+                    incidentRequest.yearId, incidentRequest.offset, incidentRequest.limit);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in user activity incident ` + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+}
+
+export interface playerIncidentRequest {
+    userId: number,
+    competitionId: string,
+    yearId: number,
+    offset: number,
+    limit: number
 }

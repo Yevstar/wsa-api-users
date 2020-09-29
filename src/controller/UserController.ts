@@ -21,6 +21,7 @@ import {LoginError} from '../exceptions/LoginError';
 import {BaseController} from './BaseController';
 import {logger} from '../logger';
 import AppConstants from '../constants/AppConstants';
+import {LinkedEntities} from "../models/views/LinkedEntities";
 
 const tfaOptionEnabled = parseInt(process.env.TFA_ENABLED, 10);
 
@@ -292,6 +293,15 @@ export class UserController extends BaseController {
         @QueryParam('limit') limit?: string,
         @QueryParam('needUREs') needUREs: boolean = false
     ) {
+        if (!roleId ||
+            !entityTypeId ||
+            !entityId) {
+            return response.status(400).send({
+                name: 'search_error',
+                message: `Required parameters not filled`
+            });
+        }
+
         return await this.loadUserByRoles(
             [roleId],
             entityTypeId,
@@ -320,6 +330,15 @@ export class UserController extends BaseController {
         @QueryParam('limit') limit?: string,
         @QueryParam('needUREs') needUREs: boolean = false
     ) {
+        if (!isArrayPopulated(roleIds) ||
+            !entityTypeId ||
+            !entityId) {
+            return response.status(400).send({
+                name: 'search_error',
+                message: `Required parameters not filled`
+            });
+        }
+
         let result = await this.userService.getUsersBySecurity(
             entityTypeId,
             entityId,
@@ -331,15 +350,26 @@ export class UserController extends BaseController {
             limit
         );
 
-        var userIdsArray = new Array();
+        var userIdsArray: number[] = new Array();
+        var linkedEntitiesArray: LinkedEntities[] = new Array();
         for (let u of result.userData) {
             u['linkedEntity'] = JSON.parse(u['linkedEntity']);
             userIdsArray.push(u.id);
+            for (let obj of u['linkedEntity']) {
+                let linkedEntity: LinkedEntities = new LinkedEntities();
+                linkedEntity.linkedEntityId = obj.entityId;
+                linkedEntity.linkedEntityTypeId = obj.entityTypeId;
+                linkedEntitiesArray.push(linkedEntity);
+            }
         }
 
         if (needUREs) {
             if(isArrayPopulated(userIdsArray)){
-                let ures = await this.ureService.findByUserIds(userIdsArray);
+                let ures = await this.ureService.findByParams(
+                    userIdsArray,
+                    roleIds,
+                    linkedEntitiesArray
+                );
                 for (let u of result.userData) {
                     let filterUREs = ures.filter(x => x.userId == u.id);
                     u['userRoleEntities'] = filterUREs;

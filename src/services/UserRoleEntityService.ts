@@ -2,7 +2,9 @@ import {Service} from "typedi";
 import BaseService from "./BaseService";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
 import {EntityType} from "../models/security/EntityType";
+import {LinkedEntities} from "../models/views/LinkedEntities";
 import { Role } from "../models/security/Role";
+import { isArrayPopulated } from "../utils/Utils";
 
 @Service()
 export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
@@ -62,12 +64,28 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
             .getMany();
     }
 
-    public async findByUserIds(userIds: number[]): Promise<UserRoleEntity[]> {
-        return this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
+    public async findByParams(
+        userIds: number[],
+        roleIds: number[] = undefined,
+        linkedEntities: LinkedEntities[] = undefined
+    ): Promise<UserRoleEntity[]> {
+        let query = this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
             .leftJoinAndSelect('ure.role', 'r')
             .leftJoinAndSelect('ure.entityType', 'et')
             .andWhere('ure.userId in (:userIds)', {userIds})
-            .andWhere('ure.isDeleted = 0')
-            .getMany();
+            .andWhere('ure.isDeleted = 0');
+
+        if (isArrayPopulated(roleIds)) {
+            query.andWhere('ure.roleId in (:roleIds)', {roleIds});
+        }
+
+        if (isArrayPopulated(linkedEntities)) {
+            linkedEntities.forEach((le) => {
+                query.andWhere('ure.entityId = :entityId', {entityId: le.linkedEntityId})
+                    .andWhere('ure.entityTypeId = :entityTypeId', {entityTypeId: le.linkedEntityTypeId});
+            });
+        }
+
+        return query.getMany();
     }
 }

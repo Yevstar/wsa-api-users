@@ -11,6 +11,14 @@ import AppConstants from '../constants/AppConstants';
 export class UserRoleEntityController extends BaseController {
 
     @Authorized()
+    @Get('/byUserId')
+    async findByUserId(
+        @QueryParam("userId", {required: true}) userId: number
+    ): Promise<UserRoleEntity[]> {
+        return this.ureService.findByUser(userId);
+    }
+
+    @Authorized()
     @Get('/:id')
     async get(@Param("id") id: number) {
         return this.ureService.findById(id);

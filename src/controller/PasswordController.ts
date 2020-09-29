@@ -172,6 +172,10 @@ export class PasswordController extends BaseController {
             return response.render('password/change.ejs', {token, error: 'Please enter a new password.'});
         }
 
+        if (password.length < 8) {
+            return response.render('password/change.ejs', { token, error: 'Password must be 8 characters.' });
+        }
+
         // Reset the password
         user.password = md5(password);
         user.reset = null;
