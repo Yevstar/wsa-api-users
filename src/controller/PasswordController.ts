@@ -156,10 +156,16 @@ export class PasswordController extends BaseController {
     @Post('/change')
     @UseBefore(bodyParser.urlencoded({extended: true}))
     async postChange(
-        @BodyParam('token', {required: true}) token: string,
-        @BodyParam('password', {required: true}) password: string,
+        @BodyParam('token') token: string,
+        @BodyParam('password') password: string,
         @Res() response: Response
     ) {
+        if (token === '') {
+            return response.render('password/change.ejs', {
+                token,
+                error: `Please provide token parameter. Make sure you're using the correct reset link.`
+            });
+        }
         const user = await this.userService.findByToken(token);
         if (!user) {
             return response.render('password/change.ejs', {
@@ -168,7 +174,7 @@ export class PasswordController extends BaseController {
             });
         }
 
-        if (!password) {
+        if (!password || password === '') {
             return response.render('password/change.ejs', {token, error: 'Please enter a new password.'});
         }
 
