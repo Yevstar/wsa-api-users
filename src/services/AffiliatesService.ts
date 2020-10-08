@@ -28,6 +28,10 @@ export default class AffiliateService extends BaseService<Affiliate> {
             let totalCount = result[1].find(x=>x).totalCount;
             let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
 
+            if (requestFilter.stateOrganisations === true) {
+                responseObject["affiliates"] = result[3];
+                delete responseObject["page"];
+            } else {
             for (let affiliates of result[2]) {
                 let contacts = result[0];
                 let contact1Name = "";
@@ -59,7 +63,8 @@ export default class AffiliateService extends BaseService<Affiliate> {
                 affiliateArray.push(affiliatesObj);
             }
             responseObject["affiliates"] = affiliateArray;
-            return responseObject;
+            }
+        return responseObject;
         }
         else{
             return [];
