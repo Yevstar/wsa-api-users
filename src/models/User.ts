@@ -123,4 +123,9 @@ export class User extends BaseEntity {
     @IsString()
     @Column({ nullable: true, default: null, select: false })
     tfaSecretUrl: string;
+
+    @IsString()
+    @Column({ nullable: true, default: null })
+    stripeCustomerAccountId: string;
+
 }
