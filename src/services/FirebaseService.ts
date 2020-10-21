@@ -196,6 +196,6 @@ export default class FirebaseService {
 
     private async getFirebaseStorageBucket() {
         var fbStorageBuck = JSON.parse(process.env.firebaseConfig)
-        return admin.storage().bucket(fbStorageBuck);
+        return admin.storage().bucket("world-sport-action-dev-c1019.appspot.com");
     }
 }
