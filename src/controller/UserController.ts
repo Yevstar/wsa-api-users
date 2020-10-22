@@ -92,7 +92,7 @@ export class UserController extends BaseController {
                 }
 
                 if (tfaOptionEnabled === 1) {
-                    if (user.tfaEnabled) {
+                    if (user.tfaEnabled && user.tfaSecret) {
                         return {
                             tfaEnabled: true,
                         };
@@ -105,11 +105,7 @@ export class UserController extends BaseController {
                     };
                 }
 
-                if (user) {
-                    return this.responseWithTokenAndUser(email, password, user);
-                } else {
-                    throw new LoginError(AppConstants.loginUnsuccessfulMsg);
-                }
+                return this.responseWithTokenAndUser(email, password, user);
             }
         } else {
             throw new LoginError(AppConstants.loginUnsuccessfulMsg);
