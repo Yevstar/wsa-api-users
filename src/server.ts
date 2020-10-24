@@ -4,7 +4,7 @@ require("dotenv").config();
 import "reflect-metadata";
 import * as http from 'http';
 import {Action, getMetadataArgsStorage, useContainer, useExpressServer} from 'routing-controllers';
-import {logger, wrapConsole} from "./logger";
+import {logger, wrapConsole, loggerConfig} from "./logger";
 import {connect} from './typeorm';
 import express, { Router } from 'express';
 
@@ -29,6 +29,7 @@ import { Role } from "./models/security/Role";
 let envPromise = setEnvFromCredentialManager();
 
 envPromise.then(function(){
+    loggerConfig();
     wrapConsole();
     start().then(() => {
         logger.info("Application started.");
