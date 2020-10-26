@@ -1,8 +1,7 @@
-import { Service } from "typedi";
-import BaseService from "../services/BaseService";
-import { Organisation } from "../models/Organisation";
-import { logger } from "../logger";
-import { isArrayPopulated } from "../utils/Utils";
+import { Service } from 'typedi';
+
+import BaseService from '../services/BaseService';
+import { Organisation } from '../models/Organisation';
 
 @Service()
 export default class OrganisationService extends BaseService<Organisation> {
@@ -12,12 +11,13 @@ export default class OrganisationService extends BaseService<Organisation> {
 
     public async findByUniquekey(organisationUniquekey: string): Promise<number> {
         let query = this.entityManager.createQueryBuilder(Organisation, 'organisation')
-        query.where('organisation.organisationUniquekey= :organisationUniquekey and isDeleted = 0', {organisationUniquekey})
+        query.where('organisation.organisationUniquekey= :organisationUniquekey and isDeleted = 0', { organisationUniquekey })
         return (await query.getOne()).id;
     }
+
     public async findOrgByUniquekey(organisationUniquekey: string): Promise<Organisation> {
         let query = this.entityManager.createQueryBuilder(Organisation, 'organisation')
-        query.where('organisation.organisationUniquekey= :organisationUniquekey and isDeleted = 0', {organisationUniquekey})
+        query.where('organisation.organisationUniquekey= :organisationUniquekey and isDeleted = 0', { organisationUniquekey })
         return (await query.getOne());
     }
 
@@ -30,26 +30,27 @@ export default class OrganisationService extends BaseService<Organisation> {
         }
     }
 
-    public async userOrganisation(userId){
-        try{
-            let result = await this.entityManager.query("call wsa_users.usp_user_organisation(?)",[userId]);
+    public async userOrganisation(userId) {
+        try {
+            let result = await this.entityManager.query("call wsa_users.usp_user_organisation(?)", [userId]);
             return result[0];
-        }catch(error){
+        } catch (error) {
             throw error;
         }
     }
 
-    public async findAffiliatedToOrg(organisationId){
-      try{
+    public async findAffiliatedToOrg(organisationId) {
+        try {
             let result = await this.entityManager.query(
-                `SELECT a.affiliatedToOrgId FROM wsa_users.affiliate a where a.affiliateOrgId = ? and a.isDeleted = 0`,[organisationId] )
+                `SELECT a.affiliatedToOrgId FROM wsa_users.affiliate a where a.affiliateOrgId = ? and a.isDeleted = 0`,
+                [organisationId]
+            );
 
-                let res = result.find(x => x);
+            let res = result.find(x => x);
 
-                return res.affiliatedToOrgId;
-      }  
-      catch(error){
-          throw error;
-      }
+            return res.affiliatedToOrgId;
+        } catch (error) {
+            throw error;
+        }
     }
 }

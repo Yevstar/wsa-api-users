@@ -1,5 +1,5 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from 'typeorm-plus';
-import {IsNumber, IsDate, IsString} from "class-validator";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm-plus';
+import { IsNumber, IsDate, IsString } from 'class-validator';
 
 @Entity('organisation')
 export class Organisation extends BaseEntity {
@@ -72,7 +72,6 @@ export class Organisation extends BaseEntity {
     @Column()
     termsAndConditions: string;
 
-
     @IsNumber()
     @Column()
     createdBy: number;
@@ -84,7 +83,7 @@ export class Organisation extends BaseEntity {
     @IsDate()
     @Column({ nullable: true, default: null })
     updatedOn: Date;
-    
+
     @IsNumber()
     @Column({ default: 0 })
     isDeleted: number;

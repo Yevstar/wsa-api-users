@@ -1,10 +1,11 @@
-import {Get, JsonController, QueryParam, Authorized, HeaderParam, Res} from 'routing-controllers';
-import {BaseController} from "./BaseController";
+import { Authorized, BodyParam, Get, HeaderParam, JsonController, Post, QueryParam, Res } from 'routing-controllers';
+import { Response } from 'express';
+
+import { BaseController } from './BaseController';
 import { User } from '../models/User';
-import { Response, response } from 'express';
 import { logger } from '../logger';
 import AppConstants from '../constants/AppConstants';
-import { isArrayPopulated } from "../utils/Utils";
+import { isArrayPopulated } from '../utils/Utils';
 
 @JsonController('/api')
 export class OrganisationController extends BaseController {
@@ -14,19 +15,18 @@ export class OrganisationController extends BaseController {
     async organisation(
         @QueryParam('userId') userId: number,
         @QueryParam('organisationUniqueKey') organisationUniqueKey: string,
-        @HeaderParam("authorization") currentUser: User,
-        @Res() response: Response) {
+        @HeaderParam('authorization') currentUser: User,
+        @Res() response: Response
+    ) {
         try {
             if (userId) {
                 if (userId && userId == currentUser.id) {
-
                     const organisationRes = await this.organisationService.organisation(organisationUniqueKey);
                     return response.status(200).send(organisationRes);
-
                 }
             }
         } catch (error) {
-            logger.error(`Error Occurred in organisation list ${userId}`+error);
+            logger.error(`Error Occurred in organisation list ${userId}` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -37,7 +37,7 @@ export class OrganisationController extends BaseController {
     @Get('/userorganisation')
     async userOrganisation(
         @QueryParam('userId') userId: number,
-        @HeaderParam("authorization") currentUser: User,
+        @HeaderParam('authorization') currentUser: User,
         @Res() response: Response,
     ) {
         try {
@@ -49,7 +49,7 @@ export class OrganisationController extends BaseController {
 
                     if (impersonationRole) {
                         const organisation = await this.organisationService.findById(impersonationRole.entityId);
-                        const {organisationTypes} = await this.affiliateService.affiliateToOrg(impersonationRole.entityId);
+                        const { organisationTypes } = await this.affiliateService.affiliateToOrg(impersonationRole.entityId);
                         const organisationType = organisationTypes && organisationTypes.length > 0
                             ? organisationTypes.find((type) => type.id === organisation.organisationTypeRefId)
                             : null;
@@ -68,7 +68,6 @@ export class OrganisationController extends BaseController {
                         return response.status(200).send(organisationRes);
                     }
 
-
                     return response.status(200).send(organisationRes);
                 }
             }
@@ -77,7 +76,7 @@ export class OrganisationController extends BaseController {
                 message: 'Invalid request'
             });
         } catch (error) {
-            logger.error(`Error Occurred in organisation list ${userId}`+error);
+            logger.error(`Error Occurred in organisation list ${userId}` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -93,10 +92,39 @@ export class OrganisationController extends BaseController {
         if (isArrayPopulated(ids)) {
             return this.organisationService.findByIds(ids);
         } else {
-          return response.status(400).send({
-                    name: 'validation_error',
-                    message: `Organisation id not provided`
-                });
+            return response.status(400).send({
+                name: 'validation_error',
+                message: `Organisation id not provided`
+            });
         }
     }
+
+    @Authorized()
+    @Post('/bannerCount')
+    async updateBannerCount(
+        @HeaderParam('authorization') currentUser: User,
+        @QueryParam('organisationId', { required: true }) organisationId: number,
+        @BodyParam('numStateBanner') numStateBanner: number,
+        @BodyParam('numCompBanner') numCompBanner: number,
+        @Res() response: Response
+    ) {
+        if (numStateBanner + numCompBanner <= 8) {
+            return this.organisationSettingsService.updateBannerCount(currentUser, organisationId, numStateBanner, numCompBanner);
+        } else {
+            return response.status(400).send({
+                name: 'validation_error',
+                message: `The sum must be always 8.`
+            });
+        }
+    }
+
+    @Authorized()
+    @Get('/bannerCount')
+    async getBannerCount(
+        @QueryParam('organisationId', { required: true }) organisationId: number,
+        @Res() response: Response
+    ) {
+        return this.organisationSettingsService.getBannerCount(organisationId);
+    }
+
 }
