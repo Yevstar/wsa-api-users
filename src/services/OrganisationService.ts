@@ -53,4 +53,11 @@ export default class OrganisationService extends BaseService<Organisation> {
             throw error;
         }
     }
+
+    public async getAllOrganisations(): Promise<Organisation[]> {
+        let query = this.entityManager.createQueryBuilder(Organisation, 'o')
+        query.select(['o.organisationUniqueKey','o.organisationTypeRefId','o.name'])
+        query.where('o.isDeleted = 0')
+        return await query.getMany();
+    }
 }

@@ -127,4 +127,8 @@ export class OrganisationController extends BaseController {
         return this.organisationSettingsService.getBannerCount(organisationId);
     }
 
+    @Get('/organisations/all')
+    async allOrganisations() {
+        return this.organisationService.getAllOrganisations();
+    }
 }
