@@ -80,10 +80,19 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
         }
 
         if (isArrayPopulated(linkedEntities)) {
+            var entityIds = [];
+            var entityTypeIds = [];
             linkedEntities.forEach((le) => {
-                query.andWhere('ure.entityId = :entityId', {entityId: le.linkedEntityId})
-                    .andWhere('ure.entityTypeId = :entityTypeId', {entityTypeId: le.linkedEntityTypeId});
+                entityIds.push(le.linkedEntityId);
+                entityTypeIds.push(le.linkedEntityTypeId);
             });
+
+            query.andWhere('ure.entityId in (:entityIds) and ' +
+                'ure.entityTypeId in (:entityTypeIds)', {
+                    entityIds: entityIds,
+                    entityTypeIds: entityTypeIds
+                }
+            );
         }
 
         return query.getMany();
