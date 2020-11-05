@@ -131,9 +131,29 @@ export class UserController extends BaseController {
             }
 
             user = await this.userService.findByCredentialsForTFA(email, password);
-            if (!user || !this.userService.confirmTfaSecret(user, code)) {
+            if (!user) {
                 throw new LoginError(AppConstants.tfaUnsuccessfulMsg);
             } else {
+                const log = {
+                    id: user.id,
+                    firstName: user.firstName,
+                    middleName: user.middleName,
+                    lastName: user.lastName,
+                    mobileNumber: user.mobileNumber,
+                    email: user.email,
+                    tfaEnabled: user.tfaEnabled,
+                    tfaSecret: user.tfaSecret,
+                    tfaSecretUrl: user.tfaSecretUrl,
+                }
+                logger.info(`Confirm TFA: ${new Date()}`);
+                logger.info(JSON.stringify(log));
+
+                const isConfirmed = this.userService.confirmTfaSecret(user, code);
+                if (!isConfirmed) {
+                    logger.info('Failed to confirm TFA');
+                    throw new LoginError(AppConstants.tfaUnsuccessfulMsg);
+                }
+
                 const userWithRoles = await this.userService.findByCredentialsForWeb(email, password);
                 if (!userWithRoles) {
                     throw new LoginError(AppConstants.loginErrMsg);
@@ -143,6 +163,8 @@ export class UserController extends BaseController {
                     if (!user.tfaEnabled) {
                         await this.userService.updateTfaStatus(user);
                     }
+
+                    userWithRoles.tfaEnabled = 1;
                     return this.responseWithTokenAndUser(email, password, userWithRoles);
                 } else {
                     throw new LoginError(AppConstants.loginUnsuccessfulMsg);

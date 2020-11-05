@@ -1,5 +1,5 @@
 import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm-plus";
-import {IsBoolean, IsDate, IsNumber, IsString} from "class-validator";
+import {IsDate, IsNumber, IsString} from "class-validator";
 
 @Entity('userRegistration',{ database: process.env.MYSQL_DATABASE_REG })
 export class UserRegistration extends BaseEntity {
@@ -43,7 +43,7 @@ export class UserRegistration extends BaseEntity {
     @IsNumber()
     @Column()
     isDisability: number;
-    
+
     @IsString()
     @Column()
     disabilityCareNumber: string;
@@ -99,7 +99,7 @@ export class UserRegistration extends BaseEntity {
     @IsDate()
     @Column({ nullable: true, default: null })
     updatedOn: Date;
-    
+
     @IsNumber()
     @Column({ default: 0 })
     isDeleted: number;

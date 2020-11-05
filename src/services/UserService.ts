@@ -1,19 +1,19 @@
-import {Service} from "typedi";
-import {Brackets} from "typeorm-plus";
+import { Service } from "typedi";
+import { Brackets } from "typeorm-plus";
 import nodeMailer from "nodemailer";
 import speakeasy from "speakeasy";
 import QRcode from "qrcode";
 
 import BaseService from "./BaseService";
-import {User} from "../models/User";
-import {RoleFunction} from "../models/security/RoleFunction";
-import {Function} from "../models/security/Function";
-import {Role} from "../models/security/Role";
-import {EntityType} from "../models/security/EntityType";
-import {UserRoleEntity} from "../models/security/UserRoleEntity";
-import {LinkedEntities} from "../models/views/LinkedEntities";
-import {logger} from "../logger";
-import {paginationData, stringTONumber, isArrayPopulated, isNotNullAndUndefined} from "../utils/Utils";
+import { User } from "../models/User";
+import { RoleFunction } from "../models/security/RoleFunction";
+import { Function } from "../models/security/Function";
+import { Role } from "../models/security/Role";
+import { EntityType } from "../models/security/EntityType";
+import { UserRoleEntity } from "../models/security/UserRoleEntity";
+import { LinkedEntities } from "../models/views/LinkedEntities";
+import { logger } from "../logger";
+import { paginationData, stringTONumber, isArrayPopulated, isNotNullAndUndefined } from "../utils/Utils";
 import AppConstants from "../constants/AppConstants";
 import { CommunicationTrack } from "../models/CommunicationTrack";
 
@@ -27,7 +27,7 @@ export default class UserService extends BaseService<User> {
 
     public async findByEmail(email: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', {email: email.toLowerCase()})
+            .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', { email: email.toLowerCase() })
             .addSelect("user.password")
             .addSelect("user.reset")
             .getOne();
@@ -36,24 +36,25 @@ export default class UserService extends BaseService<User> {
     public async DeleteUser(userId: number, loginUserId: number) {
         return this.entityManager.createQueryBuilder(User, 'user')
             .update(User)
-            .set({isDeleted: 1, updatedBy: loginUserId, updatedOn: new Date()})
-            .andWhere('user.id = :userId', {userId})
+            .set({ isDeleted: 1, updatedBy: loginUserId, updatedOn: new Date() })
+            .andWhere('user.id = :userId', { userId })
             .execute();
     }
 
     public async findByCredentials(email: string, password: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .andWhere('LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
-                {email: email.toLowerCase(), password: password})
+                { email: email.toLowerCase(), password: password })
             .getOne();
     }
 
     public async findByCredentialsForTFA(email: string, password: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .andWhere('LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
-                {email: email.toLowerCase(), password: password})
+                { email: email.toLowerCase(), password: password })
             .addSelect("user.tfaEnabled")
             .addSelect("user.tfaSecret")
+            .addSelect("user.tfaSecretUrl")
             .getOne();
     }
 
@@ -62,14 +63,14 @@ export default class UserService extends BaseService<User> {
             .innerJoin(UserRoleEntity, 'ure', 'user.id = ure.userId and ure.entityType = 2 and ure.isDeleted = 0')
             .innerJoin(Role, 'role', 'role.id = ure.roleId and role.applicableToWeb = 1 and role.isDeleted = 0')
             .andWhere('LOWER(user.email) = :email and user.password = :password and user.isDeleted = 0',
-                {email: email.toLowerCase(), password: password})
+                { email: email.toLowerCase(), password: password })
             .getOne();
     }
 
     public async findByFullName(name: string): Promise<User[]> {
         let builder = this.entityManager.createQueryBuilder(User, 'user')
-            .where('LOWER(user.firstName) like :query', {query: `${name.toLowerCase()}%`})
-            .orWhere('LOWER(user.lastName) like :query', {query: `${name.toLowerCase()}%`});
+            .where('LOWER(user.firstName) like :query', { query: `${name.toLowerCase()}%` })
+            .orWhere('LOWER(user.lastName) like :query', { query: `${name.toLowerCase()}%` });
         return builder.getMany();
     }
 
@@ -77,12 +78,12 @@ export default class UserService extends BaseService<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .innerJoin('scorers', 'scorers', 'scorers.userId = user.id')
             .innerJoin('team', 'team', 'team.id = scorers.teamId')
-            .where('scorers.teamId = :teamId', {teamId}).getMany();
+            .where('scorers.teamId = :teamId', { teamId }).getMany();
     }
 
     public async findByToken(token: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .andWhere('user.reset = :token', {token: token})
+            .andWhere('user.reset = :token', { token: token })
             .addSelect("user.reset")
             .getOne();
     }
@@ -108,7 +109,7 @@ export default class UserService extends BaseService<User> {
 
     public async userExist(email: string): Promise<number> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .where('LOWER(user.email) = :email', {email: email.toLowerCase()})
+            .where('LOWER(user.email) = :email', { email: email.toLowerCase() })
             .getCount();
     }
 
@@ -116,7 +117,7 @@ export default class UserService extends BaseService<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .update(User)
             .set(user)
-            .andWhere('LOWER(user.email) = :email', {email: email.toLowerCase()})
+            .andWhere('LOWER(user.email) = :email', { email: email.toLowerCase() })
             .execute();
     }
 
@@ -129,19 +130,19 @@ export default class UserService extends BaseService<User> {
                 email: user.email,
                 mobileNumber: user.mobileNumber,
             })
-            .andWhere('user.id = :userId', {userId})
+            .andWhere('user.id = :userId', { userId })
             .execute();
     }
 
     public async updatePhoto(userId: number, photoUrl: string) {
         return this.entityManager.createQueryBuilder(User, 'user')
             .update(User)
-            .set({photoUrl: photoUrl})
-            .andWhere('user.id = :userId', {userId})
+            .set({ photoUrl: photoUrl })
+            .andWhere('user.id = :userId', { userId })
             .execute();
     }
 
-    public async friendDashboard(requestBody: any, sortBy:string = undefined, sortOrder:"ASC"|"DESC"=undefined) {
+    public async friendDashboard(requestBody: any, sortBy: string = undefined, sortOrder: "ASC" | "DESC" = undefined) {
         try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
@@ -159,7 +160,7 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async referFriendDashboard(requestBody: any, sortBy:string=undefined, sortOrder:"ASC"|"DESC" = undefined) {
+    public async referFriendDashboard(requestBody: any, sortBy: string = undefined, sortOrder: "ASC" | "DESC" = undefined) {
         try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
@@ -202,7 +203,7 @@ export default class UserService extends BaseService<User> {
     public async getRole(roleName: string): Promise<any> {
         return this.entityManager.createQueryBuilder(Role, 'r')
             .select(['r.id as id', 'r.name as name'])
-            .where('r.name = :roleName', {roleName})
+            .where('r.name = :roleName', { roleName })
             .getRawOne();
     }
 
@@ -216,7 +217,7 @@ export default class UserService extends BaseService<User> {
         return this.entityManager.createQueryBuilder(Function, 'f')
             .select(['f.id as id', 'f.name as name'])
             .innerJoin(RoleFunction, 'rf', 'rf.functionId = f.id')
-            .where('rf.roleId = :roleId', {roleId})
+            .where('rf.roleId = :roleId', { roleId })
             .getRawMany();
     }
 
@@ -246,14 +247,14 @@ export default class UserService extends BaseService<User> {
     public async getEntityType(entityTypeName: string): Promise<any> {
         return this.entityManager.createQueryBuilder(EntityType, 'et')
             .select(['et.id as id', 'et.name as name'])
-            .where('et.name = :entityTypeName', {entityTypeName})
+            .where('et.name = :entityTypeName', { entityTypeName })
             .getRawOne();
     }
 
     public async getUserListByIds(ids: number[]): Promise<User[]> {
         return this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'u.firstName as firstName', 'u.lastName as lastName'])
-            .andWhere('u.id in (:ids)', {ids})
+            .andWhere('u.id in (:ids)', { ids })
             .getRawMany();
     }
 
@@ -270,7 +271,7 @@ export default class UserService extends BaseService<User> {
             .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId')
             .innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND ' +
                 'le.linkedEntityId = ure.entityId')
-            .andWhere('ure.userId = :userId', {userId})
+            .andWhere('ure.userId = :userId', { userId })
             .andWhere('le.inputEntityTypeId = 1')
             .getRawOne();
     }
@@ -300,22 +301,22 @@ export default class UserService extends BaseService<User> {
         if (sec.functionId) {
             let id = sec.functionId;
             query.innerJoin(Function, 'f', 'f.id = fr.functionId')
-                .andWhere('f.id = :id', {id});
+                .andWhere('f.id = :id', { id });
         }
 
         if (isArrayPopulated(sec.roleIds)) {
             let ids = sec.roleIds;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
-                .andWhere('r.id in (:ids)', {ids});
+                .andWhere('r.id in (:ids)', { ids });
         }
 
-        query.andWhere('le.inputEntityTypeId = :entityTypeId', {entityTypeId})
-            .andWhere('le.inputEntityId = :entityId', {entityId});
+        query.andWhere('le.inputEntityTypeId = :entityTypeId', { entityTypeId })
+            .andWhere('le.inputEntityId = :entityId', { entityId });
 
         if (userName) {
             query.andWhere(new Brackets(qb => {
-                qb.andWhere('LOWER(u.firstName) like :query', {query: `${userName.toLowerCase()}%`})
-                    .orWhere('LOWER(u.lastName) like :query', {query: `${userName.toLowerCase()}%`});
+                qb.andWhere('LOWER(u.firstName) like :query', { query: `${userName.toLowerCase()}%` })
+                    .orWhere('LOWER(u.lastName) like :query', { query: `${userName.toLowerCase()}%` });
             }));
         }
 
@@ -363,7 +364,7 @@ export default class UserService extends BaseService<User> {
 
     }
 
-    public async sentMail(templateObj, OrganisationName, receiverData, password,entityId,userId) {
+    public async sentMail(templateObj, OrganisationName, receiverData, password, entityId, userId) {
         let url = process.env.liveScoresWebHost;
         logger.info(`TeamService - sendMail : url ${url}`);
         console.log("*****Template---:" + templateObj + "--" + JSON.stringify(templateObj))
@@ -401,14 +402,14 @@ export default class UserService extends BaseService<User> {
             subject: subject,
             html: templateObj.emailBody
         };
-        if(Number(process.env.SOURCE_MAIL) == 1){
-            mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html
+        if (Number(process.env.SOURCE_MAIL) == 1) {
+            mailOptions.html = ' To: ' + mailOptions.to + '<br><br>' + mailOptions.html
             mailOptions.to = process.env.TEMP_DEV_EMAIL
         }
         logger.info(`TeamService - sendMail : mailOptions ${mailOptions}`);
         let cTrack = new CommunicationTrack();
-        try{
-            cTrack.id= 0;
+        try {
+            cTrack.id = 0;
 
             cTrack.communicationType = 3;
             //cTrack.contactNumber = receiverData.mobileNumber
@@ -419,134 +420,123 @@ export default class UserService extends BaseService<User> {
             cTrack.subject = mailOptions.subject;
 
             cTrack.createdBy = userId;
-        await transporter.sendMail(mailOptions, (err, info) => {
-            //logger.info(`TeamService - sendMail : ${err}, ${info}`);
-            if (err) {
-                logger.error(`TeamService - sendMail : ${err}`);
-                cTrack.statusRefId = 2;
-                templateObj.emailBody = templateObj.emailBody.replace(password,"******")
-                cTrack.content = templateObj.emailBody;
-                this.insertIntoCommunicationTrack(cTrack);
-                // Here i commented the below code as the caller is not handling the promise reject
-                // return Promise.reject(err);
-            } else {
-                logger.info(`TeamService - sendMail : Mail sent successfully`);
-                cTrack.statusRefId = 1;
-                templateObj.emailBody = templateObj.emailBody.replace(password,"******")
-                cTrack.content = templateObj.emailBody;
-                this.insertIntoCommunicationTrack(cTrack);
-            }
-            transporter.close();
-            return Promise.resolve();
-        });
-        templateObj.emailBody = templateObj.emailBody.replace(password,"******")
-        cTrack.content = templateObj.emailBody;
-
-    }catch(error){
-        //cTrack.statusRefId = 2;
-     }
-    }
-
-    public async sentMailForEmailUpdate(contact, templateObj ,adminUser, organisationName){
-       try{
-        let subject = templateObj.emailSubject ;
-        let url = process.env.TEAM_REGISTRATION_URL;
-        //  let html = ``;
-      //  url = url.replace(AppConstants.userRegUniquekey,playerBody.userRegUniqueKey)
-        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.firstName, contact.firstName);
-        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.adminFirstName, adminUser.firstName);
-        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.adminLastName, adminUser.lastName);
-        if(organisationName == null){
-            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.fromAffiliateName, '');
-        }
-        else{
-            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.affiliateName, organisationName);
-        }
-        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.email, contact.email);
-
-
-        const transporter = nodeMailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 587,
-            secure: false, // true for 465, false for other ports
-            auth: {
-                user: process.env.MAIL_USERNAME, // generated ethereal user
-                pass: process.env.MAIL_PASSWORD // generated ethereal password
-            },
-
-            tls: {
-                // do not fail on invalid certs
-                rejectUnauthorized: false
-            }
-
-        });
-       // fs.readFileSync("output/"+fileName);
-    //const path = require('path');
-    const mailOptions = {
-            from: {
-                name: "World Sport Action",
-                address: "mail@worldsportaction.com"
-            },
-            to: contact.email,
-            replyTo: "donotreply@worldsportaction.com",
-            subject: subject,
-            html: templateObj.emailBody
-        };
-
-
-
-        if(Number(process.env.SOURCE_MAIL) == 1){
-            mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html
-            mailOptions.to = process.env.TEMP_DEV_EMAIL
-        }
-
-
-
-    let cTrack = new CommunicationTrack();
-    console.log("email body:: "+templateObj.emailBody)
-     //   logger.info(`before - sendMail : mailOptions ${mailOptions}`);
-        try{
-
-            cTrack.id= 0;
-
-            cTrack.communicationType = 8;
-           // cTrack.contactNumber = contact.mobileNumber
-            cTrack.entityId = contact.id;
-            cTrack.deliveryChannelRefId = 1;
-            cTrack.emailId = contact.email;
-            cTrack.userId = contact.id;
-            cTrack.subject = subject;
-            cTrack.content = templateObj.emailBody;
-            cTrack.createdBy = adminUser.id;
-
             await transporter.sendMail(mailOptions, (err, info) => {
+                //logger.info(`TeamService - sendMail : ${err}, ${info}`);
                 if (err) {
+                    logger.error(`TeamService - sendMail : ${err}`);
                     cTrack.statusRefId = 2;
-                    logger.error(`TeamRegistration - sendInviteMail : ${err},  ${contact.email}`);
+                    templateObj.emailBody = templateObj.emailBody.replace(password, "******")
+                    cTrack.content = templateObj.emailBody;
                     this.insertIntoCommunicationTrack(cTrack);
                     // Here i commented the below code as the caller is not handling the promise reject
                     // return Promise.reject(err);
                 } else {
+                    logger.info(`TeamService - sendMail : Mail sent successfully`);
                     cTrack.statusRefId = 1;
-                  logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${contact.email}`);
-                  this.insertIntoCommunicationTrack(cTrack);
+                    templateObj.emailBody = templateObj.emailBody.replace(password, "******")
+                    cTrack.content = templateObj.emailBody;
+                    this.insertIntoCommunicationTrack(cTrack);
                 }
                 transporter.close();
                 return Promise.resolve();
             });
+            templateObj.emailBody = templateObj.emailBody.replace(password, "******")
+            cTrack.content = templateObj.emailBody;
 
-            //return cTrack
-        }
-        catch(error){
+        } catch (error) {
             //cTrack.statusRefId = 2;
-           // return cTrack;
         }
-
-
-    } catch (error) {
-        logger.error(` ERROR occurred in individual mail `+error)
-        throw error;
     }
+
+    public async sentMailForEmailUpdate(contact, templateObj, adminUser, organisationName) {
+        try {
+            let subject = templateObj.emailSubject;
+            let url = process.env.TEAM_REGISTRATION_URL;
+            //  let html = ``;
+            //  url = url.replace(AppConstants.userRegUniquekey,playerBody.userRegUniqueKey)
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.firstName, contact.firstName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.adminFirstName, adminUser.firstName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.adminLastName, adminUser.lastName);
+            if (organisationName == null) {
+                templateObj.emailBody = templateObj.emailBody.replace(AppConstants.fromAffiliateName, '');
+            } else {
+                templateObj.emailBody = templateObj.emailBody.replace(AppConstants.affiliateName, organisationName);
+            }
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.email, contact.email);
+
+            const transporter = nodeMailer.createTransport({
+                host: "smtp.gmail.com",
+                port: 587,
+                secure: false, // true for 465, false for other ports
+                auth: {
+                    user: process.env.MAIL_USERNAME, // generated ethereal user
+                    pass: process.env.MAIL_PASSWORD // generated ethereal password
+                },
+
+                tls: {
+                    // do not fail on invalid certs
+                    rejectUnauthorized: false
+                }
+            });
+
+            // fs.readFileSync("output/"+fileName);
+            // const path = require('path');
+            const mailOptions = {
+                from: {
+                    name: "World Sport Action",
+                    address: "mail@worldsportaction.com"
+                },
+                to: contact.email,
+                replyTo: "donotreply@worldsportaction.com",
+                subject: subject,
+                html: templateObj.emailBody
+            };
+
+            if (Number(process.env.SOURCE_MAIL) == 1) {
+                mailOptions.html = ' To: ' + mailOptions.to + '<br><br>' + mailOptions.html
+                mailOptions.to = process.env.TEMP_DEV_EMAIL
+            }
+
+            let cTrack = new CommunicationTrack();
+            // logger.info(`before - sendMail : mailOptions ${mailOptions}`);
+            try {
+                cTrack.id = 0;
+
+                cTrack.communicationType = 8;
+                // cTrack.contactNumber = contact.mobileNumber
+                cTrack.entityId = contact.id;
+                cTrack.deliveryChannelRefId = 1;
+                cTrack.emailId = contact.email;
+                cTrack.userId = contact.id;
+                cTrack.subject = subject;
+                cTrack.content = templateObj.emailBody;
+                cTrack.createdBy = adminUser.id;
+
+                await transporter.sendMail(mailOptions, (err, info) => {
+                    if (err) {
+                        cTrack.statusRefId = 2;
+                        logger.error(`TeamRegistration - sendInviteMail : ${err},  ${contact.email}`);
+                        this.insertIntoCommunicationTrack(cTrack);
+                        // Here i commented the below code as the caller is not handling the promise reject
+                        // return Promise.reject(err);
+                    } else {
+                        cTrack.statusRefId = 1;
+                        logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${contact.email}`);
+                        this.insertIntoCommunicationTrack(cTrack);
+                    }
+                    transporter.close();
+                    return Promise.resolve();
+                });
+
+                // return cTrack;
+            } catch (error) {
+                // cTrack.statusRefId = 2;
+                // return cTrack;
+            }
+        } catch (error) {
+            logger.error(` ERROR occurred in individual mail ` + error)
+            throw error;
+        }
     }
 
     public async userPersonalDetails(userId: number, organisationUniqueKey: any) {
@@ -776,7 +766,7 @@ export default class UserService extends BaseService<User> {
                 if (isArrayPopulated(result[1])) {
                     for (let item of result[1]) {
                         let deRegisterStatusRefId = item.deRegisterStatusRefId;
-                        let paymentStatus = deRegisterStatusRefId!= null ? deRegisterStatusRefId : item.paymentStatus;
+                        let paymentStatus = deRegisterStatusRefId != null ? deRegisterStatusRefId : item.paymentStatus;
                         let alreadyDeRegistered = deRegisterStatusRefId != null ? 1 : 0;
                         let obj = {
                             key: item.key,
@@ -832,7 +822,7 @@ export default class UserService extends BaseService<User> {
                                     //     }
                                     //     obj.registrationForm.push(regObj);
                                     // } else
-                                     if (i.registrationSettingsRefId == 7) {
+                                    if (i.registrationSettingsRefId == 7) {
                                         regObj.contentValue = (item.positionId1 != null ? item.positionId1 : '') +
                                             ((item.positionId1 != null && item.positionId2 != null) ? ', ' : '') +
                                             (item.positionId2 != null ? item.positionId2 : '');
@@ -858,9 +848,9 @@ export default class UserService extends BaseService<User> {
                                             }
                                         }
                                         obj.registrationForm.push(regObj);
-                                    // } else if (i.registrationSettingsRefId == 11) {
-                                    //     regObj.contentValue = item.isConsentPhotosGiven == 1 ? "Yes" : "No";
-                                    //     obj.registrationForm.push(regObj);
+                                        // } else if (i.registrationSettingsRefId == 11) {
+                                        //     regObj.contentValue = item.isConsentPhotosGiven == 1 ? "Yes" : "No";
+                                        //     obj.registrationForm.push(regObj);
                                     } else if (i.registrationSettingsRefId == 10) {
                                         if (isArrayPopulated(result[4])) {
                                             let volunteers = result[4].filter(x => x.registrationId == item.registrationId);
@@ -903,6 +893,20 @@ export default class UserService extends BaseService<User> {
 
         await this.update(user.email, user);
 
+        const log = {
+            id: user.id,
+            firstName: user.firstName,
+            middleName: user.middleName,
+            lastName: user.lastName,
+            mobileNumber: user.mobileNumber,
+            email: user.email,
+            tfaEnabled: user.tfaEnabled,
+            tfaSecret: user.tfaSecret,
+            tfaSecretUrl: user.tfaSecretUrl,
+        }
+        logger.info(`Add TFA: ${new Date()}`);
+        logger.info(JSON.stringify(log));
+
         return await QRcode.toDataURL(secret.otpauth_url);
     }
 
@@ -916,8 +920,22 @@ export default class UserService extends BaseService<User> {
     }
 
     public async updateTfaStatus(user) {
-        user.tfaEnabled = true;
-        await user.save();
+        user.tfaEnabled = 1;
+        await this.update(user.email, user);
+
+        const log = {
+            id: user.id,
+            firstName: user.firstName,
+            middleName: user.middleName,
+            lastName: user.lastName,
+            mobileNumber: user.mobileNumber,
+            email: user.email,
+            tfaEnabled: user.tfaEnabled,
+            tfaSecret: user.tfaSecret,
+            tfaSecretUrl: user.tfaSecretUrl,
+        }
+        logger.info(`TFA Enabled: ${new Date()}`);
+        logger.info(JSON.stringify(log));
     }
 
     public async userHistory(requestBody: any) {
@@ -926,7 +944,7 @@ export default class UserService extends BaseService<User> {
             let offset = requestBody.paging.offset;
             let userId = requestBody.userId;
             let result = await this.entityManager.query("call wsa_users.usp_user_history(?,?,?)",
-                [userId,limit, offset]);
+                [userId, limit, offset]);
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -938,23 +956,22 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async userDelete(userId: number, entityId: number): Promise<UserRoleEntity>{
-        try{
+    public async userDelete(userId: number, entityId: number): Promise<UserRoleEntity> {
+        try {
             let query = await this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
-                        .where('ure.userId = :userId and ure.entityId = :entityId and ure.entityTypeId = 2 and ure.roleId = 2 and ure.isDeleted = 0',
-                        {userId: userId, entityId: entityId})
-                        .getOne();
+                .where('ure.userId = :userId and ure.entityId = :entityId and ure.entityTypeId = 2 and ure.roleId = 2 and ure.isDeleted = 0',
+                    { userId: userId, entityId: entityId })
+                .getOne();
 
             return query;
-        }
-        catch(error){
+        } catch (error) {
             throw error;
         }
     }
 
-    public async insertIntoCommunicationTrack(ctrack : CommunicationTrack ) {
+    public async insertIntoCommunicationTrack(ctrack: CommunicationTrack) {
         await this.entityManager.query(`insert into wsa_common.communicationTrack(id, emailId,content,subject,contactNumber,userId,entityId,communicationType,statusRefId,deliveryChannelRefId,createdBy) values(?,?,?,?,?,?,?,?,?,?,?)`,
-        [ctrack.id,ctrack.emailId,ctrack.content,ctrack.subject,ctrack.contactNumber,ctrack.userId,ctrack.entityId,ctrack.communicationType,ctrack.statusRefId,ctrack.deliveryChannelRefId,ctrack.createdBy]);
+            [ctrack.id, ctrack.emailId, ctrack.content, ctrack.subject, ctrack.contactNumber, ctrack.userId, ctrack.entityId, ctrack.communicationType, ctrack.statusRefId, ctrack.deliveryChannelRefId, ctrack.createdBy]);
     }
 
     public async getPlayerIncident(userId: number, competitionId: string, yearId: number, offset: number, limit: number) {

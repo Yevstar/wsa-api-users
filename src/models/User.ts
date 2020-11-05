@@ -112,9 +112,9 @@ export class User extends BaseEntity {
     @Column({ default: 0 })
     isDeleted: number;
 
-    @IsBoolean()
-    @Column({ default: false })
-    tfaEnabled: boolean;
+    @IsNumber()
+    @Column({ default: 0 })
+    tfaEnabled: number;
 
     @IsString()
     @Column({ nullable: true, default: null, select: false })
