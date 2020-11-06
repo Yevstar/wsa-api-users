@@ -346,7 +346,8 @@ export class UserController extends BaseController {
         @QueryParam('sortOrder', { required: false }) sortOrder?: "ASC" | "DESC",
         @QueryParam('offset') offset?: string,
         @QueryParam('limit') limit?: string,
-        @QueryParam('needUREs') needUREs: boolean = false
+        @QueryParam('needUREs') needUREs: boolean = false,
+        @QueryParam('individualLinkedEntityRequired') individualLinkedEntityRequired: boolean = false
     ) {
         if (!isArrayPopulated(roleIds) ||
             !entityTypeId ||
@@ -365,7 +366,8 @@ export class UserController extends BaseController {
             sortBy,
             sortOrder,
             offset,
-            limit
+            limit,
+            individualLinkedEntityRequired
         );
 
         var userIdsArray: number[] = new Array();

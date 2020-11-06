@@ -284,17 +284,27 @@ export default class UserService extends BaseService<User> {
         sortBy?: string,
         sortOrder?: "ASC" | "DESC",
         offset: string = undefined,
-        limit: string = undefined
+        limit: string = undefined,
+        individualLinkedEntityRequired: boolean = false
     ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
                 'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl',
-                'u.firebaseUID as firebaseUID', 'u.statusRefId as statusRefId'])
-            .addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'entityTypeId\', ' +
+                'u.firebaseUID as firebaseUID', 'u.statusRefId as statusRefId']);
+
+        if (individualLinkedEntityRequired) {
+            query.addSelect('concat(\'[\',JSON_OBJECT(\'entityTypeId\', ' +
+                'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, ' +
+                '\'name\', le.linkedEntityName, \'parentName\', ' +
+                'le.linkedParentName),\']\') as linkedEntity');
+        } else {
+            query.addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'entityTypeId\', ' +
                 'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, \'name\', le.linkedEntityName, \'parentName\', le.linkedParentName)),\']\') ' +
-                'as linkedEntity')
-            .innerJoin(UserRoleEntity, 'ure', 'u.id = ure.userId')
+                'as linkedEntity');
+        }
+
+        query.innerJoin(UserRoleEntity, 'ure', 'u.id = ure.userId')
             .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId')
             .innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId');
 
@@ -333,7 +343,11 @@ export default class UserService extends BaseService<User> {
             }
         }
 
-        query.groupBy('u.id');
+        if (individualLinkedEntityRequired) {
+            query.groupBy('u.id, le.linkedEntityId, le.linkedEntityTypeId');
+        } else {
+            query.groupBy('u.id');
+        }
 
         if (sortBy) {
             if (sortBy === 'firstName') {
@@ -353,8 +367,8 @@ export default class UserService extends BaseService<User> {
         const LIMIT = stringTONumber(limit);
 
         if (offset && limit) {
-            const userCount = await query.getCount();
             const userData = await query.offset(OFFSET).limit(LIMIT).getRawMany();
+            const userCount = userData.length;
             return { userCount, userData }
         } else {
             const userCount = null;
