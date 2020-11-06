@@ -86,7 +86,7 @@ export class UserController extends BaseController {
             if (!user) {
                 throw new LoginError(AppConstants.loginUnsuccessfulMsg);
             } else {
-                user = await this.userService.findByCredentialsForWeb(email, password);
+                user = await this.userService.findByCredentialsForTFA(email, password);
                 if (!user) {
                     throw new LoginError(AppConstants.loginErrMsg);
                 }
@@ -105,6 +105,7 @@ export class UserController extends BaseController {
                     };
                 }
 
+                user = await this.userService.findByCredentialsForWeb(email, password);
                 return this.responseWithTokenAndUser(email, password, user);
             }
         } else {
