@@ -795,6 +795,8 @@ export default class UserService extends BaseService<User> {
                             competitionId: item.competitionUniqueKey,
                             registrationId: item.registrationUniqueKey,
                             organisationId: item.organisationUniqueKey,
+                            competitionMembershipProductTypeId: item.competitionMembershipProductTypeId,
+                            competitionMembershipProductDivisionId: item.competitionMembershipProductDivisionId,
                             // feesPaid: item.feesPaid,
                             // vouchers: item.vouchers,
                             //shopPurchases: item.shopPurchases,
