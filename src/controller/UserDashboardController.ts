@@ -365,7 +365,8 @@ export class UserDashboardController extends BaseController {
             }
             else if(section == 'emergency'){
                 user.id = requestBody.userId;
-                user.emergencyContactName = requestBody.emergencyContactName
+                user.emergencyFirstName = requestBody.emergencyFirstName;
+                user.emergencyLastName= requestBody.emergencyLastName;
                 user.emergencyContactNumber = requestBody.emergencyContactNumber;
                 await this.userService.createOrUpdate(user);
                 return response.status(200).send({message: "Successfully updated"})

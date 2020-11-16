@@ -79,6 +79,14 @@ export class User extends BaseEntity {
     @IsString()
     @Column()
     emergencyContactName: string;
+  
+    @IsString()
+    @Column()
+    emergencyFirstName: string;
+    
+    @IsString()
+    @Column()
+    emergencyLastName: string;
 
     @IsString()
     @Column()
