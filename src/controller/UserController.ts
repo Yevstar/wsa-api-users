@@ -22,6 +22,7 @@ import {BaseController} from './BaseController';
 import {logger} from '../logger';
 import AppConstants from '../constants/AppConstants';
 import {LinkedEntities} from "../models/views/LinkedEntities";
+import { Role } from "../models/security/Role";
 
 const tfaOptionEnabled = parseInt(process.env.TFA_ENABLED, 10);
 
@@ -371,6 +372,71 @@ export class UserController extends BaseController {
             individualLinkedEntityRequired
         );
 
+        return await this.getUsersByRoles(
+            result,
+            roleIds,
+            needUREs,
+            offset,
+            limit
+        );
+    }
+
+    @Authorized()
+    @Get('/umpiresAvailable')
+    async loadUsersOfUmpiresAvailable(
+        @QueryParam('entityTypeId', { required: true }) entityTypeId: number,
+        @QueryParam('entityId', { required: true }) entityId: number,
+        @QueryParam('matchStartTime', { required: true }) matchStartTime: Date,
+        @QueryParam('matchEndTime', { required: true }) matchEndTime: Date,
+        @QueryParam('userName') userName: string,
+        @Res() response: Response,
+        @QueryParam('sortBy', { required: false }) sortBy?: string,
+        @QueryParam('sortOrder', { required: false }) sortOrder?: "ASC" | "DESC",
+        @QueryParam('offset') offset?: string,
+        @QueryParam('limit') limit?: string,
+        @QueryParam('needUREs') needUREs: boolean = false,
+        @QueryParam('individualLinkedEntityRequired') individualLinkedEntityRequired: boolean = false
+    ) {
+        if (!entityTypeId ||
+            !entityId) {
+            return response.status(400).send({
+                name: 'search_error',
+                message: `Required parameters not filled`
+            });
+        }
+
+        let roleIds = [ Role.UMPIRE ];
+        let result = await this.userService.getUsersBySecurity(
+            entityTypeId,
+            entityId,
+            userName,
+            { roleIds },
+            sortBy,
+            sortOrder,
+            offset,
+            limit,
+            individualLinkedEntityRequired,
+            true,
+            matchStartTime,
+            matchEndTime
+        );
+
+        return await this.getUsersByRoles(
+            result,
+            roleIds,
+            needUREs,
+            offset,
+            limit
+        );
+    }
+
+    private async getUsersByRoles(
+        result: any,
+        roleIds: number[],
+        needUREs: boolean,
+        offset?: string,
+        limit?: string
+    ): Promise<any> {
         var userIdsArray: number[] = new Array();
         var linkedEntitiesArray: LinkedEntities[] = new Array();
         for (let u of result.userData) {
@@ -421,10 +487,10 @@ export class UserController extends BaseController {
             logger.info(`Current user data fetched ${userDetails.email}`);
             return userDetails;
         } catch (err) {
-            logger.error(`Unable to patch user ${currentUser.email}` + err);
+            logger.error(`Unable to fetch user ${currentUser.email}` + err);
             return response.status(400).send({
                 name: 'unexpected_error',
-                message: process.env.NODE_ENV == AppConstants.development?'Failed to update the user.' + err : 'Failed to update the user.'
+                message: process.env.NODE_ENV == AppConstants.development? 'Failed to get the user.' + err : 'Failed to get the user.'
             });
         }
     }

@@ -71,6 +71,10 @@ export function isNotNullAndUndefined(checkString: string): boolean {
     return typeof checkString === 'string' && checkString !== null && checkString !== undefined;
 }
 
+export function isObjectNotNullAndUndefined(value: any): Boolean {
+    return value !== null && value !== undefined;
+}
+
 export function isArrayPopulated(checkArray: any): boolean {
     if (checkArray !== 'undefined'
         && checkArray !== null
