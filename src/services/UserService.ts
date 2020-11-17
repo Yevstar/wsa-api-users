@@ -827,8 +827,9 @@ export default class UserService extends BaseService<User> {
                             //paymentType: item.paymentType,
                             registrationForm: [],
                             alreadyDeRegistered: alreadyDeRegistered,
-                            paidBy: item.paidBy,
-                            paidByUserId: item.paidByUserId
+                            // paidBy: item.paidBy,
+                            // paidByUserId: item.paidByUserId,
+                            paidByUsers: item.paidByUsers!= null ? JSON.parse(item.paidByUsers) : []
                         }
 
                         if (isArrayPopulated(result[2])) {
