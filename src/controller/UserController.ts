@@ -14,6 +14,7 @@ import {
 import {Request, Response} from 'express';
 import {decode as atob} from 'base-64';
 import * as fastcsv from 'fast-csv';
+import QRcode from 'qrcode';
 
 import {User} from '../models/User';
 import {authToken, fileExt, isPhoto, timestamp, isArrayPopulated, md5, isNotNullAndUndefined, paginationData, stringTONumber} from '../utils/Utils';
@@ -162,12 +163,27 @@ export class UserController extends BaseController {
                 }
 
                 if (userWithRoles) {
+                    let tfaStatus = {
+                        tfaEnabled: true,
+                        qrCode: null,
+                    };
+
                     if (!user.tfaEnabled) {
                         await this.userService.updateTfaStatus(user);
+
+                        const qrCode = await QRcode.toDataURL(user.tfaSecretUrl);
+                        tfaStatus = {
+                            tfaEnabled: false,
+                            qrCode,
+                        }
                     }
 
                     userWithRoles.tfaEnabled = 1;
-                    return this.responseWithTokenAndUser(email, password, userWithRoles);
+                    const result = await this.responseWithTokenAndUser(email, password, userWithRoles);
+                    return {
+                        ...result,
+                        ...tfaStatus,
+                    }
                 } else {
                     throw new LoginError(AppConstants.loginUnsuccessfulMsg);
                 }
