@@ -804,6 +804,22 @@ export default class UserService extends BaseService<User> {
                         let deRegisterStatusRefId = item.deRegisterStatusRefId;
                         let paymentStatus = deRegisterStatusRefId != null ? deRegisterStatusRefId : item.paymentStatus;
                         let alreadyDeRegistered = deRegisterStatusRefId != null ? 1 : 0;
+                        let userMap = new Map();
+                        let paidByUsers = [];
+                        let transactions = item.paidByUsers!= null ? JSON.parse(item.paidByUsers) : [];
+                        (transactions || []).map((t, index) =>{
+                          let key = t.paidByUserId + "#" + t.paidBy;
+                          if(userMap.get(key) == undefined){
+                            let obj = {
+                              paidBy: t.paidBy,
+                              paidByUserId: t.paidByUserId
+                            }
+                            paidByUsers.push(obj);
+                            userMap.set(key, obj);
+                          }
+                        });
+
+                        
                         let obj = {
                             key: item.key,
                             affiliate: item.affiliate,
@@ -829,7 +845,7 @@ export default class UserService extends BaseService<User> {
                             alreadyDeRegistered: alreadyDeRegistered,
                             // paidBy: item.paidBy,
                             // paidByUserId: item.paidByUserId,
-                            paidByUsers: item.paidByUsers!= null ? JSON.parse(item.paidByUsers) : []
+                            paidByUsers: paidByUsers
                         }
 
                         if (isArrayPopulated(result[2])) {
