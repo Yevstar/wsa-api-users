@@ -13,10 +13,16 @@ import { EntityType } from "../models/security/EntityType";
 import { UserRoleEntity } from "../models/security/UserRoleEntity";
 import { LinkedEntities } from "../models/views/LinkedEntities";
 import { logger } from "../logger";
-import { paginationData, stringTONumber, isArrayPopulated, isNotNullAndUndefined } from "../utils/Utils";
+import {
+  paginationData,
+  stringTONumber,
+  isArrayPopulated,
+  isNotNullAndUndefined,
+  isObjectNotNullAndUndefined
+} from "../utils/Utils";
 import AppConstants from "../constants/AppConstants";
 import { CommunicationTrack } from "../models/CommunicationTrack";
-
+import { Booking } from "../models/Booking";
 
 @Service()
 export default class UserService extends BaseService<User> {
@@ -285,7 +291,10 @@ export default class UserService extends BaseService<User> {
         sortOrder?: "ASC" | "DESC",
         offset: string = undefined,
         limit: string = undefined,
-        individualLinkedEntityRequired: boolean = false
+        individualLinkedEntityRequired: boolean = false,
+        basedOnAvailability: boolean = false,
+        startTime: Date = undefined,
+        endTime: Date = undefined
     ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
@@ -318,6 +327,18 @@ export default class UserService extends BaseService<User> {
             let ids = sec.roleIds;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
                 .andWhere('r.id in (:ids)', { ids });
+        }
+
+        if (basedOnAvailability &&
+            isObjectNotNullAndUndefined(startTime) &&
+            isObjectNotNullAndUndefined(endTime)) {
+              query.leftJoin(Booking, 'bk', 'bk.userId = u.id and ((bk.startTime ' +
+                '<= :startTime and bk.endTime > :startTime) or (bk.startTime ' +
+                '>= :startTime and bk.startTime < :endTime))', {
+                  startTime: startTime,
+                  endTime: endTime
+              });
+              query.andWhere('bk.userId is null');
         }
 
         query.andWhere('le.inputEntityTypeId = :entityTypeId', { entityTypeId })
@@ -783,6 +804,22 @@ export default class UserService extends BaseService<User> {
                         let deRegisterStatusRefId = item.deRegisterStatusRefId;
                         let paymentStatus = deRegisterStatusRefId != null ? deRegisterStatusRefId : item.paymentStatus;
                         let alreadyDeRegistered = deRegisterStatusRefId != null ? 1 : 0;
+                        let userMap = new Map();
+                        let paidByUsers = [];
+                        let transactions = item.paidByUsers!= null ? JSON.parse(item.paidByUsers) : [];
+                        (transactions || []).map((t, index) =>{
+                          let key = t.paidByUserId + "#" + t.paidBy;
+                          if(userMap.get(key) == undefined){
+                            let obj = {
+                              paidBy: t.paidBy,
+                              paidByUserId: t.paidByUserId
+                            }
+                            paidByUsers.push(obj);
+                            userMap.set(key, obj);
+                          }
+                        });
+
+                        
                         let obj = {
                             key: item.key,
                             affiliate: item.affiliate,
@@ -806,8 +843,9 @@ export default class UserService extends BaseService<User> {
                             //paymentType: item.paymentType,
                             registrationForm: [],
                             alreadyDeRegistered: alreadyDeRegistered,
-                            paidBy: item.paidBy,
-                            paidByUserId: item.paidByUserId
+                            // paidBy: item.paidBy,
+                            // paidByUserId: item.paidByUserId,
+                            paidByUsers: paidByUsers
                         }
 
                         if (isArrayPopulated(result[2])) {
