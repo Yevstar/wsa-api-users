@@ -561,6 +561,7 @@ export class AffiliateController extends BaseController {
     @Get('/affiliatedtoorganisation/:organisationId')
     async affiliateToOrg(
         @QueryParam('userId') userId: number,
+        @QueryParam('search') search: string,
         @HeaderParam("authorization") currentUser: User,
         @Param("organisationId") organisationUniqueKey: string,
         @Res() response: Response) {
@@ -568,7 +569,7 @@ export class AffiliateController extends BaseController {
             if (userId) {
                 if (userId && userId == currentUser.id) {
                     let organisationId = await this.organisationService.findByUniquekey(organisationUniqueKey);
-                    const affiliateToOrgRes = await this.affiliateService.affiliateToOrg(organisationId);
+                    const affiliateToOrgRes = await this.affiliateService.affiliateToOrg(organisationId,search);
                     return response.status(200).send(affiliateToOrgRes);
 
                 }

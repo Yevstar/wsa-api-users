@@ -192,10 +192,10 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
     }
 
-    public async affiliateToOrg(organisationId: any){
+    public async affiliateToOrg(organisationId: any, search:string = undefined){
         console.log("organisationId::" + organisationId);
-        let result = await this.entityManager.query("call wsa_users.usp_affiliateToOrg(?)",
-        [organisationId]);
+        let result = await this.entityManager.query("call wsa_users.usp_affiliateToOrg(?,?)",
+        [organisationId, search]);
 
         let obj = {
             affiliatedTo: [...result[1],...result[2], ...result[3]],
