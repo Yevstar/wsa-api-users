@@ -5,6 +5,7 @@ import {IsDate, IsNumber, IsString} from "class-validator";
 export class Role extends BaseEntity {
 
     public static PLAYER = 8;
+    public static UMPIRE = 15;
 
     @IsNumber()
     @PrimaryGeneratedColumn()

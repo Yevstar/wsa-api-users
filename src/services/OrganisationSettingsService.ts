@@ -44,9 +44,18 @@ export default class OrganisationSettingsService extends BaseService<Organisatio
     }
 
     public async getBannerCount(organisationId) {
-        return await this.entityManager.createQueryBuilder(OrganisationSettings, 'organisationSettings')
+        const bannerCounts = await this.entityManager.createQueryBuilder(OrganisationSettings, 'organisationSettings')
             .select(['numStateBanner', 'numCompBanner'])
             .where('organisationId = :organisationId', { organisationId })
-            .getRawOne();
+            .getRawMany();
+
+        if (!isArrayPopulated(bannerCounts)) {
+            return {
+                numStateBanner: 0,
+                numCompBanner: 0,
+            };
+        }
+
+        return bannerCounts[0];
     }
 }
