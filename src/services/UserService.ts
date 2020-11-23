@@ -300,7 +300,13 @@ export default class UserService extends BaseService<User> {
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
                 'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl',
-                'u.firebaseUID as firebaseUID', 'u.statusRefId as statusRefId']);
+                'u.firebaseUID as firebaseUID', 'u.statusRefId as statusRefId', 
+                'u.accreditationLevelUmpireRefId as accreditationLevelUmpireRefId',
+                'u.accreditationUmpireExpiryDate as accreditationUmpireExpiryDate',
+                'u.associationLevelInfo as associationLevelInfo',
+                'u.accreditationLevelCoachRefId as accreditationLevelCoachRefId',
+                'u.isPrerequestTrainingComplete as isPrerequestTrainingComplete',
+                'u.accreditationCoachExpiryDate as accreditationCoachExpiryDate']);
 
         if (individualLinkedEntityRequired) {
             query.addSelect('concat(\'[\',JSON_OBJECT(\'entityTypeId\', ' +
@@ -389,7 +395,7 @@ export default class UserService extends BaseService<User> {
 
         if (offset && limit) {
             const userData = await query.offset(OFFSET).limit(LIMIT).getRawMany();
-            const userCount = await query.getCount();
+            const userCount = userData.length;
             return { userCount, userData }
         } else {
             const userCount = null;
@@ -398,6 +404,7 @@ export default class UserService extends BaseService<User> {
         }
 
     }
+
 
     public async sentMail(templateObj, OrganisationName, receiverData, password, entityId, userId) {
         let url = process.env.liveScoresWebHost;
