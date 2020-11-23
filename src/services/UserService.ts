@@ -610,6 +610,9 @@ export default class UserService extends BaseService<User> {
                                 nationalityName: item.nationalityName,
                                 countryName: item.countryName,
                                 isDisability: item.isDisability,
+                                accrediationLevel: item.accrediationLevel,
+                                accreditationLevelUmpireRefId: item.accreditationLevelUmpireRefId,
+                                accreditationUmpireExpiryDate: item.accreditationUmpireExpiryDate,
                                 competitions: []
                             }
 
