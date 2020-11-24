@@ -103,7 +103,7 @@ export class UserRoleEntityController extends BaseController {
     private async notifyChangeRole(ure) {
         let tokens = (await this.deviceService.getUserDevices(ure.userId)).map(device => device.deviceId);
         if (tokens && tokens.length > 0) {
-            this.firebaseService.sendMessage({
+            this.firebaseService.sendMessageChunked({
                 tokens: tokens,
                 data: {
                     type: 'user_role_updated'
