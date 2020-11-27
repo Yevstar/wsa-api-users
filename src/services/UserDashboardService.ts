@@ -135,7 +135,6 @@ export default class UserDashboardService extends BaseService<User> {
                 responseObject["competitions"] = result[2];
                 responseObject["organisations"] = result[3];
                 responseObject["roles"] = result[4];
-                responseObject["test"] = 'testing';
                 let obj = {
                     noOfUsers: 0,
                     noOfRegisteredUsers: 0
