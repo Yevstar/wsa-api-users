@@ -184,6 +184,24 @@ export default class UserService extends BaseService<User> {
         }
     }
 
+    public async spectatorDashboard(requestBody: any, sortBy: string = undefined, sortOrder: "ASC" | "DESC" = undefined) {
+        try {
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
+            let result = await this.entityManager.query("call wsa_users.usp_spectator_dashboard(?,?,?,?)", [requestBody.yearRefId, requestBody.organisationUniqueKey, limit, offset]);
+
+            if (isArrayPopulated(result[1])) {
+                let totalCount = result[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["spectator"] = result[1];
+                return responseObject;
+            } else
+                return [];
+        } catch (error) {
+            throw error
+        }
+    }
+
     public async getUserPermission(userId: number): Promise<any[]> {
         return this.entityManager.query(
             'select distinct r.id as id,\n' +

@@ -700,6 +700,24 @@ export class UserController extends BaseController {
     }
 
     @Authorized()
+    @Post('/dashboard/spectator')
+    async spectatorDashboard(
+        @Body() requestBody: any,
+        @HeaderParam("authorization") user: User,
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC"
+    ) {
+        try {
+            let res = await this.userService.spectatorDashboard(requestBody, sortBy, sortOrder)
+            return response.status(200).send(res)
+        } catch (error) {
+            logger.error(`Unable to get Refer friend details `, error)
+            return response.status(500).send({message: process.env.NODE_ENV == AppConstants.development? 'Something went wrong' + error : 'Something went wrong'})
+        }
+    }
+
+    @Authorized()
     @Get('/byRole/export')
     async exportUserByRole(
         @QueryParam('roleId', {required: true}) roleId: number,
