@@ -318,7 +318,7 @@ export default class UserService extends BaseService<User> {
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
                 'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl',
-                'u.firebaseUID as firebaseUID', 'u.statusRefId as statusRefId', 
+                'u.firebaseUID as firebaseUID', 'u.statusRefId as statusRefId',
                 'u.accreditationLevelUmpireRefId as accreditationLevelUmpireRefId',
                 'u.accreditationUmpireExpiryDate as accreditationUmpireExpiryDate',
                 'u.associationLevelInfo as associationLevelInfo',
@@ -341,10 +341,11 @@ export default class UserService extends BaseService<User> {
             .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId')
             .innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId');
 
-        if (sec.functionId) {
-            let id = sec.functionId;
-            query.innerJoin(Function, 'f', 'f.id = fr.functionId')
-                .andWhere('f.id = :id', { id });
+        if (isObjectNotNullAndUndefined(sec) &&
+            isObjectNotNullAndUndefined(sec.functionId)) {
+                let id = sec.functionId;
+                query.innerJoin(Function, 'f', 'f.id = fr.functionId')
+                    .andWhere('f.id = :id', { id });
         }
 
         if (isArrayPopulated(sec.roleIds)) {
@@ -365,8 +366,11 @@ export default class UserService extends BaseService<User> {
               query.andWhere('bk.userId is null');
         }
 
-        query.andWhere('le.inputEntityTypeId = :entityTypeId', { entityTypeId })
-            .andWhere('le.inputEntityId = :entityId', { entityId });
+        if (isObjectNotNullAndUndefined(entityTypeId) &&
+            (isObjectNotNullAndUndefined(entityId) && entityId != 0)) {
+            query.andWhere('le.inputEntityTypeId = :entityTypeId', {entityTypeId})
+                .andWhere('le.inputEntityId = :entityId', {entityId});
+        }
 
         if (userName) {
             query.andWhere(new Brackets(qb => {

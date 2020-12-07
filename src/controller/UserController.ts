@@ -17,7 +17,17 @@ import * as fastcsv from 'fast-csv';
 import QRcode from 'qrcode';
 
 import {User} from '../models/User';
-import {authToken, fileExt, isPhoto, timestamp, isArrayPopulated, md5, isNotNullAndUndefined, paginationData, stringTONumber} from '../utils/Utils';
+import {
+    authToken,
+    fileExt,
+    isPhoto,
+    timestamp,
+    isArrayPopulated,
+    md5,
+    paginationData,
+    stringTONumber,
+    isObjectNotNullAndUndefined
+} from '../utils/Utils';
 import {LoginError} from '../exceptions/LoginError';
 import {BaseController} from './BaseController';
 import {logger} from '../logger';
@@ -299,7 +309,16 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let result = await this.userService.getUsersBySecurity(entityTypeId, entityId, userName, { functionId },null,null,null,null);
+        let result = await this.userService.getUsersBySecurity(
+            entityTypeId,
+            entityId,
+            userName,
+            { functionId },
+            null,
+            null,
+            null,
+            null
+        );
 
         if (result && result.userData && Array.isArray(result.userData)) {
             // Here we are checking every user with firestore inorder to make sure
@@ -329,9 +348,10 @@ export class UserController extends BaseController {
         @QueryParam('limit') limit?: string,
         @QueryParam('needUREs') needUREs: boolean = false
     ) {
-        if (!roleId ||
-            !entityTypeId ||
-            !entityId) {
+        if (!isObjectNotNullAndUndefined(roleId) ||
+            !isObjectNotNullAndUndefined(entityTypeId) ||
+            !isObjectNotNullAndUndefined(entityId)
+        ) {
             return response.status(400).send({
                 name: 'search_error',
                 message: `Required parameters not filled`
@@ -368,8 +388,9 @@ export class UserController extends BaseController {
         @QueryParam('individualLinkedEntityRequired') individualLinkedEntityRequired: boolean = false
     ) {
         if (!isArrayPopulated(roleIds) ||
-            !entityTypeId ||
-            !entityId) {
+            !isObjectNotNullAndUndefined(entityTypeId) ||
+            !isObjectNotNullAndUndefined(entityId)
+        ) {
             return response.status(400).send({
                 name: 'search_error',
                 message: `Required parameters not filled`
@@ -413,8 +434,9 @@ export class UserController extends BaseController {
         @QueryParam('needUREs') needUREs: boolean = false,
         @QueryParam('individualLinkedEntityRequired') individualLinkedEntityRequired: boolean = false
     ) {
-        if (!entityTypeId ||
-            !entityId) {
+        if (!isObjectNotNullAndUndefined(entityTypeId) ||
+            !isObjectNotNullAndUndefined(entityId)
+        ) {
             return response.status(400).send({
                 name: 'search_error',
                 message: `Required parameters not filled`
@@ -480,7 +502,9 @@ export class UserController extends BaseController {
             }
         }
 
-        if(isNotNullAndUndefined(offset) && isNotNullAndUndefined(limit)) {
+        if(isObjectNotNullAndUndefined(offset) &&
+            isObjectNotNullAndUndefined(limit)
+        ) {
                 let totalCount = result.userCount;
                 let responseObject = paginationData(stringTONumber(totalCount), +limit, +offset);
                 responseObject["userData"] = result.userData;
@@ -726,7 +750,15 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let getManagersData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response, undefined, undefined);
+        let getManagersData: any = await this.loadUserByRole(
+            roleId,
+            entityTypeId,
+            entityId,
+            userName,
+            response,
+            undefined,
+            undefined
+        );
         if (isArrayPopulated(getManagersData)) {
             getManagersData.map(e => {
                 e['First Name'] = e['firstName'];
@@ -787,7 +819,15 @@ export class UserController extends BaseController {
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let userData: any = await this.loadUserByRole(roleId, entityTypeId, entityId, userName, response, undefined, undefined);
+        let userData: any = await this.loadUserByRole(
+            roleId,
+            entityTypeId,
+            entityId,
+            userName,
+            response,
+            undefined,
+            undefined
+        );
         if (isArrayPopulated(userData)) {
             userData.map(e => {
                 e['ID'] = e['id'];
