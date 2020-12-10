@@ -242,7 +242,7 @@ export class UserDashboardController extends BaseController {
                 //     return response.status(212).send(validateComp);
                 // }
                 //const userRegRes = await this.userService.sendTeamRegisterPlayerInviteMail(requestBody);
-                return response.status(200).send(userRegRes);
+               // return response.status(200).send(userRegRes);
             }
         } catch (error) {
             logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
