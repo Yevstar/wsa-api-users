@@ -13,7 +13,25 @@ const AppConstants = {
     adminLastName : '$(admin_user_last_name)',
     affiliateName: '$(affiliateName)',
     email: '$(email)',
-    fromAffiliateName: 'from $(affiliateName)'
+    fromAffiliateName: 'from $(affiliateName)',
+    AffiliateName: '$(Affiliate_Name)',
+    userName: '${userName}',
+    nameAndPassword: 'Your Username is ${userName} and your Password is <b> ${password}</b>.',
+    userNameAndPassword: 'Your Username is ${userName} and your Password is <b> ${password}</b>.<br><br>',
+    clickHereToRegister: 'Please <a href="$(url)">click here</a> to complete your registration.',
+    competionName: '$(Competition_Name)',
+    division: '$(division)',
+    inDivision: 'in $(division)',
+    teamName: '$(team_name)',
+    startDate: '$(start_date)',  registerPersonName: '$(registering_person_name)',
+    registerPersonNumber: '$(registering_person_number)',
+    userRegUniquekey: '{USERREGUNIQUEKEY}',
+    regCloseDate: '$(registration_close_date)',
+    name: '$(name)',
+    url: '$(url)',
+    completeYouRegistration:'complete your registration',
+    updateYourProfile: 'update your Profile',
+    registerBoforeCloseDate: '<br><br>It’s important that you register before the registration close date of $(registration_close_date). $(Competition_Name) starts on $(start_date).',
 };
 
 export default AppConstants;

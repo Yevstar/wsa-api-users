@@ -602,7 +602,134 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
+    public async sendTeamRegisterPlayerInviteMail(resBody, playerBody,templateObj, userId, password,registrationId, roleArray) {
+        try{
 
+            let subject = templateObj.emailSubject ;
+            subject = subject.replace(AppConstants.teamName, resBody.teamName);
+            let url = process.env.TEAM_REGISTRATION_URL;
+            //  let html = ``;
+            url = url.replace(AppConstants.userRegUniquekey,playerBody.userRegUniqueKey)
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.name, playerBody.firstName+" "+playerBody.lastName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerPersonName, resBody.firstName+" "+resBody.lastName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.teamName, resBody.teamName);
+            let divisionName = ''
+            if(!isArrayPopulated(roleArray)){
+                templateObj.emailBody = templateObj.emailBody.replace(AppConstants.inDivision, "");
+            }
+            else{
+                divisionName = roleArray[0];
+            }
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.division, divisionName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.competionName, resBody.competitionName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.startDate, resBody.startDate);
+            // if(playerBody.membershipProductFeesTypeRefId == 1){
+            // templateObj.emailBody = templateObj.emailBody.replace(AppConstants.url, url);
+            // }
+            // else{
+            //     if(playerBody.transactionId == null){
+            //         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.url, url);
+            //     }
+            //     else{
+            //         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.clickHereToRegister, "");
+            //     }
+            // }
+            if(playerBody.notPaid == null){
+                templateObj.emailBody = templateObj.emailBody.replace(AppConstants.completeYouRegistration, AppConstants.updateYourProfile);
+                templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerBoforeCloseDate, '');
+            }
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.url, url);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.userNameAndPassword, "");
+
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.startDate, resBody.startDate);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.competionName, resBody.competitionName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.regCloseDate, resBody.registrationCloseDate);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.startDate, resBody.startDate);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerPersonName, resBody.firstName+" "+resBody.lastName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerPersonNumber, resBody.mobileNumber);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.AffiliateName, resBody.organisationName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.AffiliateName, resBody.organisationName);
+
+            const transporter = nodeMailer.createTransport({
+                host: "smtp.gmail.com",
+                port: 587,
+                secure: false, // true for 465, false for other ports
+                auth: {
+                    user: process.env.MAIL_USERNAME, // generated ethereal user
+                    pass: process.env.MAIL_PASSWORD // generated ethereal password
+                },
+
+                tls: {
+                    // do not fail on invalid certs
+                    rejectUnauthorized: false
+                }
+
+            });
+
+        const mailOptions = {
+                from: {
+                    name: "World Sport Action",
+                    address: "mail@worldsportaction.com"
+                },
+                to: playerBody.email,
+                replyTo: "donotreply@worldsportaction.com",
+                subject: subject,
+                html: templateObj.emailBody
+
+            };
+            if(Number(process.env.SOURCE_MAIL) == 1){
+                mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html 
+                mailOptions.to = process.env.TEMP_DEV_EMAIL
+            }
+            let cTrack = new CommunicationTrack();
+
+         //   logger.info(`before - sendMail : mailOptions ${mailOptions}`);
+            try{
+               
+                cTrack.id= 0;
+             
+                cTrack.communicationType = 2;
+               // cTrack.contactNumber = playerBody.mobileNumber
+                cTrack.entityId = registrationId;
+                cTrack.deliveryChannelRefId = 1;
+                cTrack.emailId = playerBody.email;
+                cTrack.userId = playerBody.userId;
+                cTrack.subject = subject;
+                //cTrack.content = templateObj.emailBody;
+                cTrack.createdBy = userId;
+              
+                await transporter.sendMail(mailOptions, (err, info) => {
+                    if (err) {
+                        cTrack.statusRefId = 2;
+                        cTrack.content  = mailOptions.html.replace(password,"******");   
+                        logger.error(`TeamRegistration - sendInviteMail : ${err},  ${playerBody.email}`);
+                        this.insertIntoCommunicationTrack(cTrack);
+                        // Here i commented the below code as the caller is not handling the promise reject
+                        // return Promise.reject(err);
+                    } else {
+                        cTrack.statusRefId = 1;
+                        cTrack.content  = mailOptions.html.replace(password,"******");   
+                      logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${playerBody.email}`);
+                      this.insertIntoCommunicationTrack(cTrack);
+                    }
+                    transporter.close();
+                    return Promise.resolve();
+                });
+               
+                //return cTrack
+            }
+            catch(error){
+                cTrack.statusRefId = 2;
+               // return cTrack;
+            }
+          
+
+        } catch (error) {
+            throw error;
+        }
+
+    
+    }
     public async userPersonalDetails(userId: number, organisationUniqueKey: any) {
         try {
             let result = await this.entityManager.query("call wsa_users.usp_user_personal_details(?,?)",
