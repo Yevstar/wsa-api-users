@@ -11,6 +11,7 @@ import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
 import { CommunicationTrack } from "../models/CommunicationTrack";
 import { isNullOrUndefined } from "util";
+import {UserRoleEntity} from "../models/security/UserRoleEntity";
 let moment = require('moment');
 
 @JsonController("/api")
@@ -366,7 +367,40 @@ export class UserDashboardController extends BaseController {
                 user.postalCode = requestBody.postalCode;
                 user.mobileNumber = requestBody.mobileNumber;
                 user.email = requestBody.email.toLowerCase();
+                if (user.id != 0 || user.id != null) {
+                    user.updatedBy = currentUser.id;
+                    user.updatedOn = new Date();
+                }
+                else {
+                    user.createdBy = currentUser.id;
+                }
                 let userData =  await this.userService.createOrUpdate(user);
+
+                let ureData = new UserRoleEntity();
+                let getData;
+                if(section == 'child') {
+                    getData = await this.ureService.findExisting(requestBody.userId,userData.id,4,9);
+                    ureData.userId = requestBody.userId;
+                    ureData.entityId = userData.id;
+                }
+                else {
+                    getData = await this.ureService.findExisting(userData.id,requestBody.userId,4,9);  
+                    ureData.userId = userData.id;
+                    ureData.entityId = requestBody.userId;
+                }
+
+                if (getData) {
+                    ureData.id = getData.id;
+                    ureData.updatedBy = currentUser.id;
+                    ureData.updatedAt = new Date();
+                }
+                else {
+                    ureData.id = 0;
+                    ureData.createdBy = currentUser.id;
+                }
+                ureData.roleId = 9;
+                ureData.entityTypeId = 4;
+                await this.ureService.createOrUpdate(ureData);
 
                 if(userFromDb != undefined){
                     if(userFromDb.email !== user.email){

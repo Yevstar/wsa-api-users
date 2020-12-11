@@ -97,4 +97,16 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
 
         return query.getMany();
     }
+
+    public async findExisting(userId: number, entityId: number, entityTypeId: number, roleId: number): Promise<UserRoleEntity>{
+        try{
+            let query = await this.entityManager.createQueryBuilder(UserRoleEntity, 'ure')
+            .where('ure.userId = :userId and ure.entityId = :entityId and ure.entityTypeId= :entityTypeId and ure.roleId = :roleId and ure.isDeleted = 0',
+            {userId: userId, entityId: entityId, entityTypeId: entityTypeId, roleId: roleId})
+            .getOne()
+            return query;
+        }catch(error){
+            throw error;
+        }
+    }
 }
