@@ -290,6 +290,7 @@ export class UserDashboardController extends BaseController {
 
             let user = new User();
             let userReg = new UserRegistration();
+            let ureData = new UserRoleEntity();
             let organisationName = null ;
             if(!(isNullOrUndefined(organisationId))){
                let organisation = await this.organisationService.findOrgByUniquekey(organisationId)
@@ -376,7 +377,7 @@ export class UserDashboardController extends BaseController {
                 }
                 let userData =  await this.userService.createOrUpdate(user);
 
-                let ureData = new UserRoleEntity();
+                
                 let getData;
                 if(section == 'child') {
                     getData = await this.ureService.findExisting(requestBody.userId,userData.id,4,9);
@@ -418,6 +419,19 @@ export class UserDashboardController extends BaseController {
                 }
                 return response.status(200).send({message: "Successfully updated"})
             }
+
+            else if(section == 'unlink') {
+                let getData = await this.ureService.findExisting(requestBody.parentUserId, requestBody.childUserId,4,9);
+                if(getData) {
+                    ureData.id = getData.id;
+                    ureData.isDeleted = 1;
+                    ureData.updatedBy = currentUser.id;
+                    ureData.updatedAt = new Date();
+                    await this.ureService.createOrUpdate(ureData);
+                    return response.status(200).send({message: "Successfully Deleted"});
+                }    
+            }
+
             else if(section == 'emergency'){
                 user.id = requestBody.userId;
                 user.emergencyFirstName = requestBody.emergencyFirstName;
