@@ -352,7 +352,7 @@ export class UserDashboardController extends BaseController {
                 let userFromDb = await this.userService.findById(user.id);
                 let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
                 if(userDb2 != undefined){
-                    if (userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
+                    if (userFromDb && userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
                         return response.status(212).send({
                             errorCode: 7,
                             message: 'This email address is already in use. Please use a different email address'
@@ -406,11 +406,8 @@ export class UserDashboardController extends BaseController {
                 if(userFromDb != undefined){
                     if(userFromDb.email !== user.email){
                         await this.updateFirebaseData(userData, userFromDb.password);
-
-                        
                         let mailObjOld = await this.communicationTemplateService.findById(12);
                         await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
-                        
                         
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
