@@ -11,6 +11,7 @@ import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
 import { CommunicationTrack } from "../models/CommunicationTrack";
 import { isNullOrUndefined } from "util";
+import {UserRoleEntity} from "../models/security/UserRoleEntity";
 let moment = require('moment');
 
 @JsonController("/api")
@@ -289,6 +290,7 @@ export class UserDashboardController extends BaseController {
 
             let user = new User();
             let userReg = new UserRegistration();
+            let ureData = new UserRoleEntity();
             let organisationName = null ;
             if(!(isNullOrUndefined(organisationId))){
                let organisation = await this.organisationService.findOrgByUniquekey(organisationId)
@@ -350,7 +352,7 @@ export class UserDashboardController extends BaseController {
                 let userFromDb = await this.userService.findById(user.id);
                 let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
                 if(userDb2 != undefined){
-                    if (userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
+                    if (userFromDb && userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
                         return response.status(212).send({
                             errorCode: 7,
                             message: 'This email address is already in use. Please use a different email address'
@@ -366,16 +368,46 @@ export class UserDashboardController extends BaseController {
                 user.postalCode = requestBody.postalCode;
                 user.mobileNumber = requestBody.mobileNumber;
                 user.email = requestBody.email.toLowerCase();
+                if (user.id != 0 || user.id != null) {
+                    user.updatedBy = currentUser.id;
+                    user.updatedOn = new Date();
+                }
+                else {
+                    user.createdBy = currentUser.id;
+                }
                 let userData =  await this.userService.createOrUpdate(user);
+
+                
+                let getData;
+                if(section == 'child') {
+                    getData = await this.ureService.findExisting(requestBody.userId,userData.id,4,9);
+                    ureData.userId = requestBody.userId;
+                    ureData.entityId = userData.id;
+                }
+                else {
+                    getData = await this.ureService.findExisting(userData.id,requestBody.userId,4,9);  
+                    ureData.userId = userData.id;
+                    ureData.entityId = requestBody.userId;
+                }
+
+                if (getData) {
+                    ureData.id = getData.id;
+                    ureData.updatedBy = currentUser.id;
+                    ureData.updatedAt = new Date();
+                }
+                else {
+                    ureData.id = 0;
+                    ureData.createdBy = currentUser.id;
+                }
+                ureData.roleId = 9;
+                ureData.entityTypeId = 4;
+                await this.ureService.createOrUpdate(ureData);
 
                 if(userFromDb != undefined){
                     if(userFromDb.email !== user.email){
                         await this.updateFirebaseData(userData, userFromDb.password);
-
-                        
                         let mailObjOld = await this.communicationTemplateService.findById(12);
                         await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
-                        
                         
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
@@ -384,6 +416,19 @@ export class UserDashboardController extends BaseController {
                 }
                 return response.status(200).send({message: "Successfully updated"})
             }
+
+            else if(section == 'unlink') {
+                let getData = await this.ureService.findExisting(requestBody.parentUserId, requestBody.childUserId,4,9);
+                if(getData) {
+                    ureData.id = getData.id;
+                    ureData.isDeleted = 1;
+                    ureData.updatedBy = currentUser.id;
+                    ureData.updatedAt = new Date();
+                    await this.ureService.createOrUpdate(ureData);
+                    return response.status(200).send({message: "Successfully Deleted"});
+                }    
+            }
+
             else if(section == 'emergency'){
                 user.id = requestBody.userId;
                 user.emergencyFirstName = requestBody.emergencyFirstName;
