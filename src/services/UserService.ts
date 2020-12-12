@@ -458,8 +458,8 @@ export default class UserService extends BaseService<User> {
 
         const mailOptions = {
             from: {
-                name: "World Sport Action",
-                address: "mail@worldsportaction.com"
+                name: "NetballConnect",
+                address: "mail@netballconnect.com"
             },
             to: receiverData.email.toLowerCase(),
             replyTo: "donotreply@worldsportaction.com",
@@ -547,8 +547,8 @@ export default class UserService extends BaseService<User> {
             // const path = require('path');
             const mailOptions = {
                 from: {
-                    name: "World Sport Action",
-                    address: "mail@worldsportaction.com"
+                    name: "NetballConnect",
+                    address: "mail@netballconnect.com"
                 },
                 to: contact.email,
                 replyTo: "donotreply@worldsportaction.com",
@@ -668,8 +668,8 @@ export default class UserService extends BaseService<User> {
 
         const mailOptions = {
                 from: {
-                    name: "World Sport Action",
-                    address: "mail@worldsportaction.com"
+                    name: "NetballConnect",
+                    address: "mail@netballconnect.com"
                 },
                 to: playerBody.email,
                 replyTo: "donotreply@worldsportaction.com",
