@@ -45,7 +45,7 @@ export class AffiliateController extends BaseController {
                                     if (contact.userId == 0) {
                                         let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
                                         if (userDb) {
-                                            if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && 
+                                            if (contact.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && contact.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim() && 
                                             ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) == 
                                                     (userDb.mobileNumber!= null ? userDb.mobileNumber.trim() : userDb.mobileNumber)) ) {
                                                 contact.userId = userDb.id
@@ -75,7 +75,7 @@ export class AffiliateController extends BaseController {
                                             let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
                                             if(!(isNullOrUndefined(userDb))){
                                                 if (userDb.id != contact.userId) {
-                                                    if (contact.firstName.trim() == userDb.firstName.trim() && contact.lastName.trim() == userDb.lastName.trim() && 
+                                                    if (contact.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && contact.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim() && 
                                                     ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) == 
                                                     (userDb.mobileNumber!= null ? userDb.mobileNumber.trim() : userDb.mobileNumber) )) {
                                                         contact.userId = userDb.id
