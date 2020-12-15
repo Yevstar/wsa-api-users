@@ -32,6 +32,8 @@ const AppConstants = {
     completeYouRegistration:'complete your registration',
     updateYourProfile: 'update your Profile',
     registerBoforeCloseDate: '<br><br>It’s important that you register before the registration close date of $(registration_close_date). $(Competition_Name) starts on $(start_date).',
+    PARENT_UNLINKED: 23,
+    PARENT_LINKED: 9
 };
 
 export default AppConstants;

@@ -416,12 +416,22 @@ export class UserDashboardController extends BaseController {
                 }
                 return response.status(200).send({message: "Successfully updated"})
             }
+            else if(section == 'unlink' || section == 'link') {
+                let existingRoleId;
+                let roleId;
+                if(section == 'unlink'){
+                    existingRoleId = AppConstants.PARENT_LINKED;
+                    roleId = AppConstants.PARENT_UNLINKED;
+                }
+                else{
+                    existingRoleId = AppConstants.PARENT_UNLINKED;
+                    roleId = AppConstants.PARENT_LINKED;   
+                }
 
-            else if(section == 'unlink') {
-                let getData = await this.ureService.findExisting(requestBody.parentUserId, requestBody.childUserId,4,9);
+                let getData = await this.ureService.findExisting(requestBody.parentUserId, requestBody.childUserId,4, existingRoleId);
                 if(getData) {
                     ureData.id = getData.id;
-                    ureData.isDeleted = 1;
+                    ureData.roleId = roleId;
                     ureData.updatedBy = currentUser.id;
                     ureData.updatedAt = new Date();
                     await this.ureService.createOrUpdate(ureData);
