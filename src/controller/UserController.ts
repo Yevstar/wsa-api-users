@@ -789,6 +789,13 @@ export class UserController extends BaseController {
                 delete e['firebaseUID'];
                 delete e['statusRefId'];
                 delete e['linkedEntity'];
+                delete e['accreditationLevelUmpireRefId'];
+                delete e['accreditationUmpireExpiryDate'];
+                delete e['associationLevelInfo'];
+                delete e['accreditationLevelCoachRefId'];
+                delete e['isPrerequestTrainingComplete'];
+                delete e['accreditationCoachExpiryDate'];
+
                 return e;
             });
         } else {
