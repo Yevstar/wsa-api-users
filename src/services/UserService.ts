@@ -23,6 +23,7 @@ import {
 import AppConstants from "../constants/AppConstants";
 import { CommunicationTrack } from "../models/CommunicationTrack";
 import { Booking } from "../models/Booking";
+import { Team } from "../models/Team";
 
 @Service()
 export default class UserService extends BaseService<User> {
@@ -330,16 +331,19 @@ export default class UserService extends BaseService<User> {
             query.addSelect('concat(\'[\',JSON_OBJECT(\'entityTypeId\', ' +
                 'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, ' +
                 '\'name\', le.linkedEntityName, \'parentName\', ' +
-                'le.linkedParentName),\']\') as linkedEntity');
+                'le.linkedParentName, \'competitionOrganisationId\', ' +
+                'team.competitionOrganisationId),\']\') as linkedEntity');
         } else {
             query.addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'entityTypeId\', ' +
-                'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, \'name\', le.linkedEntityName, \'parentName\', le.linkedParentName)),\']\') ' +
+                'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, \'name\', le.linkedEntityName, ' +
+                '\'parentName\', le.linkedParentName, \'competitionOrganisationId\', team.competitionOrganisationId)),\']\') ' +
                 'as linkedEntity');
         }
 
         query.innerJoin(UserRoleEntity, 'ure', 'u.id = ure.userId')
             .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId')
-            .innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId');
+            .innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId')
+            .leftJoin(Team, 'team', '(team.id = le.linkedEntityId and le.linkedEntityTypeId = :teamEntityId)', {teamEntityId: EntityType.TEAM});
 
         if (isObjectNotNullAndUndefined(sec) &&
             isObjectNotNullAndUndefined(sec.functionId)) {
@@ -678,16 +682,16 @@ export default class UserService extends BaseService<User> {
 
             };
             if(Number(process.env.SOURCE_MAIL) == 1){
-                mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html 
+                mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html
                 mailOptions.to = process.env.TEMP_DEV_EMAIL
             }
             let cTrack = new CommunicationTrack();
 
          //   logger.info(`before - sendMail : mailOptions ${mailOptions}`);
             try{
-               
+
                 cTrack.id= 0;
-             
+
                 cTrack.communicationType = 2;
                // cTrack.contactNumber = playerBody.mobileNumber
                 cTrack.entityId = registrationId;
@@ -697,38 +701,38 @@ export default class UserService extends BaseService<User> {
                 cTrack.subject = subject;
                 //cTrack.content = templateObj.emailBody;
                 cTrack.createdBy = userId;
-              
+
                 await transporter.sendMail(mailOptions, (err, info) => {
                     if (err) {
                         cTrack.statusRefId = 2;
-                        cTrack.content  = mailOptions.html.replace(password,"******");   
+                        cTrack.content  = mailOptions.html.replace(password,"******");
                         logger.error(`TeamRegistration - sendInviteMail : ${err},  ${playerBody.email}`);
                         this.insertIntoCommunicationTrack(cTrack);
                         // Here i commented the below code as the caller is not handling the promise reject
                         // return Promise.reject(err);
                     } else {
                         cTrack.statusRefId = 1;
-                        cTrack.content  = mailOptions.html.replace(password,"******");   
+                        cTrack.content  = mailOptions.html.replace(password,"******");
                       logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${playerBody.email}`);
                       this.insertIntoCommunicationTrack(cTrack);
                     }
                     transporter.close();
                     return Promise.resolve();
                 });
-               
+
                 //return cTrack
             }
             catch(error){
                 cTrack.statusRefId = 2;
                // return cTrack;
             }
-          
+
 
         } catch (error) {
             throw error;
         }
 
-    
+
     }
     public async userPersonalDetails(userId: number, organisationUniqueKey: any) {
         try {
