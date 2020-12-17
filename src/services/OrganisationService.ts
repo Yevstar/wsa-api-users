@@ -60,4 +60,18 @@ export default class OrganisationService extends BaseService<Organisation> {
         query.where('o.isDeleted = 0')
         return await query.getMany();
     }
+
+    public async addStripeCustomerId(id: number, customerId: string) {
+        await this.entityManager.query(
+        `update wsa_users.organisation 
+        set stripeCustomerAccountId = ? 
+        where id = ?`,[customerId, id]);
+    }
+
+    public async addBecsId(id: number, becsId: string) {
+        await this.entityManager.query(
+        `update wsa_users.organisation 
+        set stripeBecsMandateId = ? 
+        where id = ?`, [becsId, id]);
+    }
 }

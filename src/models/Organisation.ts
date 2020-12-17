@@ -87,4 +87,10 @@ export class Organisation extends BaseEntity {
     @IsNumber()
     @Column({ default: 0 })
     isDeleted: number;
+
+    @Column({ nullable: true, default: null})
+    stripeCustomerAccountId: string;
+
+    @Column({ nullable: true, default: null})
+    stripeBecsMandateId: string;
 }
