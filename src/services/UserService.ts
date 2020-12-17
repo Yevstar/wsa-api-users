@@ -421,7 +421,7 @@ export default class UserService extends BaseService<User> {
 
         if (offset && limit) {
             const userData = await query.offset(OFFSET).limit(LIMIT).getRawMany();
-            const userCount = userData.length;
+            const userCount = await query.getCount();
             return { userCount, userData }
         } else {
             const userCount = null;
