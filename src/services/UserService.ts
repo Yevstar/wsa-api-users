@@ -40,7 +40,7 @@ export default class UserService extends BaseService<User> {
             .getOne();
     }
 
-    public async DeleteUser(userId: number, loginUserId: number) {
+    public async deleteUser(userId: number, loginUserId: number) {
         return this.entityManager.createQueryBuilder(User, 'user')
             .update(User)
             .set({ isDeleted: 1, updatedBy: loginUserId, updatedOn: new Date() })
@@ -1199,5 +1199,13 @@ export default class UserService extends BaseService<User> {
         responseObject["results"] = result[0];
 
         return responseObject;
+    }
+
+    public async resetTFA(userId: number) {
+        return this.entityManager.createQueryBuilder(User, 'user')
+            .update()
+            .set({ tfaEnabled: null , tfaSecret: null , tfaSecretUrl: null })
+            .where('id = :userId', { userId })
+            .execute();
     }
 }

@@ -293,7 +293,7 @@ export class AffiliateController extends BaseController {
                         //         //     let userExist = await this.ureService.findByAffiliateUser(uItem.userId)
                         //         //     if (userExist == undefined || userExist == null) {
                         //         //         console.log("deleting")
-                        //         //         await this.userService.DeleteUser(uItem.userId,userId);
+                        //         //         await this.userService.deleteUser(uItem.userId,userId);
                         //         //     }
                         //         // }
                         //     }

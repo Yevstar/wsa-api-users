@@ -880,4 +880,22 @@ export class UserController extends BaseController {
             })
             .pipe(response);
     }
+
+    @Authorized('web_users')
+    @Post('/profile/reset/tfa')
+    async userResetTFA(
+        @QueryParam('userId', {required: true}) userId: number,
+        @Res() response: Response
+    ) {
+        if (isObjectNotNullAndUndefined(userId)) {
+            await this.userService.resetTFA(userId);
+
+            return this.userService.findById(userId);
+        } else {
+            return response.status(400).send({
+                name: 'param_error',
+                message: `Required parameter not passed`
+            });
+        }
+    }
 }
