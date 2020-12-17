@@ -392,7 +392,7 @@ export class UserDashboardController extends BaseController {
 
                 if (getData) {
                     ureData.id = getData.id;
-                    ureData.updatedBy = requestBody.userId;
+                    ureData.updatedBy = currentUser.id;
                     ureData.updatedAt = new Date();
                 }
                 else {
@@ -432,7 +432,7 @@ export class UserDashboardController extends BaseController {
                 if(getData) {
                     ureData.id = getData.id;
                     ureData.roleId = roleId;
-                    ureData.updatedBy = currentUser.id;
+                    ureData.updatedBy = requestBody.userId;
                     ureData.updatedAt = new Date();
                     await this.ureService.createOrUpdate(ureData);
                     return response.status(200).send({message: "Successfully Deleted"});
