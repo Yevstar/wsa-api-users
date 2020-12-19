@@ -11,6 +11,18 @@ export class UserRegistration extends BaseEntity {
     @IsNumber()
     @Column()
     userId: number;
+    
+    @IsNumber()
+    @Column()
+    teamId: number;
+
+    @IsNumber()
+    @Column()
+    competitionMembershipProductTypeId: number;
+    
+    @IsString()
+    @Column()
+    userRegUniqueKey: string;
 
     @IsString()
     @Column()
@@ -19,6 +31,10 @@ export class UserRegistration extends BaseEntity {
     @IsString()
     @Column()
     regularMedication: string;
+
+    @IsNumber()
+    @Column()
+    userRegDraftId: number;
 
     @IsNumber()
     @Column()
@@ -31,6 +47,14 @@ export class UserRegistration extends BaseEntity {
     @IsNumber()
     @Column()
     favouriteTeamRefId: number;
+
+    @IsNumber()
+    @Column()
+    personRoleRefId: number;
+    
+    @IsNumber()
+    @Column()
+    registeringYourselfRefId: number;
 
     @IsString()
     @Column()
@@ -58,31 +82,47 @@ export class UserRegistration extends BaseEntity {
 
     @IsNumber()
     @Column()
-    nationalityRefId: number;
+    identifyRefId: number;
+    
+    @IsString()
+    @Column()
+    injuryInfo: string;
 
     @IsString()
     @Column()
-    lastCaptainName: string;
+    allergyInfo: string;
 
     @IsNumber()
     @Column()
-    playedBefore: number;
+    yearsPlayed: number;
+    
+    @IsNumber()
+    @Column()
+    schoolId: number;
+    
+    @IsNumber()
+    @Column()
+    schoolGradeInfo: number;
+    
+    @IsNumber()
+    @Column()
+    isParticipatedInSSP: number;
+    
+    @IsString()
+    @Column()
+    volunteerInfo: string;
+        
+    @IsString()
+    @Column()
+    otherSportsInfo: string;
+                
+    @IsNumber()
+    @Column()
+    walkingNetball: string;
 
     @IsString()
     @Column()
-    playedYear: string;
-
-    @IsString()
-    @Column()
-    playedClub: string;
-
-    @IsString()
-    @Column()
-    playedGrade: string;
-
-    @IsString()
-    @Column()
-    voucherLink: string;
+    walkingNetballInfo: string;
 
     @IsNumber()
     @Column()
@@ -95,7 +135,7 @@ export class UserRegistration extends BaseEntity {
     @IsDate()
     @Column({ nullable: true, default: null })
     updatedOn: Date;
-
+    
     @IsNumber()
     @Column({ default: 0 })
     isDeleted: number;
