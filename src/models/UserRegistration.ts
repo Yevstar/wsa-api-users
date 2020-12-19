@@ -52,10 +52,6 @@ export class UserRegistration extends BaseEntity {
     @Column()
     disabilityTypeRefId: number;
 
-    @IsString()
-    @Column()
-    languages: string;
-
     @IsNumber()
     @Column()
     countryRefId: number;

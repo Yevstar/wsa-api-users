@@ -452,7 +452,6 @@ export class UserDashboardController extends BaseController {
                 
                 userReg.nationalityRefId = requestBody.nationalityRefId;
                 userReg.countryRefId = requestBody.countryRefId;
-                userReg.languages = requestBody.languages;
                 await this.userRegistrationService.createOrUpdate(userReg);
 
                 user.id = requestBody.userId;
