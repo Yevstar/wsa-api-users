@@ -449,8 +449,6 @@ export class UserDashboardController extends BaseController {
             }
             else if(section == 'other'){
                 userReg.id = requestBody.userRegistrationId;
-                
-                userReg.nationalityRefId = requestBody.nationalityRefId;
                 userReg.countryRefId = requestBody.countryRefId;
                 await this.userRegistrationService.createOrUpdate(userReg);
 
