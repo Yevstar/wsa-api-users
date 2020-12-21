@@ -441,10 +441,12 @@ export default class UserService extends BaseService<User> {
 
         templateObj.emailBody = templateObj.emailBody.replace('${user.firstName}', receiverData.firstName);
         templateObj.emailBody = templateObj.emailBody.replace('${Organisation}', OrganisationName);
+        templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
         templateObj.emailBody = templateObj.emailBody.replace('${user.lastName}', receiverData.lastName);
         templateObj.emailBody = templateObj.emailBody.replace('${userName}', receiverData.email.toLowerCase());
         templateObj.emailBody = templateObj.emailBody.replace('${password}', password);
         templateObj.emailBody = templateObj.emailBody.replace('${process.env.liveScoresWebHost}', url);
+        templateObj.emailBody = templateObj.emailBody.replace('${Organisation}', OrganisationName);
 
         const transporter = nodeMailer.createTransport({
             host: "smtp.gmail.com",
@@ -462,8 +464,8 @@ export default class UserService extends BaseService<User> {
 
         const mailOptions = {
             from: {
-                name: "NetballConnect",
-                address: "mail@netballconnect.com"
+                name: process.env.MAIL_FROM_NAME ,
+                address: process.env.MAIL_FROM_ADDRESS 
             },
             to: receiverData.email.toLowerCase(),
             replyTo: "donotreply@worldsportaction.com",
@@ -531,6 +533,9 @@ export default class UserService extends BaseService<User> {
                 templateObj.emailBody = templateObj.emailBody.replace(AppConstants.affiliateName, organisationName);
             }
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.email, contact.email);
+            templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
+            templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
+            templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
 
             const transporter = nodeMailer.createTransport({
                 host: "smtp.gmail.com",
@@ -551,8 +556,8 @@ export default class UserService extends BaseService<User> {
             // const path = require('path');
             const mailOptions = {
                 from: {
-                    name: "NetballConnect",
-                    address: "mail@netballconnect.com"
+                    name: process.env.MAIL_FROM_NAME ,
+                    address: process.env.MAIL_FROM_ADDRESS 
                 },
                 to: contact.email,
                 replyTo: "donotreply@worldsportaction.com",
@@ -672,8 +677,8 @@ export default class UserService extends BaseService<User> {
 
         const mailOptions = {
                 from: {
-                    name: "NetballConnect",
-                    address: "mail@netballconnect.com"
+                    name: process.env.MAIL_FROM_NAME ,
+                    address: process.env.MAIL_FROM_ADDRESS 
                 },
                 to: playerBody.email,
                 replyTo: "donotreply@worldsportaction.com",

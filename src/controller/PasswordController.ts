@@ -85,8 +85,8 @@ export class PasswordController extends BaseController {
 
                 const mailOptions = {
                     from: {
-                        name: "NetballConnect",
-                        address: "mail@netballconnect.com"
+                        name: process.env.MAIL_FROM_NAME ,
+                        address: process.env.MAIL_FROM_ADDRESS 
                     },
                     to: user.email.toLowerCase(),
                     replyTo: "donotreply@worldsportaction.com",
