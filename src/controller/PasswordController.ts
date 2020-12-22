@@ -54,7 +54,7 @@ export class PasswordController extends BaseController {
                 logger.warn(`Password reset link requested for ${email}, but couldn't find a user. Ignoring request.`);
                 return response.status(400).send({
                     name: 'validation_error',
-                    message: `User with email [${email}] not found`,
+                    message: `If you have ${email} registered with us, we will email you with instructions to reset your account.`,
                 });
             }
 
@@ -86,7 +86,7 @@ export class PasswordController extends BaseController {
                 const mailOptions = {
                     from: {
                         name: process.env.MAIL_FROM_NAME ,
-                        address: process.env.MAIL_FROM_ADDRESS 
+                        address: process.env.MAIL_FROM_ADDRESS
                     },
                     to: user.email.toLowerCase(),
                     replyTo: "donotreply@worldsportaction.com",
@@ -94,7 +94,7 @@ export class PasswordController extends BaseController {
                     html: `Click here to reset your password: <a href="${url}">${url}</a>`
                 };
                 if(Number(process.env.SOURCE_MAIL) == 1){
-                    mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html 
+                    mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html
                     mailOptions.to = process.env.TEMP_DEV_EMAIL
                 }
                 // Send the mail via nodeMailer
@@ -109,7 +109,7 @@ export class PasswordController extends BaseController {
                     cTrack.emailId = user.email;
                     cTrack.userId = user.id;
                     cTrack.subject = mailOptions.subject;
-                    
+
                     cTrack.createdBy = user.id;
                 await transporter.sendMail(mailOptions, (err, info) => {
                     logger.info(`Password - forgot : info ${info} Error ${err}`);
@@ -120,7 +120,7 @@ export class PasswordController extends BaseController {
             catch(error){
                 cTrack.statusRefId = 2;
             }
-            //insert to 
+            //insert to
             await this.communicationTrackService.createOrUpdate(cTrack);
             } else {
                 // Send sms
