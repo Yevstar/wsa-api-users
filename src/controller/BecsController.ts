@@ -17,11 +17,12 @@ export class UserRoleEntityController extends BaseController {
     }
 
     @Authorized()
-    @Get('/secret')
+    @Get('/secret/:orgId')
     async getSecret(
         @HeaderParam("authorization") currentUser: User,
+        @Param("orgId") orgId: number
     ): Promise<unknown> {
-        let orgProfile: Organisation = await this.organisationService.findById(currentUser.id);
+        let orgProfile: Organisation = await this.organisationService.findById(orgId);
         let stripeCustomerId;
         if (orgProfile.stripeBecsMandateId) {
             throw new Error('Already attached BECS account')
