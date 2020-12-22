@@ -109,4 +109,11 @@ export default class UserRoleEntityService extends BaseService<UserRoleEntity> {
             throw error;
         }
     }
+
+    public async replaceUserId(sourceId: number, destinationId: number): Promise<any> {
+        await this.entityManager.query(`
+            UPDATE userRoleEntity SET userId = ?
+            WHERE userId = ?
+        `, [destinationId, sourceId]);
+    }
 }

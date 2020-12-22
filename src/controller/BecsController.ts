@@ -1,15 +1,12 @@
 import {Authorized, Body, Delete, Get, HeaderParam, JsonController, Param, Post, QueryParam, Res} from 'routing-controllers';
 import {BaseController} from "./BaseController";
-import {Response} from "express";
 import Stripe from 'stripe';
 import { User } from '../models/User';
 import { Organisation } from 'src/models/Organisation';
-import { logger } from '../logger';
-import AppConstants from 'src/constants/AppConstants';
 
 
 @JsonController('/becs')
-export class UserRoleEntityController extends BaseController {
+export class BecsController extends BaseController {
     private stripe;
     constructor() {
         super()

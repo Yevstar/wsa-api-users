@@ -1213,4 +1213,42 @@ export default class UserService extends BaseService<User> {
             .where('id = :userId', { userId })
             .execute();
     }
+
+    public async findMatchesForMerging(userId: number) {
+        const users = await this.entityManager.query(`
+        SELECT id, firstName, lastname, mobileNumber, email, dateOfBirth
+            FROM wsa_users.user
+            WHERE id = ?`, [userId]
+        )
+        const user = users[0];
+
+        return this.entityManager.query(
+            `SELECT id, firstName, middleName, lastname, mobileNumber, email, dateOfBirth
+            FROM wsa_users.user 
+            WHERE firstName = ? AND lastName = ? AND mobileNumber = ? OR
+            firstName = ? AND lastName = ? AND lastName = ? OR
+            firstName = ? AND mobileNumber = ? AND dateOfBirth = ? OR
+            lastName = ? AND mobileNumber = ? AND dateOfBirth = ?
+            AND id not in (?)`,
+            [
+                user.firstName, user.lastName, user.mobileNumber,
+                user.firstName, user.lastName, user.dateOfBirth,
+                user.firstName, user.mobileNumber, user.dateOfBirth,
+                user.lastName, user.lastName, user.dateOfBirth,
+                userId
+            ]
+        )
+    }
+
+    public async updateById(id: number, user: User) {
+        return this.entityManager.createQueryBuilder(User, 'user')
+            .update(User)
+            .set(user)
+            .andWhere('id = :id', { id })
+            .execute();
+    }
+
+    public async markUserInactive(id: number) {
+        return this.entityManager.query(`UPDATE user SET isInActive = 0 WHERE id = ?`, [id])
+    }
 }
