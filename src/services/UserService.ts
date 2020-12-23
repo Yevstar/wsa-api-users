@@ -771,13 +771,19 @@ export default class UserService extends BaseService<User> {
                             divisionName: item.divisionName
                         }
 
+                        let parentEmailId = item.email.split('.');
+                        let parentEmailString = parentEmailId[0];
+                        for(let n = 1; n < (parentEmailId.length - 1); n++) {
+                            parentEmailString = parentEmailString + '.' + parentEmailId[n];
+                        }
+
                         if (userTemp == undefined) {
                             userObj = {
                                 userId: item.userId,
                                 firstName: item.firstName,
                                 middleName: item.middleName,
                                 lastName: item.lastName,
-                                email: item.email.toLowerCase(),
+                                email: (item.isInActive == 1 ?parentEmailString : item.email).toLowerCase(),
                                 mobileNumber: item.mobileNumber,
                                 photoUrl: item.photoUrl,
                                 dateOfBirth: item.dateOfBirth,
@@ -861,6 +867,17 @@ export default class UserService extends BaseService<User> {
             //         item.referFriends = JSON.parse(item.referFriends);
             //     }
             // }
+
+            if(isArrayPopulated(result[0])) {
+                for(let item of result[0]) {
+                    let parentEmailId = item.email.split('.');
+                    let parentEmailString = parentEmailId[0];
+                    for(let n = 1; n < (parentEmailId.length - 1); n++) {
+                        parentEmailString = parentEmailString + '.' + parentEmailId[n];
+                    }
+                    item.email = (item.isInActive == 1 ?parentEmailString : item.email).toLowerCase();
+                }
+            }
 
             return result[0];
         } catch (error) {
