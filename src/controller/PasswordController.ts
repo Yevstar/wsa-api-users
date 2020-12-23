@@ -52,9 +52,10 @@ export class PasswordController extends BaseController {
 
             if (!user) {
                 logger.warn(`Password reset link requested for ${email}, but couldn't find a user. Ignoring request.`);
-                return response.status(400).send({
-                    name: 'validation_error',
-                    message: `If you have ${email} registered with us, we will email you with instructions to reset your account.`,
+                // sending success message so hackers don't know what emails we have
+                return response.status(200).send({
+                    name: 'success',
+                    message: `If you have ${email} registered with us, we will send you instructions to reset your account.`,
                 });
             }
 
@@ -126,18 +127,24 @@ export class PasswordController extends BaseController {
                 // Send sms
                 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
                 const message = await client.messages.create({
-                    body: `Go here to reset your password: ${url}`,
+                    body: `Click here to reset your password: ${url}`,
                     from: process.env.TWILIO_PHONE_NUMBER,
                     to: user.mobileNumber,
                 });
 
                 logger.info('Password - forgot - sms : ', message);
             }
-
-            return response.status(200).send({
-                name: 'success',
-                message: `A password reset link was sent to your ${type === 'email' ? 'email address' : 'phone'}.`,
-            });
+            if (type === 'email') {
+                return response.status(200).send({
+                    name: 'success',
+                    message: `If you have ${email} registered with us, we will send you instructions to reset your account.`,
+                });
+            } else {
+                return response.status(200).send({
+                    name: 'success',
+                    message: `A password reset link was sent to your phone.`,
+                });
+            }
         } catch (err) {
             logger.error(`Failed to send a password reset email to ${email}` + err);
             return response.status(400).send({
