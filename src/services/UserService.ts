@@ -1225,11 +1225,13 @@ export default class UserService extends BaseService<User> {
         return this.entityManager.query(
             `SELECT id, firstName, middleName, lastname, mobileNumber, email, dateOfBirth
             FROM wsa_users.user 
-            WHERE firstName = ? AND lastName = ? AND mobileNumber = ? OR
-            firstName = ? AND lastName = ? AND lastName = ? OR
-            firstName = ? AND mobileNumber = ? AND dateOfBirth = ? OR
-            lastName = ? AND mobileNumber = ? AND dateOfBirth = ?
-            AND id not in (?)`,
+            WHERE
+            ((firstName = ? AND lastName = ? AND mobileNumber = ?) OR
+            (firstName = ? AND lastName = ? AND lastName = ?) OR
+            (firstName = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
+            (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?)) AND 
+            (isInActive = 1 AND
+            id not in (?))`,
             [
                 user.firstName, user.lastName, user.mobileNumber,
                 user.firstName, user.lastName, user.dateOfBirth,
