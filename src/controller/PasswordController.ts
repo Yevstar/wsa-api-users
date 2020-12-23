@@ -55,7 +55,7 @@ export class PasswordController extends BaseController {
                 // sending success message so hackers don't know what emails we have
                 return response.status(200).send({
                     name: 'success',
-                    message: `If you have ${email} registered with us, we will send you instructions to reset your account.`,
+                    message: `If you have ${email} registered with us, we have sent you instructions to reset your account.`,
                 });
             }
 
@@ -137,7 +137,7 @@ export class PasswordController extends BaseController {
             if (type === 'email') {
                 return response.status(200).send({
                     name: 'success',
-                    message: `If you have ${email} registered with us, we will send you instructions to reset your account.`,
+                    message: `If you have ${email} registered with us, we have sent you instructions to reset your account.`,
                 });
             } else {
                 return response.status(200).send({
