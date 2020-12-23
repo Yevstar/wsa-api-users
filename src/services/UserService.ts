@@ -441,10 +441,12 @@ export default class UserService extends BaseService<User> {
 
         templateObj.emailBody = templateObj.emailBody.replace('${user.firstName}', receiverData.firstName);
         templateObj.emailBody = templateObj.emailBody.replace('${Organisation}', OrganisationName);
+        templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
         templateObj.emailBody = templateObj.emailBody.replace('${user.lastName}', receiverData.lastName);
         templateObj.emailBody = templateObj.emailBody.replace('${userName}', receiverData.email.toLowerCase());
         templateObj.emailBody = templateObj.emailBody.replace('${password}', password);
         templateObj.emailBody = templateObj.emailBody.replace('${process.env.liveScoresWebHost}', url);
+        templateObj.emailBody = templateObj.emailBody.replace('${Organisation}', OrganisationName);
 
         const transporter = nodeMailer.createTransport({
             host: "smtp.gmail.com",
@@ -462,8 +464,8 @@ export default class UserService extends BaseService<User> {
 
         const mailOptions = {
             from: {
-                name: "NetballConnect",
-                address: "mail@netballconnect.com"
+                name: process.env.MAIL_FROM_NAME ,
+                address: process.env.MAIL_FROM_ADDRESS 
             },
             to: receiverData.email.toLowerCase(),
             replyTo: "donotreply@worldsportaction.com",
@@ -531,6 +533,9 @@ export default class UserService extends BaseService<User> {
                 templateObj.emailBody = templateObj.emailBody.replace(AppConstants.affiliateName, organisationName);
             }
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.email, contact.email);
+            templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
+            templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
+            templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
 
             const transporter = nodeMailer.createTransport({
                 host: "smtp.gmail.com",
@@ -551,8 +556,8 @@ export default class UserService extends BaseService<User> {
             // const path = require('path');
             const mailOptions = {
                 from: {
-                    name: "NetballConnect",
-                    address: "mail@netballconnect.com"
+                    name: process.env.MAIL_FROM_NAME ,
+                    address: process.env.MAIL_FROM_ADDRESS 
                 },
                 to: contact.email,
                 replyTo: "donotreply@worldsportaction.com",
@@ -672,8 +677,8 @@ export default class UserService extends BaseService<User> {
 
         const mailOptions = {
                 from: {
-                    name: "NetballConnect",
-                    address: "mail@netballconnect.com"
+                    name: process.env.MAIL_FROM_NAME ,
+                    address: process.env.MAIL_FROM_ADDRESS 
                 },
                 to: playerBody.email,
                 replyTo: "donotreply@worldsportaction.com",
@@ -1224,5 +1229,45 @@ export default class UserService extends BaseService<User> {
             .set({ tfaEnabled: null , tfaSecret: null , tfaSecretUrl: null })
             .where('id = :userId', { userId })
             .execute();
+    }
+
+    public async findMatchesForMerging(userId: number) {
+        const users = await this.entityManager.query(`
+        SELECT id, firstName, lastname, mobileNumber, email, dateOfBirth
+            FROM wsa_users.user
+            WHERE id = ?`, [userId]
+        )
+        const user = users[0];
+
+        return this.entityManager.query(
+            `SELECT id, firstName, middleName, lastname, mobileNumber, email, dateOfBirth
+            FROM wsa_users.user 
+            WHERE
+            ((firstName = ? AND lastName = ? AND mobileNumber = ?) OR
+            (firstName = ? AND lastName = ? AND lastName = ?) OR
+            (firstName = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
+            (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?)) AND 
+            (isInActive = 1 AND
+            id not in (?))`,
+            [
+                user.firstName, user.lastName, user.mobileNumber,
+                user.firstName, user.lastName, user.dateOfBirth,
+                user.firstName, user.mobileNumber, user.dateOfBirth,
+                user.lastName, user.lastName, user.dateOfBirth,
+                userId
+            ]
+        )
+    }
+
+    public async updateById(id: number, user: User) {
+        return this.entityManager.createQueryBuilder(User, 'user')
+            .update(User)
+            .set(user)
+            .andWhere('id = :id', { id })
+            .execute();
+    }
+
+    public async markUserInactive(id: number) {
+        return this.entityManager.query(`UPDATE user SET isInActive = 0 WHERE id = ?`, [id])
     }
 }

@@ -217,7 +217,6 @@ export default class UserDashboardService extends BaseService<User> {
                 arr.push(obj);
                 return arr;
             }
-
         } catch (error) {
             throw error;
         }
