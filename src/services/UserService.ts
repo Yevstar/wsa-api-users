@@ -1257,6 +1257,7 @@ export default class UserService extends BaseService<User> {
                 userId
             ]
         )
+        
     }
 
     public async updateById(id: number, user: User) {
@@ -1269,5 +1270,42 @@ export default class UserService extends BaseService<User> {
 
     public async markUserInactive(id: number) {
         return this.entityManager.query(`UPDATE user SET isInActive = 0 WHERE id = ?`, [id])
+    }
+
+    public async getAffiliates(uids: number[]) {
+        return this.entityManager.query(`
+            SELECT u.id, o.name AS affiliate
+            FROM wsa_users.user u
+            LEFT JOIN wsa_users.userRoleEntity ure ON ure.userId = u.id
+            LEFT JOIN wsa_users.organisation o ON ure.entityId = o.id and ure.entityTypeId = 2
+            WHERE ure.entityTypeId = 2
+            AND ure.isDeleted = 0
+            AND u.id in (${uids.join(',')})
+
+            UNION
+
+            SELECT u.id, le.linkedParentName AS affiliate
+            FROM wsa_users.user u
+            LEFT JOIN wsa_users.userRoleEntity ure ON ure.userId = u.id
+            LEFT JOIN wsa_users.linked_entities le ON 
+                ure.entityId = le.linkedEntityId AND ure.entityTypeId = le.linkedEntityTypeId
+            WHERE ure.isDeleted = 0 AND u.id in (${uids.join(',')})
+
+            UNION
+
+            SELECT u.id, o.name AS affiliate
+            FROM wsa_users.user u
+            LEFT JOIN wsa_competitions.player p ON p.userId = u.id
+            LEFT JOIN wsa_users.organisation o ON p.organisationId = o.id
+            WHERE p.isDeleted = 0 AND o.isDeleted = 0 AND u.id in (${uids.join(',')})
+
+            UNION
+
+            SELECT u.id, o.name AS affiliate
+            FROM wsa_users.user u
+            LEFT JOIN wsa_competitions.nonPlayer p ON p.userId = u.id
+            LEFT JOIN wsa_users.organisation o ON p.organisationId = o.id
+            WHERE p.isDeleted = 0 AND o.isDeleted = 0 AND u.id in (${uids.join(',')})
+        `)
     }
 }
