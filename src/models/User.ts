@@ -136,4 +136,8 @@ export class User extends BaseEntity {
     @Column({ nullable: true, default: null })
     stripeCustomerAccountId: string;
 
+    @IsString()
+    @Column({ nullable: true, default: null })
+    stripeAccountId: string;
+
 }
