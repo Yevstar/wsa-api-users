@@ -1,5 +1,5 @@
-import { Service } from "typedi";
-import { Brackets } from "typeorm-plus";
+import {Inject, Service} from "typedi";
+import {Brackets, In} from "typeorm-plus";
 import nodeMailer from "nodemailer";
 import speakeasy from "speakeasy";
 import QRcode from "qrcode";
@@ -24,9 +24,13 @@ import AppConstants from "../constants/AppConstants";
 import { CommunicationTrack } from "../models/CommunicationTrack";
 import { Booking } from "../models/Booking";
 import { Team } from "../models/Team";
+import UserRoleEntityService from "./UserRoleEntityService";
 
 @Service()
 export default class UserService extends BaseService<User> {
+
+    @Inject()
+    userRoleEntityService: UserRoleEntityService;
 
     modelName(): string {
         return User.name;
@@ -1308,5 +1312,18 @@ export default class UserService extends BaseService<User> {
             LEFT JOIN wsa_users.organisation o ON p.organisationId = o.id
             WHERE p.isDeleted = 0 AND o.isDeleted = 0 AND u.id in (${uids.join(',')})
         `)
+    }
+
+    public async isChildUser(parentUserId: number, childUserId: number): Promise<boolean> {
+        const parentRoles = await this.entityManager.find(UserRoleEntity, {
+            where: {
+                userId: parentUserId,
+                entityId: childUserId,
+                entityTypeId: 4,
+                roleId: In([9,23])
+            }
+        });
+
+        return parentRoles.length > 0;
     }
 }

@@ -1,6 +1,6 @@
 import {
     Authorized,
-    Body,
+    Body, ForbiddenError,
     Get,
     HeaderParam,
     JsonController,
@@ -221,10 +221,19 @@ export class UserController extends BaseController {
     @Authorized()
     @Post('/photo')
     public async uploadUserPhoto(
-        @HeaderParam("authorization") user: User,
+        @HeaderParam("authorization") currentUser: User,
+        @QueryParam("userId") userId: number,
         @UploadedFile("profile_photo") file: Express.Multer.File,
         @Res() response: Response
     ) {
+        const user = userId ? await this.userService.findById(userId) : currentUser;
+
+        if (userId) {
+            if (! await this.userService.isChildUser(currentUser.id, userId)) {
+                throw new ForbiddenError("You are not allowed set profile image for this user!");
+            }
+        }
+
         try {
             if (user) {
                 if (!file) {
