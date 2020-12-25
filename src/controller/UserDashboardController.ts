@@ -14,6 +14,8 @@ import { isNullOrUndefined } from "util";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
 let moment = require('moment');
 
+import { LookForExistingUserBody } from './types';
+
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
 
@@ -208,6 +210,48 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+    /**
+     * Look for the existing user during registration process
+     * @param {LookForExistingUserBody} requestBody - body data
+     * @param {Response} response - response object
+     * @returns {Promise<void>}
+     */
+    @Post('/user/existing')
+    async lookForExistingUser(
+      @Body() reqBody: LookForExistingUserBody,
+      @Res() res: Response,
+    ) {
+      try {
+        // check body data
+        const {
+          dateOfBirth,
+          email,
+          firstName,
+          lastName,
+          phoneNumber,
+          userId,
+        } = reqBody;
+        if (!(dateOfBirth && firstName && lastName && userId)) {
+          return res.status(400).send({
+            info: 'MISSING_DATA',
+          });
+        }
+        const users = await this.userService.findExistingUser(reqBody);
+        return res.status(200).send({
+          data: users,
+          info: 'OK',
+        });
+      } catch (error) {
+        logger.error(`Error @ lookForExistingUser: ${reqBody.userId || ''}\n${JSON.stringify(error)}`);
+        return res.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development 
+            ? AppConstants.errMessage + error
+            : AppConstants.errMessage,
+        });
+      }
+    }
+
     @Authorized()
     @Post('/user/registration')
     async userRegistrationDetails(
