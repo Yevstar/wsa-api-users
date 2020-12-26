@@ -1126,6 +1126,61 @@ export default class UserService extends BaseService<User> {
         }
     }
 
+    public async userRegistrationYourDetails(requestBody: any) {
+        try {
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
+            let userId = requestBody.userId;
+            let competitionId = requestBody.competitionId;
+            let organisationId = requestBody.organisationId;
+            let yearRefId = requestBody.yearRefId;
+            let query = await this.entityManager.query("call wsa_users.usp_registration_your_details(?,?,?,?,?,?)",
+                        [limit, offset, userId, yearRefId, competitionId, organisationId]);
+
+            if(query != null) {
+                let totalCount = query[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                if(isArrayPopulated(query[1])) {
+                    for(let item of query[1]) {
+                        item.organisationId = item.organisationUniqueKey;
+                    }
+                }
+                responseObject["registrationYourDetails"] = query[1];
+                return responseObject;
+            }
+        }
+        catch(err) {
+            throw err;
+        }
+    }
+
+    public async userRegistrationTeamDetails(requestBody: any) {
+        try {
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
+            let userId = requestBody.userId;
+            let competitionId = requestBody.competitionId;
+            let organisationId = requestBody.organisationId;
+            let yearRefId = requestBody.yearRefId;
+            let query = await this.entityManager.query("call wsa_users.usp_registration_team_details(?,?,?,?,?,?)",
+                        [limit, offset, userId, yearRefId, competitionId, organisationId]);
+
+            if(query != null) {
+                let totalCount = query[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                if(isArrayPopulated(query[1])) {
+                    for(let item of query[1]) {
+                        item.organisationId = item.organisationUniqueKey;
+                    }
+                }
+                responseObject["registrationTeamDetails"] = query[1];
+                return responseObject;
+            }
+        }
+        catch(err) {
+            throw err;
+        }
+    }
     public async generateTfaSecret(user: User) {
         const secret = speakeasy.generateSecret({
             issuer: 'Netball Live Scores',

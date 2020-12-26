@@ -230,6 +230,46 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+    @Authorized()
+    @Post('/user/registration/yourdetails')
+    async userRegistrationYourDetails(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                const userRegYourDetails = await this.userService.userRegistrationYourDetails(requestBody);
+                return response.status(200).send(userRegYourDetails);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in registration information of user ${requestBody.userId}`+error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+
+    @Authorized()
+    @Post('/user/registration/teamdetails')
+    async userRegistrationTeamDetails(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try{
+            if (requestBody != null) {
+                const userRegTeamDetails = await this.userService.userRegistrationTeamDetails(requestBody);
+                return response.status(200).send(userRegTeamDetails);
+            }
+        }
+        catch(error) {
+            logger.error(`Error Occurred in registration information of user ${requestBody.userId}`+error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+
     @Authorized()
     @Post('/user/registration/resendmail')
     async userRegistrationResendMail(
