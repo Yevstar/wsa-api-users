@@ -879,12 +879,18 @@ export default class UserService extends BaseService<User> {
 
             if(isArrayPopulated(result[0])) {
                 for(let item of result[0]) {
-                    let parentEmailId = item.email.split('.');
-                    let parentEmailString = parentEmailId[0];
-                    for(let n = 1; n < (parentEmailId.length - 1); n++) {
-                        parentEmailString = parentEmailString + '.' + parentEmailId[n];
+                    if(item.isInActive == 1) {
+                        let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
+                        item.email = parentEmailString.toLowerCase();
                     }
-                    item.email = (item.isInActive == 1 ?parentEmailString : item.email).toLowerCase();
+                    if(isArrayPopulated(item.childContacts)) {
+                        for(let child of item.childContacts) {
+                            if(child.isInActive == 1) {
+                                let parentEmailString = child.email.substr(0,child.email.lastIndexOf('.'));
+                                child.email = parentEmailString.toLowerCase();
+                            }
+                        }
+                    }
                 }
             }
 
