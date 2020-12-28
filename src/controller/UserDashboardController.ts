@@ -219,8 +219,8 @@ export class UserDashboardController extends BaseController {
      */
     @Post('/user/existing')
     async lookForExistingUser(
-      @Body() reqBody: LookForExistingUserBody,
-      @Res() res: Response,
+      @Body() requestBody: any,
+      @Res() response: Response
     ) {
       try {
         // check body data
@@ -229,23 +229,42 @@ export class UserDashboardController extends BaseController {
           email,
           firstName,
           lastName,
-          phoneNumber,
-          userId,
-        } = reqBody;
-        if (!(dateOfBirth && firstName && lastName && userId)) {
-          return res.status(400).send({
+          mobileNumber,
+        } = requestBody;
+        if (!(dateOfBirth && firstName && lastName && email && mobileNumber)) {
+          return response.status(400).send({
             info: 'MISSING_DATA',
+              requestBody,
           });
         }
-        const users = await this.userService.findExistingUser(reqBody);
-        return res.status(200).send({
-          data: users,
-          info: 'OK',
-        });
+        const users = await this.userService.findExistingUser(requestBody);
+        if (users.length > 0) {
+          const [{ email, mobileNumber }] = users;
+          if (!(email || mobileNumber)) {
+              return response.status(200).send({
+                phone: '',
+                email: '',
+              });
+          }
+          const emailRegexp = /^(.{2}).*@(.{2}).*(\..+)$/;
+          const result = email.match(emailRegexp);
+          const maskedEmail = email && result
+            ? `${result[1]}***@${result[2]}***${result[3]}`
+            : '';
+          const maskedPhone = mobileNumber && mobileNumber !== 'NULL'
+            ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}`
+            : '';
+          return response.status(200).send({
+            phone: maskedPhone,
+            email: maskedEmail,
+          });
+        } else {
+          return response.status(200).send();
+        }
       } catch (error) {
-        logger.error(`Error @ lookForExistingUser: ${reqBody.userId || ''}\n${JSON.stringify(error)}`);
-        return res.status(500).send({
-          message: process.env.NODE_ENV == AppConstants.development 
+        logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
+        return response.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development
             ? AppConstants.errMessage + error
             : AppConstants.errMessage,
         });

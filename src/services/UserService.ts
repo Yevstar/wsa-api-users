@@ -1236,26 +1236,22 @@ export default class UserService extends BaseService<User> {
     public findExistingUser(data: LookForExistingUserBody) {
       return this.entityManager.query(`
         SELECT
-          id,
-          firstName,
-          middleName,
-          lastName,
           mobileNumber,
-          email,
-          dateOfBirth
+          email
         FROM
           wsa_users.user 
         WHERE (
           (firstName = ? AND lastName = ? AND mobileNumber = ?) OR
           (firstName = ? AND lastName = ? AND dateOfBirth = ?) OR
           (firstName = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
-          (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?) AND 
-          (isInActive = 1)
-        )`,
+          (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?)
+        )
+        LIMIT 1
+        `,
         [
-          data.firstName, data.lastName, data.phoneNumber,
+          data.firstName, data.lastName, data.mobileNumber,
           data.firstName, data.lastName, data.dateOfBirth,
-          data.firstName, data.phoneNumber, data.dateOfBirth,
+          data.firstName, data.mobileNumber, data.dateOfBirth,
           data.lastName, data.lastName, data.dateOfBirth,
         ],
       );

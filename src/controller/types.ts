@@ -3,6 +3,6 @@ export interface LookForExistingUserBody {
   email?: string;
   firstName?: string;
   lastName?: string;
-  phoneNumber?: string;
+  mobileNumber?: string;
   userId?: number | string;
 };
