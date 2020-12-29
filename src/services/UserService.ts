@@ -1035,6 +1035,7 @@ export default class UserService extends BaseService<User> {
                             //shopPurchases: item.shopPurchases,
                             paymentStatus: paymentStatus,
                             expiryDate: item.expiryDate ,
+                            compFeesPaid: item.compFeesPaid,
                             competitionEndDate: item.competitionEndDate,
                             //paymentType: item.paymentType,
                             registrationForm: [],
