@@ -26,6 +26,8 @@ import { Booking } from "../models/Booking";
 import { Team } from "../models/Team";
 import UserRoleEntityService from "./UserRoleEntityService";
 
+import { LookForExistingUserBody } from '../controller/types';
+
 @Service()
 export default class UserService extends BaseService<User> {
 
@@ -1295,6 +1297,30 @@ export default class UserService extends BaseService<User> {
             .set({ tfaEnabled: null , tfaSecret: null , tfaSecretUrl: null })
             .where('id = :userId', { userId })
             .execute();
+    }
+
+    public findExistingUser(data: LookForExistingUserBody) {
+      return this.entityManager.query(`
+        SELECT
+          mobileNumber,
+          email
+        FROM
+          wsa_users.user 
+        WHERE (
+          (firstName = ? AND lastName = ? AND mobileNumber = ?) OR
+          (firstName = ? AND lastName = ? AND dateOfBirth = ?) OR
+          (firstName = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
+          (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?)
+        )
+        LIMIT 1
+        `,
+        [
+          data.firstName, data.lastName, data.mobileNumber,
+          data.firstName, data.lastName, data.dateOfBirth,
+          data.firstName, data.mobileNumber, data.dateOfBirth,
+          data.lastName, data.lastName, data.dateOfBirth,
+        ],
+      );
     }
 
     public async findMatchesForMerging(userId: number) {

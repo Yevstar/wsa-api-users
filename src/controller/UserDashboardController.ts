@@ -14,6 +14,8 @@ import { isNullOrUndefined } from "util";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
 let moment = require('moment');
 
+import { LookForExistingUserBody } from './types';
+
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
 
@@ -208,6 +210,67 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+    /**
+     * Look for the existing user during registration process
+     * @param {LookForExistingUserBody} requestBody - body data
+     * @param {Response} response - response object
+     * @returns {Promise<void>}
+     */
+    @Post('/user/existing')
+    async lookForExistingUser(
+      @Body() requestBody: any,
+      @Res() response: Response
+    ) {
+      try {
+        // check body data
+        const {
+          dateOfBirth,
+          email,
+          firstName,
+          lastName,
+          mobileNumber,
+        } = requestBody;
+        if (!(dateOfBirth && firstName && lastName && email && mobileNumber)) {
+          return response.status(400).send({
+            info: 'MISSING_DATA',
+              requestBody,
+          });
+        }
+        const users = await this.userService.findExistingUser(requestBody);
+        if (users.length > 0) {
+          const [{ email, mobileNumber }] = users;
+          if (!(email || mobileNumber)) {
+              return response.status(200).send({
+                phone: '',
+                email: '',
+              });
+          }
+          const emailRegexp = /^(.{2}).*@(.{2}).*(\..+)$/;
+          const result = email.match(emailRegexp);
+          const maskedEmail = email && result
+            ? `${result[1]}***@${result[2]}***${result[3]}`
+            : '';
+          const maskedPhone = mobileNumber && mobileNumber !== 'NULL'
+            ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}`
+            : '';
+          return response.status(200).send({
+            phone: maskedPhone,
+            email: maskedEmail,
+          });
+        } else {
+          return response.status(200).send();
+        }
+      } catch (error) {
+        logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
+        return response.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development
+            ? AppConstants.errMessage + error
+            : AppConstants.errMessage,
+        });
+      }
+    }
+
     @Authorized()
     @Post('/user/registration')
     async userRegistrationDetails(
