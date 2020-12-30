@@ -37,7 +37,7 @@ import { Role } from "../models/security/Role";
 
 const tfaOptionEnabled = parseInt(process.env.TFA_ENABLED, 10);
 
-@JsonController('/users')
+@JsonController('/users') 
 export class UserController extends BaseController {
 
     @Get('/loginWithEmailPassword')
