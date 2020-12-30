@@ -18,7 +18,8 @@ import {
   stringTONumber,
   isArrayPopulated,
   isNotNullAndUndefined,
-  isObjectNotNullAndUndefined
+  isObjectNotNullAndUndefined,
+  feeIsNull
 } from "../utils/Utils";
 import AppConstants from "../constants/AppConstants";
 import { CommunicationTrack } from "../models/CommunicationTrack";
@@ -982,8 +983,8 @@ export default class UserService extends BaseService<User> {
 
     public async userRegistrationDetails(requestBody: any) {
         try {
-            let limit = requestBody.paging.limit;
-            let offset = requestBody.paging.offset;
+            let limit = requestBody.myRegPaging.limit;
+            let offset = requestBody.myRegPaging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let organisationId = requestBody.organisationId;
@@ -1133,23 +1134,35 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async userRegistrationYourDetails(requestBody: any) {
+    public async otherRegistrationDetails(requestBody: any) {
         try {
-            let limit = requestBody.paging.limit;
-            let offset = requestBody.paging.offset;
+            let limit = requestBody.otherRegPaging.limit;
+            let offset = requestBody.otherRegPaging.offset;
             let userId = requestBody.userId;
-            let competitionId = requestBody.competitionId;
-            let organisationId = requestBody.organisationId;
-            let yearRefId = requestBody.yearRefId;
-            let query = await this.entityManager.query("call wsa_users.usp_registration_your_details(?,?,?,?,?,?)",
-                        [limit, offset, userId, yearRefId, competitionId, organisationId]);
+            // let competitionId = requestBody.competitionId;
+            // let organisationId = requestBody.organisationId;
+            // let yearRefId = requestBody.yearRefId;
+            let query = await this.entityManager.query("call wsa_users.usp_registration_your_details(?,?,?)",
+                        [limit, offset, userId]);
 
             if(query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 if(isArrayPopulated(query[1])) {
                     for(let item of query[1]) {
-                        item.organisationId = item.organisationUniqueKey;
+                        let totalPaidFee = 0;
+                        //item.organisationId = item.organisationUniqueKey;
+                        if(isArrayPopulated(query[1].feePaid)) {
+                            for(let fee of query[1].feePaid) {
+                                totalPaidFee = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                            }   
+                        }
+                        item.feePaid = totalPaidFee;
+                        if(item.isInActive == 1) {
+                            let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
+                            item.email = parentEmailString.toLowerCase(); 
+                        }
                     }
                 }
                 responseObject["registrationYourDetails"] = query[1];
@@ -1161,25 +1174,25 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async userRegistrationTeamDetails(requestBody: any) {
+    public async teamRegistrationDetails(requestBody: any) {
         try {
-            let limit = requestBody.paging.limit;
-            let offset = requestBody.paging.offset;
+            let limit = requestBody.teamRegPaging.limit;
+            let offset = requestBody.teamRegPaging.offset;
             let userId = requestBody.userId;
-            let competitionId = requestBody.competitionId;
-            let organisationId = requestBody.organisationId;
-            let yearRefId = requestBody.yearRefId;
-            let query = await this.entityManager.query("call wsa_users.usp_registration_team_details(?,?,?,?,?,?)",
-                        [limit, offset, userId, yearRefId, competitionId, organisationId]);
+            // let competitionId = requestBody.competitionId;
+            // let organisationId = requestBody.organisationId;
+            // let yearRefId = requestBody.yearRefId;
+            let query = await this.entityManager.query("call wsa_users.usp_registration_team_details(?,?,?)",
+                        [limit, offset, userId]);
 
             if(query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-                if(isArrayPopulated(query[1])) {
-                    for(let item of query[1]) {
-                        item.organisationId = item.organisationUniqueKey;
-                    }
-                }
+                // if(isArrayPopulated(query[1])) {
+                //     for(let item of query[1]) {
+                //         item.organisationId = item.organisationUniqueKey;
+                //     }
+                // }
                 responseObject["registrationTeamDetails"] = query[1];
                 return responseObject;
             }
@@ -1188,6 +1201,47 @@ export default class UserService extends BaseService<User> {
             throw err;
         }
     }
+
+    public async childRegistrationDetails(requestBody: any) {
+        try{
+            let limit = requestBody.childRegPaging.limit;
+            let offset = requestBody.childRegPaging.offset;
+            let userId = requestBody.userId;
+            // let competitionId = requestBody.competitionId;
+            // let organisationId = requestBody.organisationId;
+            // let yearRefId = requestBody.yearRefId;
+            let query = await this.entityManager.query("call wsa_users.usp_registration_child_details(?,?,?)",
+                        [limit, offset, userId]);
+
+            if(query != null) {
+                let totalCount = query[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                if(isArrayPopulated(query[1])) {
+                    for(let item of query[1]) {
+                        let totalPaidFee = 0;
+                        //item.organisationId = item.organisationUniqueKey;
+                        if(isArrayPopulated(query[1].feePaid)) {
+                            for(let fee of query[1].feePaid) {
+                                totalPaidFee = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                            }   
+                        }
+                        item.feePaid = totalPaidFee;
+                        if(item.isInActive == 1) {
+                            let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
+                            item.email = parentEmailString.toLowerCase(); 
+                        }
+                    }
+                }
+                responseObject["childRegistrationDetails"] = query[1];
+                return responseObject;
+            }
+        }
+        catch(error) {
+            throw error;
+        }
+    }
+
     public async generateTfaSecret(user: User) {
         const secret = speakeasy.generateSecret({
             issuer: 'Netball Live Scores',
