@@ -1264,6 +1264,76 @@ export default class UserService extends BaseService<User> {
         }
     }
 
+    public async getAndAddTeamMembers(teamBody) {
+        try{
+            let teamId = teamBody.teamId;
+            let userId = teamBody.userId;
+            let limit = teamBody.teamMemberPaging.limit;
+            let offset = teamBody.teamMemberPaging.offset;
+            
+            let query = await this.entityManager.query(`call wsa_users.usp_registration_team_member_details(?,?,?,?)`,
+                        [limit,offset,userId,teamId]);
+
+            if(query != null) {
+                let totalCount = query[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                if(isArrayPopulated(query[1])) {
+                    for(let item of query[1]) {
+                        let totalPaidFee = 0;
+                        let totalPendingFee = 0;
+                        //item.organisationId = item.organisationUniqueKey;
+                        if(isArrayPopulated(item.paidFee)) {
+                            for(let fee of item.paidFee) {
+                                let total = 0;
+                                if(isArrayPopulated(fee)) {
+                                    for(let f of fee) {
+                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount);
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);      
+                                    }
+                                }
+                                else {
+                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                                    totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                }
+                            }   
+                        }
+                        item.paidFee = totalPaidFee;
+
+                        if(isArrayPopulated(item.pendingFee)) {
+                            for(let fee of item.pendingFee) {
+                                let total = 0;
+                                if(isArrayPopulated(fee)) {
+                                    for(let f of fee) {
+                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount);
+                                        totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);      
+                                    }
+                                }
+                                else {
+                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                                    totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);
+                                }
+                            }   
+                        }
+                        item.pendingFee = totalPendingFee;
+                        // if(item.isInActive == 1) {
+                        //     let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
+                        //     item.email = parentEmailString.toLowerCase(); 
+                        // }
+                    }
+                }
+                responseObject["teamMembers"] = query[1];
+                return responseObject;
+            } 
+        }
+        catch(error) {
+            throw error;
+        }
+    }
+
     public async generateTfaSecret(user: User) {
         const secret = speakeasy.generateSecret({
             issuer: 'Netball Live Scores',
