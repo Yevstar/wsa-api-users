@@ -1152,10 +1152,21 @@ export default class UserService extends BaseService<User> {
                     for(let item of query[1]) {
                         let totalPaidFee = 0;
                         //item.organisationId = item.organisationUniqueKey;
-                        if(isArrayPopulated(query[1].feePaid)) {
-                            for(let fee of query[1].feePaid) {
-                                totalPaidFee = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                        if(isArrayPopulated(item.feePaid)) {
+                            for(let fee of item.feePaid) {
+                                let total = 0;
+                                if(isArrayPopulated(fee)) {
+                                    for(let f of fee) {
+                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount);
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                    }
+                                }
+                                else {
+                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
                                                 -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                                    totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                }
                             }   
                         }
                         item.feePaid = totalPaidFee;
@@ -1220,10 +1231,21 @@ export default class UserService extends BaseService<User> {
                     for(let item of query[1]) {
                         let totalPaidFee = 0;
                         //item.organisationId = item.organisationUniqueKey;
-                        if(isArrayPopulated(query[1].feePaid)) {
-                            for(let fee of query[1].feePaid) {
-                                totalPaidFee = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                        if(isArrayPopulated(item.feePaid)) {
+                            for(let fee of item.feePaid) {
+                                let total = 0;
+                                if(isArrayPopulated(fee)) {
+                                    for(let f of fee) {
+                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount);
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);      
+                                    }
+                                }
+                                else {
+                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
                                                 -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                                    totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                }
                             }   
                         }
                         item.feePaid = totalPaidFee;
