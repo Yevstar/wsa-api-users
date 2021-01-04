@@ -239,7 +239,32 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
-
+    @Authorized()
+    @Post('/user/netsetgo')
+    async userRegistrationNetSetGo(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
+                // if (validateComp != null) {
+                //     return response.status(212).send(validateComp);
+                // }
+           
+               
+                const responseObj = await this.userService.getNetSetGoRegistration(requestBody);
+                
+                
+                return response.status(200).send(responseObj);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
     @Authorized()
     @Post('/user/registration/team')
     async userRegistrationTeamMemberDetails(
