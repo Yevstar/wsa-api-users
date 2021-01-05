@@ -240,7 +240,7 @@ export class UserDashboardController extends BaseController {
         }
     }
     @Authorized()
-    @Post('/user/netsetgo')
+    @Post('/user/dashboard/netsetgo')
     async userRegistrationNetSetGo(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
