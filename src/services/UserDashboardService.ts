@@ -14,7 +14,7 @@ export default class UserDashboardService extends BaseService<User> {
     public async userDashboardTextualList(requestBody: any, userId: any, sortBy: string = undefined, sortOrder: 'ASC' | 'DESC' = undefined) {
         try {
             let organisationId = requestBody.organisationId;
-            let yearRefId = requestBody.yearRefId;
+            let yearRefId = requestBody.yearId;
             let competitionUniqueKey = requestBody.competitionUniqueKey;
             let roleId = requestBody.roleId;
             let genderRefId = requestBody.genderRefId;

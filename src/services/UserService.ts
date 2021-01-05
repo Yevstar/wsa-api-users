@@ -793,7 +793,7 @@ export default class UserService extends BaseService<User> {
                                 firstName: item.firstName,
                                 middleName: item.middleName,
                                 lastName: item.lastName,
-                                email: (item.isInActive == 1 ?parentEmailString : item.email).toLowerCase(),
+                                email: (item.isInActive == 1 ? parentEmailString : item.email).toLowerCase(),
                                 mobileNumber: item.mobileNumber,
                                 photoUrl: item.photoUrl,
                                 dateOfBirth: item.dateOfBirth,
@@ -808,9 +808,12 @@ export default class UserService extends BaseService<User> {
                                 nationalityName: item.nationalityName,
                                 countryName: item.countryName,
                                 isDisability: item.isDisability,
-                                accrediationLevel: item.accrediationLevel,
+                                accrediationLevel: item.umpireAccreditationLevel,
                                 accreditationLevelUmpireRefId: item.accreditationLevelUmpireRefId,
+                                accreditationLevelCoachRefId: item.accreditationLevelCoachRefId,
                                 accreditationUmpireExpiryDate: item.accreditationUmpireExpiryDate,
+                                umpireAccreditationLevel: item.umpireAccreditationLevel,
+                                coachAccreditationLevel: item.coachAccreditationLevel,
                                 competitions: []
                             }
 
