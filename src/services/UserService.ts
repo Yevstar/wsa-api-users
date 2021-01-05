@@ -812,6 +812,7 @@ export default class UserService extends BaseService<User> {
                                 accreditationLevelUmpireRefId: item.accreditationLevelUmpireRefId,
                                 accreditationLevelCoachRefId: item.accreditationLevelCoachRefId,
                                 accreditationUmpireExpiryDate: item.accreditationUmpireExpiryDate,
+                                accreditationCoachExpiryDate: item.accreditationCoachExpiryDate,
                                 umpireAccreditationLevel: item.umpireAccreditationLevel,
                                 coachAccreditationLevel: item.coachAccreditationLevel,
                                 competitions: []
