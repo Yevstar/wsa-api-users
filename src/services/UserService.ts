@@ -998,7 +998,7 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
-    public async userRegistrationDetails(requestBody: any) {
+    public async userRegistrationDetails(requestBody: any): Promise<any> {
         try {
             let limit = requestBody.myRegPaging.limit;
             let offset = requestBody.myRegPaging.offset;
@@ -1151,14 +1151,11 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async otherRegistrationDetails(requestBody: any) {
+    public async otherRegistrationDetails(requestBody: any): Promise<any> {
         try {
             let limit = requestBody.otherRegPaging.limit;
             let offset = requestBody.otherRegPaging.offset;
             let userId = requestBody.userId;
-            // let competitionId = requestBody.competitionId;
-            // let organisationId = requestBody.organisationId;
-            // let yearRefId = requestBody.yearRefId;
             let query = await this.entityManager.query("call wsa_users.usp_registration_your_details(?,?,?)",
                         [limit, offset, userId]);
 
@@ -1168,7 +1165,6 @@ export default class UserService extends BaseService<User> {
                 if(isArrayPopulated(query[1])) {
                     for(let item of query[1]) {
                         let totalPaidFee = 0;
-                        //item.organisationId = item.organisationUniqueKey;
                         if(isArrayPopulated(item.feePaid)) {
                             for(let fee of item.feePaid) {
                                 let total = 0;
@@ -1202,25 +1198,17 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async teamRegistrationDetails(requestBody: any) {
+    public async teamRegistrationDetails(requestBody: any): Promise<any> {
         try {
             let limit = requestBody.teamRegPaging.limit;
             let offset = requestBody.teamRegPaging.offset;
             let userId = requestBody.userId;
-            // let competitionId = requestBody.competitionId;
-            // let organisationId = requestBody.organisationId;
-            // let yearRefId = requestBody.yearRefId;
             let query = await this.entityManager.query("call wsa_users.usp_registration_team_details(?,?,?)",
                         [limit, offset, userId]);
 
             if(query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-                // if(isArrayPopulated(query[1])) {
-                //     for(let item of query[1]) {
-                //         item.organisationId = item.organisationUniqueKey;
-                //     }
-                // }
                 responseObject["registrationTeamDetails"] = query[1];
                 return responseObject;
             }
@@ -1230,14 +1218,11 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async childRegistrationDetails(requestBody: any) {
+    public async childRegistrationDetails(requestBody: any): Promise<any> {
         try{
             let limit = requestBody.childRegPaging.limit;
             let offset = requestBody.childRegPaging.offset;
             let userId = requestBody.userId;
-            // let competitionId = requestBody.competitionId;
-            // let organisationId = requestBody.organisationId;
-            // let yearRefId = requestBody.yearRefId;
             let query = await this.entityManager.query("call wsa_users.usp_registration_child_details(?,?,?)",
                         [limit, offset, userId]);
 
@@ -1247,7 +1232,6 @@ export default class UserService extends BaseService<User> {
                 if(isArrayPopulated(query[1])) {
                     for(let item of query[1]) {
                         let totalPaidFee = 0;
-                        //item.organisationId = item.organisationUniqueKey;
                         if(isArrayPopulated(item.feePaid)) {
                             for(let fee of item.feePaid) {
                                 let total = 0;
@@ -1281,7 +1265,7 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async getAndAddTeamMembers(teamBody) {
+    public async getTeamMembers(teamBody) {
         try{
             let teamId = teamBody.teamId;
             let userId = teamBody.userId;
@@ -1336,10 +1320,6 @@ export default class UserService extends BaseService<User> {
                             }   
                         }
                         item.pendingFee = totalPendingFee;
-                        // if(item.isInActive == 1) {
-                        //     let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
-                        //     item.email = parentEmailString.toLowerCase(); 
-                        // }
                     }
                 }
                 responseObject["teamMembers"] = query[1];

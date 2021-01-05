@@ -221,14 +221,30 @@ export class UserDashboardController extends BaseController {
                 //     return response.status(212).send(validateComp);
                 // }
                 let responseObj = {};
-                const userRegRes = await this.userService.userRegistrationDetails(requestBody);
-                const otherRegRes = await this.userService.otherRegistrationDetails(requestBody);
-                const childRegRes = await this.userService.childRegistrationDetails(requestBody);
-                const teamRegRes = await this.userService.teamRegistrationDetails(requestBody);
-                responseObj["myRegistrations"] = userRegRes;
-                responseObj["otherRegistrations"] = otherRegRes;
-                responseObj["childRegistrations"] = childRegRes;
-                responseObj["teamRegistrations"] = teamRegRes;
+
+                const userRegRes = new Promise(async(resolve,reject) => {
+                        responseObj["myRegistrations"] = await this.userService.userRegistrationDetails(requestBody);
+                        resolve(responseObj["myRegistrations"]);
+                    });
+                  
+
+                const otherRegRes = new Promise(async(resolve,reject) => {
+                        responseObj["otherRegistrations"] = await this.userService.otherRegistrationDetails(requestBody);
+                        resolve(responseObj["otherRegistrations"]);
+                    });
+
+                const childRegRes = new Promise(async(resolve,reject) => {
+                        responseObj["childRegistrations"] = await this.userService.childRegistrationDetails(requestBody);
+                        resolve(responseObj["childRegistrations"]);
+                    });
+
+                const teamRegRes = new Promise(async(resolve,reject) => {
+                        responseObj["teamRegistrations"] = await this.userService.teamRegistrationDetails(requestBody);
+                        resolve(responseObj["teamRegistrations"]);
+                    });
+                                
+                await Promise.all([userRegRes,otherRegRes,childRegRes,teamRegRes])
+                            .then(results => {console.log(`${JSON.stringify(results)}`);});
                 
                 return response.status(200).send(responseObj);
             }
@@ -273,7 +289,7 @@ export class UserDashboardController extends BaseController {
         @Res() response: Response) {
             try{
                 if(requestBody) {
-                    let teamMembers = await this.userService.getAndAddTeamMembers(requestBody);
+                    let teamMembers = await this.userService.getTeamMembers(requestBody);
                     return response.status(200).send(teamMembers);
                 }
             }
