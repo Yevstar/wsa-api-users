@@ -85,6 +85,15 @@ export function isArrayPopulated(checkArray: any): boolean {
     return false;
 }
 
+export function stringTOFloatNumberReg(checkString: string | number): number {
+    return typeof checkString === 'string' ? Number(Number(checkString).toFixed(2)) : Number(Number(checkString).toFixed(2));
+}
+
+export function feeIsNull(fee: string | number): number {
+    return ((fee === null||fee===undefined) ? 0 : (stringTOFloatNumberReg(fee)));
+}
+
+
 export function stringTONumber(checkString: string | number): number {
     return typeof checkString === 'string' ? parseInt(checkString) : checkString;
 }
