@@ -984,14 +984,14 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
-    public async getNetSetGoRegistration(requestBody: any) {
+    public async getNetSetGoRegistration(requestBody: any,sortBy: string = undefined, sortOrder: 'ASC' | 'DESC' = undefined) {
         try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let organisationId = requestBody.organisationId;
             let yearRefId = requestBody.yearRefId;
-            let result = await this.entityManager.query("call wsa_users.usp_get_netsetgo(?,?,?,?)",
-                [organisationId, yearRefId, limit, offset]);
+            let result = await this.entityManager.query("call wsa_users.usp_get_netsetgo(?,?,?,?,?,?)",
+                [organisationId, yearRefId, limit, offset,sortBy,sortOrder]);
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);

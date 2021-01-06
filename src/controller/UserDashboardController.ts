@@ -260,7 +260,9 @@ export class UserDashboardController extends BaseController {
     async userRegistrationNetSetGo(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC") {
         try {
             if (requestBody != null) {
                 // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
@@ -269,7 +271,7 @@ export class UserDashboardController extends BaseController {
                 // }
            
                
-                const responseObj = await this.userService.getNetSetGoRegistration(requestBody);
+                const responseObj = await this.userService.getNetSetGoRegistration(requestBody,sortBy,sortOrder);
                 
                 
                 return response.status(200).send(responseObj);
