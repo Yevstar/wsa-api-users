@@ -1,6 +1,8 @@
 import {
     Authorized,
-    Body, ForbiddenError,
+    Body,
+    BodyParam,
+    ForbiddenError,
     Get,
     HeaderParam,
     JsonController,
@@ -34,6 +36,8 @@ import {logger} from '../logger';
 import AppConstants from '../constants/AppConstants';
 import {LinkedEntities} from "../models/views/LinkedEntities";
 import { Role } from "../models/security/Role";
+import { UserRoleEntity } from "../models/security/UserRoleEntity";
+import { EntityType } from "../models/security/EntityType";
 
 const tfaOptionEnabled = parseInt(process.env.TFA_ENABLED, 10);
 
@@ -904,6 +908,50 @@ export class UserController extends BaseController {
             return response.status(400).send({
                 name: 'param_error',
                 message: `Required parameter not passed`
+            });
+        }
+    }
+
+    @Authorized()
+    @Post('/switchParentChild')
+    async switchParentChild(
+        @HeaderParam('authorization') user: User,
+        @QueryParam('childUserId', { required: true }) childUserId: number,
+        @BodyParam('parentUser', { required: true }) parentUser: User,
+        @Res() response: Response,
+    ) {
+        try {
+            const childUser = await this.userService.findById(childUserId);
+
+            parentUser.email = childUser.email;
+            parentUser.createdBy = user.id;
+            parentUser.updatedBy = user.id;
+            parentUser.updatedOn = new Date();
+
+            await this.userService.createOrUpdate(parentUser);
+
+            childUser.email = childUser.email + "." + childUser.firstName;
+            childUser.isInActive = 1;
+            childUser.statusRefId = 0;
+            await this.updateFirebaseData(childUser, childUser.password);
+            await this.userService.createOrUpdate(childUser);
+            // await this.userService.updateById(childUser.id, childUser);
+
+            const ureData = new UserRoleEntity();
+            ureData.entityId = childUser.id;
+            ureData.entityTypeId = EntityType.USER;
+            ureData.userId = parentUser.id;
+            ureData.roleId = Role.PARENT;
+
+            await this.ureService.createOrUpdate(ureData);
+
+            return response.status(200).send({ userId: parentUser.id });
+        } catch (error) {
+            logger.error(`Unable to switch parent child: `, error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development
+                    ? 'Something went wrong: ' + error
+                    : 'Something went wrong'
             });
         }
     }
