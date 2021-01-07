@@ -964,6 +964,26 @@ export class UserController extends BaseController {
         @BodyParam('childUser', { required: true }) childUser: User,
         @Res() response: Response,
     ) {
+         if (parentUserId == user.id) {
+            await this.adminCreateChild(user, parentUserId, sameEmail, childUser, response);
+         } else {
+             return response.status(401).send({
+                    errorCode: 2,
+                    message: 'You are trying to access another user\'s data'
+                });
+         }
+    }
+
+
+    @Authorized('web_users')
+    @Post('/admin/child/create')
+    async adminCreateChild(
+        @HeaderParam('authorization') user: User,
+        @QueryParam('parentUserId', { required: true }) parentUserId: number,
+        @QueryParam('sameEmail', { required: true }) sameEmail: number,
+        @BodyParam('childUser', { required: true }) childUser: User,
+        @Res() response: Response,
+    ) {
         try {
             const parentUser = await this.userService.findById(parentUserId);
 
@@ -1007,6 +1027,25 @@ export class UserController extends BaseController {
     @Authorized()
     @Post('/parent/create')
     async createParent(
+        @HeaderParam('authorization') user: User,
+        @QueryParam('childUserId', { required: true }) childUserId: number,
+        @QueryParam('sameEmail', { required: true }) sameEmail: number,
+        @BodyParam('parentUser', { required: true }) parentUser: User,
+        @Res() response: Response,
+    ) {
+         if (childUserId == user.id) {
+            await this.adminCreateChild(user, childUserId, sameEmail, parentUser, response);
+         } else {
+             return response.status(401).send({
+                    errorCode: 2,
+                    message: 'You are trying to access another user\'s data'
+                });
+         }
+    }
+
+    @Authorized('web_users')
+    @Post('/admin/parent/create')
+    async adminCreateParent(
         @HeaderParam('authorization') user: User,
         @QueryParam('childUserId', { required: true }) childUserId: number,
         @QueryParam('sameEmail', { required: true }) sameEmail: number,
