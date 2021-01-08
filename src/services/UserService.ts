@@ -1470,8 +1470,7 @@ export default class UserService extends BaseService<User> {
                 user.lastName, user.lastName, user.dateOfBirth,
                 userId
             ]
-        )
-        
+        ) 
     }
 
     public async updateById(id: number, user: User) {
@@ -1482,8 +1481,9 @@ export default class UserService extends BaseService<User> {
             .execute();
     }
 
-    public async markUserInactive(id: number) {
-        return this.entityManager.query(`UPDATE user SET isInActive = 0 WHERE id = ?`, [id])
+    public async markUserInactive(id: number, updatedBy: number) {
+        return this.entityManager.query(`UPDATE user SET isInActive = 0, 
+            isDeleted = 1, updatedBy = ? WHERE id = ?`, [updatedBy, id]);
     }
 
     public async getAffiliates(uids: number[]) {
