@@ -1175,13 +1175,15 @@ export default class UserService extends BaseService<User> {
                                 if(isArrayPopulated(fee)) {
                                     for(let f of fee) {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount);
+                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
                                         totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                     }
                                 }
                                 else {
                                     total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                                                - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                 }
                             }   
@@ -1242,13 +1244,15 @@ export default class UserService extends BaseService<User> {
                                 if(isArrayPopulated(fee)) {
                                     for(let f of fee) {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount);
+                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
                                         totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);      
                                     }
                                 }
                                 else {
                                     total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                                                - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                 }
                             }   
@@ -1293,13 +1297,15 @@ export default class UserService extends BaseService<User> {
                                 if(isArrayPopulated(fee)) {
                                     for(let f of fee) {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount);
+                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
                                         totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);      
                                     }
                                 }
                                 else {
                                     total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount)
+                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                 }
                             }   
@@ -1312,13 +1318,15 @@ export default class UserService extends BaseService<User> {
                                 if(isArrayPopulated(fee)) {
                                     for(let f of fee) {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount);
+                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
                                         totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);      
                                     }
                                 }
                                 else {
                                     total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount);
+                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount)
+                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);
                                 }
                             }   
@@ -1481,7 +1489,7 @@ export default class UserService extends BaseService<User> {
             .execute();
     }
 
-    public async markUserInactive(id: number, updatedBy: number) {
+    public async markUserInactive(id: number, updatedBy: number = undefined) {
         return this.entityManager.query(`UPDATE user SET isInActive = 0, 
             isDeleted = 1, updatedBy = ? WHERE id = ?`, [updatedBy, id]);
     }
