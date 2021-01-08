@@ -924,6 +924,7 @@ export class UserController extends BaseController {
             const childUser = await this.userService.findById(childUserId);
 
             parentUser.email = childUser.email;
+            parentUser.password = childUser.password;
             parentUser.createdBy = user.id;
             parentUser.updatedBy = user.id;
             parentUser.updatedOn = new Date();
