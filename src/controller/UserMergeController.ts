@@ -6,6 +6,7 @@ import {
   JsonController,
   Param,
   Post,
+  HeaderParam
 } from "routing-controllers";
 import { BaseController } from "./BaseController";
 import { User } from "../models/User";
@@ -57,6 +58,7 @@ export class UserRoleEntityController extends BaseController {
   @Authorized()
   @Post("/merge")
   async mergeUsers(
+    @HeaderParam("authorization") currentUser: User,
     @Body() payload: any,
   ): Promise<unknown> {
     const liveScoreEndpoint = process.env.liveScoresWebHost
@@ -70,7 +72,7 @@ export class UserRoleEntityController extends BaseController {
 
     await Promise.all([
       this.ureService.replaceUserId(payload.otherUserId, payload.masterUserId),
-      this.userService.markUserInactive(payload.otherUserId)
+      this.userService.deactivateUser(payload.otherUserId, currentUser.id, payload.masterUserId)
     ])
 
     if (Object.keys(payload.payload).length) {

@@ -1465,13 +1465,13 @@ export default class UserService extends BaseService<User> {
             `SELECT id, firstName, middleName, lastname, mobileNumber, email, dateOfBirth
             FROM wsa_users.user 
             WHERE
-            ((firstName = ? AND mobileNumber = ?) OR
-            (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?)) AND 
-            (isInActive = 1 AND
+            ((LOWER(firstName) = ? AND mobileNumber = ? AND mobileNumber is not null) OR
+            (LOWER(lastName) = ? AND mobileNumber = ? AND dateOfBirth = ?)) AND 
+            (isDeleted = 0 AND
             id not in (?))`,
             [
-                user.firstName, user.mobileNumber,
-                user.lastName, user.mobileNumber, user.dateOfBirth,
+                user.firstName.toLowerCase(), user.mobileNumber,
+                user.lastName.toLowerCase(), user.mobileNumber, user.dateOfBirth,
                 userId
             ]
         ) 
@@ -1482,8 +1482,8 @@ export default class UserService extends BaseService<User> {
             `SELECT id, firstName, middleName, lastname, mobileNumber, email, dateOfBirth
             FROM wsa_users.user 
             WHERE
-            ((firstName = ? AND mobileNumber = ?) OR
-            (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?))`,
+            ((LOWER(firstName) = ? AND mobileNumber = ? AND mobileNumber is not null) OR
+            (LOWER(lastName) = ? AND mobileNumber = ? AND dateOfBirth = ?))`,
             [
                 user.firstName, user.mobileNumber,
                 user.lastName, user.lastName, user.dateOfBirth,
@@ -1499,9 +1499,9 @@ export default class UserService extends BaseService<User> {
             .execute();
     }
 
-    public async markUserInactive(id: number, updatedBy: number = undefined) {
-        return this.entityManager.query(`UPDATE user SET isInActive = 0, 
-            isDeleted = 1, updatedBy = ? WHERE id = ?`, [updatedBy, id]);
+    public async deactivateUser(id: number, updatedBy: number = undefined, mergedUserId: number = undefined) {
+        return this.entityManager.query(`UPDATE user SET statusRefId = 2, 
+            isDeleted = 1, updatedBy = ?, mergedUserId = ? WHERE id = ?`, [updatedBy, id, mergedUserId]);
     }
 
     public async getAffiliates(uids: number[]) {
