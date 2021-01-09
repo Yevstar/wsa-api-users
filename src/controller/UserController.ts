@@ -41,7 +41,7 @@ import { EntityType } from "../models/security/EntityType";
 
 const tfaOptionEnabled = parseInt(process.env.TFA_ENABLED, 10);
 
-@JsonController('/users') 
+@JsonController('/users')
 export class UserController extends BaseController {
 
     @Get('/loginWithEmailPassword')
@@ -912,9 +912,53 @@ export class UserController extends BaseController {
         }
     }
 
+    // CM-2062 User-switch child / parent
     @Authorized()
     @Post('/switchParentChild')
     async switchParentChild(
+        @HeaderParam('authorization') currentUser: User,
+        @Res() response: Response,
+    ) {
+        try {
+            // make a copy of currently logged-in to become the new Parent user
+            const parentUser = new User()
+            parentUser.email = currentUser.email;
+            parentUser.password = currentUser.password;
+            parentUser.createdBy = currentUser.id;
+            parentUser.updatedBy = currentUser.id;
+            parentUser.updatedOn = new Date();
+
+            await this.userService.createOrUpdate(parentUser);
+
+            // update / deactivate current user
+            currentUser.email = currentUser.email + "." + currentUser.firstName; // email : abc@qq.com.childFirstName
+            currentUser.isInActive = 1; // deactivate
+            currentUser.statusRefId = 0; // ?
+            let updatedUser = await this.userService.createOrUpdate(currentUser);
+            await this.updateFirebaseData(updatedUser, currentUser.password);
+
+            // create a role profile for the new parent user
+            const ureData = new UserRoleEntity();
+            ureData.entityId = currentUser.id;
+            ureData.entityTypeId = EntityType.USER;
+            ureData.userId = parentUser.id;
+            ureData.roleId = Role.PARENT;
+
+            await this.ureService.createOrUpdate(ureData);
+
+            return this.responseWithTokenAndUser(parentUser.email, parentUser.password, parentUser)
+        } catch (error) {
+            logger.error(`Unable to switch parent child: `, error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development
+                    ? 'Something went wrong: ' + error
+                    : 'Something went wrong'
+            });
+        }
+    }
+
+    // this function has been used by below admin functions so it is left intact
+    async switchParentChildAdmin(
         @HeaderParam('authorization') user: User,
         @QueryParam('childUserId', { required: true }) childUserId: number,
         @BodyParam('parentUser', { required: true }) parentUser: User,
@@ -997,7 +1041,7 @@ export class UserController extends BaseController {
                 childUser.statusRefId = 1;
                 // TODO: send email
             }
-           
+
             childUser.createdBy = user.id;
             await this.userService.createOrUpdate(childUser);
             const childUserPassword = md5('password');
@@ -1057,9 +1101,9 @@ export class UserController extends BaseController {
             const childUser = await this.userService.findById(childUserId);
 
             if (sameEmail == 1) {
-                await this.switchParentChild(user, childUserId, parentUser, response);
+                await this.switchParentChildAdmin(user, childUserId, parentUser, response);
             } else {
-                
+
                 parentUser.createdBy = user.id;
                 parentUser.password = md5(Math.random().toString(36).slice(-8));
                 await this.userService.createOrUpdate(parentUser);
