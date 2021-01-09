@@ -144,4 +144,20 @@ export class User extends BaseEntity {
     @Column({ nullable: true, default: null })
     stripeAccountId: string;
 
+    @IsNumber()
+    @Column()
+    accreditationLevelUmpireRefId?: number;
+
+    @IsDate()
+    @Column()
+    accreditationUmpireExpiryDate?: Date;
+
+    @IsNumber()
+    @Column()
+    accreditationLevelCoachRefId?: number;
+
+    @IsDate()
+    @Column()
+    accreditationCoachExpiryDate?: Date;
+
 }

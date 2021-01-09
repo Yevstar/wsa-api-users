@@ -394,22 +394,18 @@ export class UserDashboardController extends BaseController {
                 user.stateRefId = requestBody.stateRefId;
                 user.postalCode = requestBody.postalCode;
                 user.email = requestBody.email.toLowerCase();
+
                 let userData = await this.userService.createOrUpdate(user);
 
                 if(userFromDb != undefined){
                     if(userFromDb.email.toLowerCase() !== user.email.toLowerCase()){
 
                         await this.updateFirebaseData(userData, userFromDb.password);
-
-                        
                         let mailObjOld = await this.communicationTemplateService.findById(12);
                         await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
                         
-
-                        
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-                        
                     }
                 }
 
@@ -529,6 +525,10 @@ export class UserDashboardController extends BaseController {
                 user.genderRefId = requestBody.genderRefId;
                 user.childrenCheckNumber = requestBody.childrenCheckNumber;
                 user.childrenCheckExpiryDate = requestBody.childrenCheckExpiryDate;
+                user.accreditationLevelUmpireRefId = requestBody.accreditationLevelUmpireRefId;
+                user.accreditationUmpireExpiryDate = requestBody.accreditationUmpireExpiryDate;
+                user.accreditationLevelCoachRefId = requestBody.accreditationLevelCoachRefId;
+                user.accreditationCoachExpiryDate = requestBody.accreditationCoachExpiryDate;
                 await this.userService.createOrUpdate(user);
 
                 if(!isNullOrEmpty(requestBody.childrenCheckExpiryDate)){
