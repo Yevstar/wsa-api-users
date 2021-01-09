@@ -524,7 +524,7 @@ export class UserDashboardController extends BaseController {
                 user.id = requestBody.userId;
                 user.genderRefId = requestBody.genderRefId;
                 user.childrenCheckNumber = requestBody.childrenCheckNumber;
-                user.childrenCheckExpiryDate = requestBody.childrenCheckExpiryDate;
+                user.childrenCheckExpiryDate = moment(requestBody.childrenCheckExpiryDate, 'YYYY-MM-DD').toDate();
                 user.accreditationLevelUmpireRefId = requestBody.accreditationLevelUmpireRefId;
                 user.accreditationUmpireExpiryDate = requestBody.accreditationUmpireExpiryDate;
                 user.accreditationLevelCoachRefId = requestBody.accreditationLevelCoachRefId;
@@ -536,6 +536,7 @@ export class UserDashboardController extends BaseController {
                     this.actionsService.clearActionChildrenCheckNumber(user.id,currentUser.id);
                     let actions = [];
                     let masterId = 0;
+                    
                     if(moment(user.childrenCheckExpiryDate).isAfter(moment())){
                         actions = await this.actionsService.getActionDataForChildrenCheck13(user.id);
                         masterId = 13;
@@ -583,7 +584,6 @@ export class UserDashboardController extends BaseController {
         }
         
     }
-
 
     @Authorized()
     @Post('/user/history')
