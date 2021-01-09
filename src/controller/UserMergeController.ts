@@ -79,6 +79,9 @@ export class UserRoleEntityController extends BaseController {
       await this.userService.updateById(payload.masterUserId, user)
     }
 
+    let updatedUser = await this.userService.findById(payload.masterUserId);
+    await this.updateFirebaseData(updatedUser, updatedUser.password);
+
     return "User merged successfully";
   }
 }
