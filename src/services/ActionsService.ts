@@ -74,7 +74,7 @@ export default class ActionsService extends BaseService<Actions> {
                     left join wsa.team t1 
                         on t1.id = ure.entityId and ure.entityTypeId = 3 and (ure.roleId = 17 or ure.roleId = 3) and t1.deleted_at is null
                     left join wsa.competitionOrganisation co 
-                        on co.id = t.organisationId or co.id = t1.organisationId 
+                        on co.id = t.competitionOrganisationId or co.id = t1.competitionOrganisationId 
                     left join wsa.competition c 
                         on c.id = ure.entityId and c.deleted_at is null and ure.entityTypeId = 1 and ure.roleId in(4,5)
                     where childrenCheckExpiryDate is not null and 
