@@ -1455,7 +1455,7 @@ export default class UserService extends BaseService<User> {
 
     public async findMatchesForMerging(userId: number) {
         const users = await this.entityManager.query(`
-        SELECT id, firstName, lastname, mobileNumber, email, dateOfBirth
+        SELECT id, firstName, lastName, mobileNumber, email, dateOfBirth
             FROM wsa_users.user
             WHERE id = ?`, [userId]
         )
@@ -1485,8 +1485,8 @@ export default class UserService extends BaseService<User> {
             ((LOWER(firstName) = ? AND mobileNumber = ? AND mobileNumber is not null) OR
             (LOWER(lastName) = ? AND mobileNumber = ? AND dateOfBirth = ?))`,
             [
-                user.firstName, user.mobileNumber,
-                user.lastName, user.lastName, user.dateOfBirth,
+                user.firstName.toLowerCase(), user.mobileNumber,
+                user.lastName.toLowerCase(), user.mobileNumber, user.dateOfBirth,
             ]
         ) 
     }
