@@ -1302,6 +1302,7 @@ export default class UserService extends BaseService<User> {
     public findExistingUser(data: LookForExistingUserBody) {
       return this.entityManager.query(`
         SELECT
+          id,
           mobileNumber,
           email
         FROM
@@ -1321,6 +1322,24 @@ export default class UserService extends BaseService<User> {
           data.lastName, data.lastName, data.dateOfBirth,
         ],
       );
+    }
+    public async getEmailAndPhoneById(userId: number) {
+      return await this.entityManager.query(`
+      SELECT email,mobileNumber
+          FROM wsa_users.user
+          WHERE id = ?
+          LIMIT 1
+          `, [userId]
+      )
+    }
+    public async getDigitCodeById(userId: number) {
+      return await this.entityManager.query(`
+      SELECT digit_code
+          FROM wsa_users.user
+          WHERE id = ?
+          LIMIT 1
+          `, [userId]
+      )
     }
 
     public async findMatchesForMerging(userId: number) {

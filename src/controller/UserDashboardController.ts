@@ -6,6 +6,7 @@ import { Response, response } from 'express';
 import e = require("express");
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
+import nodeMailer from 'nodemailer';
 import { UserRegistration } from "../models/UserRegistration";
 import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
@@ -13,6 +14,7 @@ import { CommunicationTrack } from "../models/CommunicationTrack";
 import { isNullOrUndefined } from "util";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
 let moment = require('moment');
+import twilio from 'twilio';
 
 import { LookForExistingUserBody } from './types';
 
@@ -239,7 +241,7 @@ export class UserDashboardController extends BaseController {
         }
         const users = await this.userService.findExistingUser(requestBody);
         if (users.length > 0) {
-          const [{ email, mobileNumber }] = users;
+          const [{ email, mobileNumber, id }] = users;
           if (!(email || mobileNumber)) {
               return response.status(200).send({
                 phone: '',
@@ -257,12 +259,124 @@ export class UserDashboardController extends BaseController {
           return response.status(200).send({
             phone: maskedPhone,
             email: maskedEmail,
+            id
           });
         } else {
           return response.status(200).send();
         }
       } catch (error) {
         logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
+        return response.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development
+            ? AppConstants.errMessage + error
+            : AppConstants.errMessage,
+        });
+      }
+    }
+
+        /**
+     * Send digit code to email or sms
+     * @param {LookForExistingUserBody} requestBody - body data
+     * @param {Response} response - response object
+     * @returns {Promise<void>}
+     */
+    @Post('/user/existing-digit-code')
+    async sendCodeToEmailOrSms(
+      @Body() requestBody: any,
+      @Res() response: Response
+    ) {
+      try {
+        // check body data
+        const {
+          id,
+          type
+        } = requestBody;
+        if (!(id && type)) {
+          return response.status(400).send({
+            info: 'MISSING_DATA',
+            requestBody,
+          });
+        }
+        const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
+        const [{ email, mobileNumber }] = emailAndPhoneById;
+        const digitCode = Math.floor(100000 + Math.random() * 900000);
+
+        let user = await this.userService.findById(id);
+        user.digit_code = String(digitCode);
+        await this.userService.createOrUpdate(user);
+        
+        if(type === 1) {
+            const transporter = nodeMailer.createTransport({
+                host: "smtp.gmail.com",
+                port: 587,
+                secure: false, // true for 465, false for other ports
+                auth: {
+                    user: process.env.MAIL_USERNAME,
+                    pass: process.env.MAIL_PASSWORD
+                },
+                tls: {
+                    rejectUnauthorized: false
+                }
+            });
+
+            await transporter.sendMail({
+                from: '"Netball" <foo@example.com>', // sender address
+                to: email, // change to email
+                subject: "Digit code", // Subject line
+                html: `<b>${digitCode}</b>`, // html body
+            });
+        } else {
+            const client = twilio('ACbaf73c5b4fd031f6468e24f8c7e23b48', 'e2b2324d5dfabb7b44b28e66ba4161c2');
+            const message = await client.messages.create({
+                body: `DIGIT CODE ${digitCode}`,
+                from: '+13526395263',
+                to: mobileNumber,//change to mobileNumber
+            });
+        }
+
+        return response.status(200).send({
+            message: type === 1? `check your email` : 'check your phone'
+        })
+      } catch (error) {
+        logger.error(`Error @ sendCodeToEmailOrSms: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
+        return response.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development
+            ? AppConstants.errMessage + error
+            : AppConstants.errMessage,
+        });
+      }
+    }
+    @Post('/user/check-existing-digit-code')
+    async checkDigitCode(
+      @Body() requestBody: any,
+      @Res() response: Response
+    ) {
+      try {
+        // check body data
+        const {
+          id,
+          digitCode
+        } = requestBody;
+        let message ='';
+        const digitCodeById = await this.userService.getDigitCodeById(id)
+        const currentDigitCode = digitCodeById[0].digit_code;
+        if (currentDigitCode === digitCode) {
+            message = 'success';
+        } else {
+            message = 'decline';
+        }
+
+        //delete code from db
+        // let user = await this.userService.findById(id);
+        // user.digit_code = null;
+        // await this.userService.createOrUpdate(user);
+
+        return response.status(200).send({
+            message,
+            currentUser: currentDigitCode
+        })
+      } catch (error) {
+        logger.error(`Error @ sendCodeToEmailOrSms: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
         return response.status(500).send({
           message: process.env.NODE_ENV == AppConstants.development
             ? AppConstants.errMessage + error
