@@ -328,25 +328,25 @@ export class UserDashboardController extends BaseController {
             });
 
             await transporter.sendMail({
-                from: '"Netball" <foo@example.com>', // sender address
-                to: 'o.verkhoturov@dunice.net', // change to email
+                from: `"${process.env.MAIL_FROM_NAME}" ${process.env.MAIL_FROM_ADDRESS}`, // sender address
+                to: `${email}`,
                 subject: "Digit code", // Subject line
                 html: `<b>${digitCode}</b>`, // html body
             });
         } else {
-            const client = twilio('ACbaf73c5b4fd031f6468e24f8c7e23b48', 'e2b2324d5dfabb7b44b28e66ba4161c2');
+            const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
             const message = await client.messages.create({
                 body: `DIGIT CODE ${digitCode}`,
-                from: '+13526395263',
-                to: '+79518201896',//change to mobileNumber
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to: `+${mobileNumber}`,
             });
         }
 
         return response.status(200).send({
-            message: type === 1? `check your email` : 'check your phone'
+            message: type === 1? `check your email` : 'check your phone',
         })
       } catch (error) {
-        logger.error(`Error @ sendCodeToEmailOrSms: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
+        logger.error(`Error @ sendCodeToEmailOrSms: ${requestBody.id || ''}\n${JSON.stringify(error)}`);
         return response.status(500).send({
           message: process.env.NODE_ENV == AppConstants.development
             ? AppConstants.errMessage + error
@@ -354,6 +354,7 @@ export class UserDashboardController extends BaseController {
         });
       }
     }
+
     @Post('/user/check-existing-digit-code')
     async checkDigitCode(
       @Body() requestBody: any,
@@ -365,6 +366,12 @@ export class UserDashboardController extends BaseController {
           id,
           digitCode
         } = requestBody;
+        if (!(id && digitCode)) {
+            return response.status(400).send({
+              info: 'MISSING_DATA',
+              requestBody,
+            });
+          }
         let message ='';
         const digitCodeById = await this.userService.getDigitCodeById(id)
         const currentDigitCode = digitCodeById[0].digit_code;
@@ -381,10 +388,51 @@ export class UserDashboardController extends BaseController {
 
         return response.status(200).send({
             message,
-            currentUser: currentDigitCode
         })
       } catch (error) {
-        logger.error(`Error @ sendCodeToEmailOrSms: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
+        logger.error(`Error @ checkDigitCode: ${requestBody.id || ''}\n${JSON.stringify(error)}`);
+        return response.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development
+            ? AppConstants.errMessage + error
+            : AppConstants.errMessage,
+        });
+      }
+    }
+
+    @Post('/user/confirm-details')
+    async confirmDetails(
+      @Body() requestBody: any,
+      @Res() response: Response
+    ) {
+      try {
+        const {
+          id,
+          type,
+          detail
+        } = requestBody;
+        if (!(id && type && detail)) {
+            return response.status(400).send({
+              info: 'MISSING_DATA',
+              requestBody,
+            });
+          }
+        let message ='';
+        const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
+        const [{ email, mobileNumber }] = emailAndPhoneById;
+
+        if (Number(type) === 1 && email === detail) {
+            message = 'success';
+        } else if( Number(type) === 2 && mobileNumber === detail) {
+            message = 'success';
+        } else {
+            message = 'decline';
+        }
+
+        return response.status(200).send({
+            message,
+        })
+      } catch (error) {
+        logger.error(`Error @ confirmDetails: ${requestBody.id || ''}\n${JSON.stringify(error)}`);
         return response.status(500).send({
           message: process.env.NODE_ENV == AppConstants.development
             ? AppConstants.errMessage + error
