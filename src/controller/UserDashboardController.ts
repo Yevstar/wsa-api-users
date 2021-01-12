@@ -249,18 +249,26 @@ export class UserDashboardController extends BaseController {
               });
           }
           const emailRegexp = /^(.{2}).*@(.{2}).*(\..+)$/;
-          const result = email.match(emailRegexp);
-          const maskedEmail = email && result
-            ? `${result[1]}***@${result[2]}***${result[3]}`
-            : '';
-          const maskedPhone = mobileNumber && mobileNumber !== 'NULL'
-            ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}`
-            : '';
-          return response.status(200).send({
-            phone: maskedPhone,
-            email: maskedEmail,
-            id
-          });
+          const responsingUsers =  users.map(user => {
+            const { email, mobileNumber, id } = user;
+
+            const result = email.match(emailRegexp);
+            const maskedEmail = email && result
+              ? `${result[1]}***@${result[2]}***${result[3]}`
+              : '';
+            const maskedPhone = mobileNumber && mobileNumber !== 'NULL'
+              ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}`
+              : '';
+            return {
+                phone: maskedPhone,
+                email: maskedEmail,
+                id
+            }
+        })
+
+          return response.status(200).send(
+            [...responsingUsers],
+          );
         } else {
           return response.status(200).send();
         }
@@ -321,7 +329,7 @@ export class UserDashboardController extends BaseController {
 
             await transporter.sendMail({
                 from: '"Netball" <foo@example.com>', // sender address
-                to: email, // change to email
+                to: 'o.verkhoturov@dunice.net', // change to email
                 subject: "Digit code", // Subject line
                 html: `<b>${digitCode}</b>`, // html body
             });
@@ -330,7 +338,7 @@ export class UserDashboardController extends BaseController {
             const message = await client.messages.create({
                 body: `DIGIT CODE ${digitCode}`,
                 from: '+13526395263',
-                to: mobileNumber,//change to mobileNumber
+                to: '+79518201896',//change to mobileNumber
             });
         }
 
@@ -362,14 +370,14 @@ export class UserDashboardController extends BaseController {
         const currentDigitCode = digitCodeById[0].digit_code;
         if (currentDigitCode === digitCode) {
             message = 'success';
+            
+            //delete code from db
+            let user = await this.userService.findById(id);
+            user.digit_code = null;
+            await this.userService.createOrUpdate(user);
         } else {
             message = 'decline';
         }
-
-        //delete code from db
-        // let user = await this.userService.findById(id);
-        // user.digit_code = null;
-        // await this.userService.createOrUpdate(user);
 
         return response.status(200).send({
             message,

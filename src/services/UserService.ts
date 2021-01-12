@@ -1313,7 +1313,6 @@ export default class UserService extends BaseService<User> {
           (firstName = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
           (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?)
         )
-        LIMIT 1
         `,
         [
           data.firstName, data.lastName, data.mobileNumber,
