@@ -262,7 +262,9 @@ export class UserDashboardController extends BaseController {
             return {
                 phone: maskedPhone,
                 email: maskedEmail,
-                id
+                id,
+                firstName:user.firstName,
+                lastName:user.lastName,
             }
         })
 
@@ -388,6 +390,7 @@ export class UserDashboardController extends BaseController {
 
         return response.status(200).send({
             message,
+            id
         })
       } catch (error) {
         logger.error(`Error @ checkDigitCode: ${requestBody.id || ''}\n${JSON.stringify(error)}`);

@@ -1304,7 +1304,9 @@ export default class UserService extends BaseService<User> {
         SELECT
           id,
           mobileNumber,
-          email
+          email,
+          firstName,
+          lastName
         FROM
           wsa_users.user 
         WHERE (
