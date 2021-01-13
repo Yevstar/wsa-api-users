@@ -1320,7 +1320,7 @@ export default class UserService extends BaseService<User> {
           data.firstName, data.lastName, data.mobileNumber,
           data.firstName, data.lastName, data.dateOfBirth,
           data.firstName, data.mobileNumber, data.dateOfBirth,
-          data.lastName, data.lastName, data.dateOfBirth,
+          data.lastName, data.mobileNumber, data.dateOfBirth,
         ],
       );
     }
