@@ -222,11 +222,13 @@ export class UserDashboardController extends BaseController {
                 // }
                 let responseObj = {};
 
+                // todo: refactor below and remove redundant promises?
+
                 const userRegRes = new Promise(async(resolve,reject) => {
                         responseObj["myRegistrations"] = await this.userService.userRegistrationDetails(requestBody);
                         resolve(responseObj["myRegistrations"]);
                     });
-                  
+
 
                 const otherRegRes = new Promise(async(resolve,reject) => {
                         responseObj["otherRegistrations"] = await this.userService.otherRegistrationDetails(requestBody);
@@ -242,10 +244,10 @@ export class UserDashboardController extends BaseController {
                         responseObj["teamRegistrations"] = await this.userService.teamRegistrationDetails(requestBody);
                         resolve(responseObj["teamRegistrations"]);
                     });
-                                
+
                 await Promise.all([userRegRes,otherRegRes,childRegRes,teamRegRes])
                             .then(results => {console.log(`${JSON.stringify(results)}`);});
-                
+
                 return response.status(200).send(responseObj);
             }
         } catch (error) {
@@ -269,11 +271,11 @@ export class UserDashboardController extends BaseController {
                 // if (validateComp != null) {
                 //     return response.status(212).send(validateComp);
                 // }
-           
-               
+
+
                 const responseObj = await this.userService.getNetSetGoRegistration(requestBody,sortBy,sortOrder);
-                
-                
+
+
                 return response.status(200).send(responseObj);
             }
         } catch (error) {
@@ -348,7 +350,7 @@ export class UserDashboardController extends BaseController {
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
-        
+
     }
 
     @Authorized()
@@ -371,7 +373,7 @@ export class UserDashboardController extends BaseController {
             }
             if(section == 'address'){
 
-           
+
                 let userFromDb = await this.userService.findById(requestBody.userId);
                 let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
                 if(userDb2 != undefined){
@@ -403,7 +405,7 @@ export class UserDashboardController extends BaseController {
                         await this.updateFirebaseData(userData, userFromDb.password);
                         let mailObjOld = await this.communicationTemplateService.findById(12);
                         await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
-                        
+
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
                     }
@@ -446,7 +448,7 @@ export class UserDashboardController extends BaseController {
                 }
                 let userData =  await this.userService.createOrUpdate(user);
 
-                
+
                 let getData;
                 if(section == 'child') {
                     getData = await this.ureService.findExisting(requestBody.userId,userData.id,4,9);
@@ -454,7 +456,7 @@ export class UserDashboardController extends BaseController {
                     ureData.entityId = userData.id;
                 }
                 else {
-                    getData = await this.ureService.findExisting(userData.id,requestBody.userId,4,9);  
+                    getData = await this.ureService.findExisting(userData.id,requestBody.userId,4,9);
                     ureData.userId = userData.id;
                     ureData.entityId = requestBody.userId;
                 }
@@ -477,10 +479,10 @@ export class UserDashboardController extends BaseController {
                         await this.updateFirebaseData(userData, userFromDb.password);
                         let mailObjOld = await this.communicationTemplateService.findById(12);
                         await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
-                        
+
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-                        
+
                     }
                 }
                 return response.status(200).send({message: "Successfully updated"})
@@ -494,7 +496,7 @@ export class UserDashboardController extends BaseController {
                 }
                 else{
                     existingRoleId = AppConstants.PARENT_UNLINKED;
-                    roleId = AppConstants.PARENT_LINKED;   
+                    roleId = AppConstants.PARENT_LINKED;
                 }
 
                 let getData = await this.ureService.findExisting(requestBody.parentUserId, requestBody.childUserId,4, existingRoleId);
@@ -505,7 +507,7 @@ export class UserDashboardController extends BaseController {
                     ureData.updatedAt = new Date();
                     await this.ureService.createOrUpdate(ureData);
                     return response.status(200).send({message: "Successfully Deleted"});
-                }    
+                }
             }
 
             else if(section == 'emergency'){
@@ -536,7 +538,7 @@ export class UserDashboardController extends BaseController {
                     this.actionsService.clearActionChildrenCheckNumber(user.id,currentUser.id);
                     let actions = [];
                     let masterId = 0;
-                    
+
                     if(moment(user.childrenCheckExpiryDate).isAfter(moment())){
                         actions = await this.actionsService.getActionDataForChildrenCheck13(user.id);
                         masterId = 13;
@@ -582,7 +584,7 @@ export class UserDashboardController extends BaseController {
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
-        
+
     }
 
     @Authorized()
@@ -621,7 +623,7 @@ export class UserDashboardController extends BaseController {
                 if (validateUserId != null) {
                     return response.status(212).send(validateUserId);
                 }
-             
+
                 if(isArrayPopulated(requestBody.organisations)){
                     for(let organisation of  requestBody.organisations){
                    //     let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
@@ -635,7 +637,7 @@ export class UserDashboardController extends BaseController {
                         }
                     }
                 }
-               
+
 
                 return response.status(200).send({message: 'Successfully deleted user'});
             }
