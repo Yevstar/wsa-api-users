@@ -376,7 +376,8 @@ export class UserDashboardController extends BaseController {
                 // does the email exist in the database, and compare with current user in db
                 let userFromDb = await this.userService.findById(requestBody.userId);
                 let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
-
+                
+                let emailChanged = false;
                 
                 // email changed?
                 if (requestBody.email.toLowerCase().trim() != userFromDb.email.toLowerCase()) {
@@ -389,6 +390,7 @@ export class UserDashboardController extends BaseController {
                                 message: 'This email address is already in use. Please use a different email address'
                             });
                         } else {
+                            emailChanged = true;
                             user.email = requestBody.email.toLowerCase();
                         }
                     }
@@ -408,8 +410,7 @@ export class UserDashboardController extends BaseController {
 
                 let userData = await this.userService.createOrUpdate(user);
 
-                if(userFromDb != undefined){
-                    if(userFromDb.email.toLowerCase() !== user.email.toLowerCase()){
+                if(emailChanged == true) {
 
                         await this.updateFirebaseData(userData, userFromDb.password);
                         let mailObjOld = await this.communicationTemplateService.findById(12);
@@ -417,7 +418,7 @@ export class UserDashboardController extends BaseController {
 
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-                    }
+                    
                 }
 
                 return response.status(200).send({message: "Successfully updated"})
