@@ -372,26 +372,32 @@ export class UserDashboardController extends BaseController {
                organisationName = organisation.name;
             }
             if(section == 'address') {
-
                 // does the email exist in the database, and compare with current user in db
                 let userFromDb = await this.userService.findById(requestBody.userId);
-                let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
-                
-                let emailChanged = false;
-                
-                // email changed?
-                if (requestBody.email.toLowerCase().trim() != userFromDb.email.toLowerCase()) {
-                    if (`${requestBody.email.toLowerCase().trim()}.${requestBody.firstName.toLowerCase().trim()}` 
-                        !=  userFromDb.email.toLowerCase()) { // child user format
+                logger.info(`changing address for user: ${requestBody.userId} Email from web:${requestBody.email} firstName: ${requestBody.firstName} `);
 
-                        if(userDb2 != undefined) { // if email exists in DB
-                            return response.status(212).send({
-                                errorCode: 7,
-                                message: 'This email address is already in use. Please use a different email address'
-                            });
-                        } else {
-                            emailChanged = true;
-                            user.email = requestBody.email.toLowerCase();
+                let emailChanged = false;
+                if (userFromDb != undefined) {
+                    logger.info(`existing email: ${userFromDb.email}`);
+                    // check if email was changed
+                    if (requestBody.email.toLowerCase().trim() != userFromDb.email.toLowerCase()) {
+                        let pseudoEmail = `${requestBody.email.toLowerCase().trim()}.${requestBody.firstName.toLowerCase().trim()}`;
+                        logger.info(`checking details for : ${pseudoEmail}`);
+                        if ( pseudoEmail !=  userFromDb.email.toLowerCase()) { // also check child user format
+
+                            // email was changed
+                            let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                            if (userDb2 != undefined) { // if email exists in DB
+                                return response.status(212).send({
+                                    errorCode: 7,
+                                    message: 'This email address is already in use. Please use a different email address'
+                                });
+                            } else {
+                                emailChanged = true;
+                                logger.info(`changing email to : ${requestBody.email}`);
+                                user.email = requestBody.email.toLowerCase();
+
+                            }
                         }
                     }
                 }
