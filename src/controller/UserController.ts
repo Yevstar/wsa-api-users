@@ -1079,7 +1079,7 @@ export class UserController extends BaseController {
         @Res() response: Response,
     ) {
          if (childUserId == user.id) {
-            await this.adminCreateChild(user, childUserId, sameEmail, parentUser, response);
+            await this.adminCreateParent(user, childUserId, sameEmail, parentUser, response);
          } else {
              return response.status(401).send({
                     errorCode: 2,
