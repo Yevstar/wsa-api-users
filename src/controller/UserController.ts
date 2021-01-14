@@ -965,12 +965,12 @@ export class UserController extends BaseController {
         @Res() response: Response,
     ) {
         try {
-            const result = await this.userService.findUserFullDetailsById(childUserId);
-            let childUser = result[0];
-
+            const childUser = await this.userService.findById(childUserId);
+            const childSecurity = await this.userService.findByEmail(childUser.email);
+            
             // prepare the parent to take over the child
             parentUser.email = childUser.email;
-            parentUser.password = childUser.password;
+            parentUser.password = childSecurity.password;
             parentUser.createdBy = user.id;
             parentUser.updatedBy = user.id;
             parentUser.updatedOn = new Date();
@@ -980,7 +980,7 @@ export class UserController extends BaseController {
             childUser.isInActive = 1;
             childUser.statusRefId = 0;
             let updatedUser = await this.userService.createOrUpdate(childUser);
-            await this.updateFirebaseData(updatedUser, childUser.password);
+            await this.updateFirebaseData(updatedUser, childSecurity.password);
             
             // create parent
             await this.userService.createOrUpdate(parentUser);
