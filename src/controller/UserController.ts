@@ -965,7 +965,7 @@ export class UserController extends BaseController {
         @Res() response: Response,
     ) {
         try {
-            const childUser = await this.userService.findById(childUserId);
+            const childUser = await this.userService.findUserFullDetailsById(childUserId);
 
             // prepare the parent to take over the child
             parentUser.email = childUser.email;
