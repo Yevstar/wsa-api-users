@@ -965,8 +965,9 @@ export class UserController extends BaseController {
         @Res() response: Response,
     ) {
         try {
-            const childUserList = await this.userService.findChildPlayerUserDetails([childUserId]);
-            const childUser = childUserList[0];
+            const result = await this.userService.findUserFullDetailsById(childUserId);
+            let childUser = result[0];
+
             // prepare the parent to take over the child
             parentUser.email = childUser.email;
             parentUser.password = childUser.password;
