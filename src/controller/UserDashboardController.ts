@@ -371,19 +371,29 @@ export class UserDashboardController extends BaseController {
                let organisation = await this.organisationService.findOrgByUniquekey(organisationId)
                organisationName = organisation.name;
             }
-            if(section == 'address'){
+            if(section == 'address') {
 
-
+                // does the email exist in the database, and compare with current user in db
                 let userFromDb = await this.userService.findById(requestBody.userId);
                 let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
-                if(userDb2 != undefined){
-                    if (userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
-                        return response.status(212).send({
-                            errorCode: 7,
-                            message: 'This email address is already in use. Please use a different email address'
-                        });
+
+                
+                // email changed?
+                if (requestBody.email.toLowerCase().trim() != userFromDb.email.toLowerCase()) {
+                    if (`${requestBody.email.toLowerCase().trim()}.${requestBody.firstName.toLowerCase().trim()}` 
+                        !=  userFromDb.email.toLowerCase()) { // child user format
+
+                        if(userDb2 != undefined) { // if email exists in DB
+                            return response.status(212).send({
+                                errorCode: 7,
+                                message: 'This email address is already in use. Please use a different email address'
+                            });
+                        } else {
+                            user.email = requestBody.email.toLowerCase();
+                        }
                     }
                 }
+
                 user.id = requestBody.userId;
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
@@ -395,7 +405,6 @@ export class UserDashboardController extends BaseController {
                 user.suburb = requestBody.suburb;
                 user.stateRefId = requestBody.stateRefId;
                 user.postalCode = requestBody.postalCode;
-                user.email = requestBody.email.toLowerCase();
 
                 let userData = await this.userService.createOrUpdate(user);
 
@@ -520,6 +529,7 @@ export class UserDashboardController extends BaseController {
             }
             else if(section == 'other'){
                 userReg.id = requestBody.userRegistrationId;
+                
                 userReg.countryRefId = requestBody.countryRefId;
                 await this.userRegistrationService.createOrUpdate(userReg);
 
