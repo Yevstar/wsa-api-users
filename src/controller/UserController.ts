@@ -967,17 +967,21 @@ export class UserController extends BaseController {
         try {
             const childUser = await this.userService.findById(childUserId);
 
+            // prepare the parent to take over the child
+            parentUser.email = childUser.email;
+            parentUser.password = childUser.password;
+            parentUser.createdBy = user.id;
+            parentUser.updatedBy = user.id;
+            parentUser.updatedOn = new Date();
+
+            // update child
             childUser.email = childUser.email + "." + childUser.firstName;
             childUser.isInActive = 1;
             childUser.statusRefId = 0;
             let updatedUser = await this.userService.createOrUpdate(childUser);
             await this.updateFirebaseData(updatedUser, childUser.password);
             
-            parentUser.email = childUser.email;
-            parentUser.password = childUser.password;
-            parentUser.createdBy = user.id;
-            parentUser.updatedBy = user.id;
-            parentUser.updatedOn = new Date();
+            // create parent
             await this.userService.createOrUpdate(parentUser);
 
             const ureData = new UserRoleEntity();
