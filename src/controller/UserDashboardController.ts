@@ -397,8 +397,35 @@ export class UserDashboardController extends BaseController {
                 // if (validateComp != null) {
                 //     return response.status(212).send(validateComp);
                 // }
-                const userRegRes = await this.userService.userRegistrationDetails(requestBody);
-                return response.status(200).send(userRegRes);
+                let responseObj = {};
+
+                // todo: refactor below and remove redundant promises?
+
+                const userRegRes = new Promise(async(resolve,reject) => {
+                        responseObj["myRegistrations"] = await this.userService.userRegistrationDetails(requestBody);
+                        resolve(responseObj["myRegistrations"]);
+                    });
+
+
+                const otherRegRes = new Promise(async(resolve,reject) => {
+                        responseObj["otherRegistrations"] = await this.userService.otherRegistrationDetails(requestBody);
+                        resolve(responseObj["otherRegistrations"]);
+                    });
+
+                const childRegRes = new Promise(async(resolve,reject) => {
+                        responseObj["childRegistrations"] = await this.userService.childRegistrationDetails(requestBody);
+                        resolve(responseObj["childRegistrations"]);
+                    });
+
+                const teamRegRes = new Promise(async(resolve,reject) => {
+                        responseObj["teamRegistrations"] = await this.userService.teamRegistrationDetails(requestBody);
+                        resolve(responseObj["teamRegistrations"]);
+                    });
+
+                await Promise.all([userRegRes,otherRegRes,childRegRes,teamRegRes])
+                            .then(results => {console.log(`${JSON.stringify(results)}`);});
+
+                return response.status(200).send(responseObj);
             }
         } catch (error) {
             logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
@@ -407,43 +434,51 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
-
     @Authorized()
-    @Post('/user/registration/yourdetails')
-    async userRegistrationYourDetails(
+    @Post('/user/dashboard/netsetgo')
+    async userRegistrationNetSetGo(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC") {
         try {
             if (requestBody != null) {
-                const userRegYourDetails = await this.userService.userRegistrationYourDetails(requestBody);
-                return response.status(200).send(userRegYourDetails);
+                // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
+                // if (validateComp != null) {
+                //     return response.status(212).send(validateComp);
+                // }
+
+
+                const responseObj = await this.userService.getNetSetGoRegistration(requestBody,sortBy,sortOrder);
+
+
+                return response.status(200).send(responseObj);
             }
         } catch (error) {
-            logger.error(`Error Occurred in registration information of user ${requestBody.userId}`+error);
+            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
-
     @Authorized()
-    @Post('/user/registration/teamdetails')
-    async userRegistrationTeamDetails(
+    @Post('/user/registration/team')
+    async userRegistrationTeamMemberDetails(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
         @Res() response: Response) {
-        try{
-            if (requestBody != null) {
-                const userRegTeamDetails = await this.userService.userRegistrationTeamDetails(requestBody);
-                return response.status(200).send(userRegTeamDetails);
+            try{
+                if(requestBody) {
+                    let teamMembers = await this.userService.getTeamMembers(requestBody);
+                    return response.status(200).send(teamMembers);
+                }
             }
-        }
-        catch(error) {
-            logger.error(`Error Occurred in registration information of user ${requestBody.userId}`+error);
-            return response.status(500).send({
-                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
-            });
+            catch (error) {
+                logger.error(`Error Occurred in team information of user ${requestBody.userId}`+error);
+                return response.status(500).send({
+                    message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+                });
         }
     }
 
@@ -492,7 +527,32 @@ export class UserDashboardController extends BaseController {
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
-        
+
+    }
+
+    @Authorized()
+    @Post('/export/registration/data')
+    async exportUserRegistrationData(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                const Res = await this.userDashboardService.exportUserRegistrationData(requestBody);
+                response.setHeader('Content-disposition', 'attachment; filename=teamFinal.csv');
+                response.setHeader('content-type', 'text/csv');
+                fastcsv
+                    .write(Res, {headers: true})
+                    .on("finish", function () {
+                    })
+                    .pipe(response);
+            }
+        } catch (error) {
+            logger.error('Error Occurred in dashboard textual' + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
     }
 
     @Authorized()
@@ -513,19 +573,37 @@ export class UserDashboardController extends BaseController {
                let organisation = await this.organisationService.findOrgByUniquekey(organisationId)
                organisationName = organisation.name;
             }
-            if(section == 'address'){
-
-           
+            if(section == 'address') {
+                // does the email exist in the database, and compare with current user in db
                 let userFromDb = await this.userService.findById(requestBody.userId);
-                let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
-                if(userDb2 != undefined){
-                    if (userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
-                        return response.status(212).send({
-                            errorCode: 7,
-                            message: 'This email address is already in use. Please use a different email address'
-                        });
+                logger.info(`changing address for user: ${requestBody.userId} Email from web:${requestBody.email} firstName: ${requestBody.firstName} `);
+
+                let emailChanged = false;
+                if (userFromDb != undefined) {
+                    logger.info(`existing email: ${userFromDb.email}`);
+                    // check if email was changed
+                    if (requestBody.email.toLowerCase().trim() != userFromDb.email.toLowerCase()) {
+                        let pseudoEmail = `${requestBody.email.toLowerCase().trim()}.${requestBody.firstName.toLowerCase().trim()}`;
+                        logger.info(`checking details for : ${pseudoEmail}`);
+                        if ( pseudoEmail !=  userFromDb.email.toLowerCase()) { // also check child user format
+
+                            // email was changed
+                            let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                            if (userDb2 != undefined) { // if email exists in DB
+                                return response.status(212).send({
+                                    errorCode: 7,
+                                    message: 'This email address is already in use. Please use a different email address'
+                                });
+                            } else {
+                                emailChanged = true;
+                                logger.info(`changing email to : ${requestBody.email}`);
+                                user.email = requestBody.email.toLowerCase();
+
+                            }
+                        }
                     }
                 }
+
                 user.id = requestBody.userId;
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
@@ -537,24 +615,18 @@ export class UserDashboardController extends BaseController {
                 user.suburb = requestBody.suburb;
                 user.stateRefId = requestBody.stateRefId;
                 user.postalCode = requestBody.postalCode;
-                user.email = requestBody.email.toLowerCase();
+
                 let userData = await this.userService.createOrUpdate(user);
 
-                if(userFromDb != undefined){
-                    if(userFromDb.email.toLowerCase() !== user.email.toLowerCase()){
+                if(emailChanged == true) {
 
                         await this.updateFirebaseData(userData, userFromDb.password);
-
-                        
                         let mailObjOld = await this.communicationTemplateService.findById(12);
                         await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
-                        
 
-                        
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-                        
-                    }
+                    
                 }
 
                 return response.status(200).send({message: "Successfully updated"})
@@ -594,7 +666,7 @@ export class UserDashboardController extends BaseController {
                 }
                 let userData =  await this.userService.createOrUpdate(user);
 
-                
+
                 let getData;
                 if(section == 'child') {
                     getData = await this.ureService.findExisting(requestBody.userId,userData.id,4,9);
@@ -602,7 +674,7 @@ export class UserDashboardController extends BaseController {
                     ureData.entityId = userData.id;
                 }
                 else {
-                    getData = await this.ureService.findExisting(userData.id,requestBody.userId,4,9);  
+                    getData = await this.ureService.findExisting(userData.id,requestBody.userId,4,9);
                     ureData.userId = userData.id;
                     ureData.entityId = requestBody.userId;
                 }
@@ -625,10 +697,10 @@ export class UserDashboardController extends BaseController {
                         await this.updateFirebaseData(userData, userFromDb.password);
                         let mailObjOld = await this.communicationTemplateService.findById(12);
                         await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
-                        
+
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-                        
+
                     }
                 }
                 return response.status(200).send({message: "Successfully updated"})
@@ -642,7 +714,7 @@ export class UserDashboardController extends BaseController {
                 }
                 else{
                     existingRoleId = AppConstants.PARENT_UNLINKED;
-                    roleId = AppConstants.PARENT_LINKED;   
+                    roleId = AppConstants.PARENT_LINKED;
                 }
 
                 let getData = await this.ureService.findExisting(requestBody.parentUserId, requestBody.childUserId,4, existingRoleId);
@@ -653,7 +725,7 @@ export class UserDashboardController extends BaseController {
                     ureData.updatedAt = new Date();
                     await this.ureService.createOrUpdate(ureData);
                     return response.status(200).send({message: "Successfully Deleted"});
-                }    
+                }
             }
 
             else if(section == 'emergency'){
@@ -666,13 +738,18 @@ export class UserDashboardController extends BaseController {
             }
             else if(section == 'other'){
                 userReg.id = requestBody.userRegistrationId;
+                
                 userReg.countryRefId = requestBody.countryRefId;
                 await this.userRegistrationService.createOrUpdate(userReg);
 
                 user.id = requestBody.userId;
                 user.genderRefId = requestBody.genderRefId;
                 user.childrenCheckNumber = requestBody.childrenCheckNumber;
-                user.childrenCheckExpiryDate = requestBody.childrenCheckExpiryDate;
+                user.childrenCheckExpiryDate = moment(requestBody.childrenCheckExpiryDate, 'YYYY-MM-DD').toDate();
+                user.accreditationLevelUmpireRefId = requestBody.accreditationLevelUmpireRefId;
+                user.accreditationUmpireExpiryDate = requestBody.accreditationUmpireExpiryDate;
+                user.accreditationLevelCoachRefId = requestBody.accreditationLevelCoachRefId;
+                user.accreditationCoachExpiryDate = requestBody.accreditationCoachExpiryDate;
                 await this.userService.createOrUpdate(user);
 
                 if(!isNullOrEmpty(requestBody.childrenCheckExpiryDate)){
@@ -680,6 +757,7 @@ export class UserDashboardController extends BaseController {
                     this.actionsService.clearActionChildrenCheckNumber(user.id,currentUser.id);
                     let actions = [];
                     let masterId = 0;
+
                     if(moment(user.childrenCheckExpiryDate).isAfter(moment())){
                         actions = await this.actionsService.getActionDataForChildrenCheck13(user.id);
                         masterId = 13;
@@ -725,9 +803,8 @@ export class UserDashboardController extends BaseController {
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
-        
-    }
 
+    }
 
     @Authorized()
     @Post('/user/history')
@@ -765,7 +842,7 @@ export class UserDashboardController extends BaseController {
                 if (validateUserId != null) {
                     return response.status(212).send(validateUserId);
                 }
-             
+
                 if(isArrayPopulated(requestBody.organisations)){
                     for(let organisation of  requestBody.organisations){
                    //     let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
@@ -779,7 +856,7 @@ export class UserDashboardController extends BaseController {
                         }
                     }
                 }
-               
+
 
                 return response.status(200).send({message: 'Successfully deleted user'});
             }

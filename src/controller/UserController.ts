@@ -1,6 +1,8 @@
 import {
     Authorized,
-    Body, ForbiddenError,
+    Body,
+    BodyParam,
+    ForbiddenError,
     Get,
     HeaderParam,
     JsonController,
@@ -34,6 +36,8 @@ import {logger} from '../logger';
 import AppConstants from '../constants/AppConstants';
 import {LinkedEntities} from "../models/views/LinkedEntities";
 import { Role } from "../models/security/Role";
+import { UserRoleEntity } from "../models/security/UserRoleEntity";
+import { EntityType } from "../models/security/EntityType";
 
 const tfaOptionEnabled = parseInt(process.env.TFA_ENABLED, 10);
 
@@ -904,6 +908,229 @@ export class UserController extends BaseController {
             return response.status(400).send({
                 name: 'param_error',
                 message: `Required parameter not passed`
+            });
+        }
+    }
+
+    // CM-2062 User-switch child / parent
+    @Authorized()
+    @Post('/switchParentChild')
+    async switchParentChild(
+        @HeaderParam('authorization') currentUser: User,
+        @Res() response: Response,
+    ) {
+        try {
+            // make a copy of currently logged-in to become the new Parent user
+            const parentUser = new User()
+            parentUser.email = currentUser.email;
+            parentUser.password = currentUser.password;
+            parentUser.createdBy = currentUser.id;
+            parentUser.updatedBy = currentUser.id;
+            parentUser.updatedOn = new Date();
+
+            await this.userService.createOrUpdate(parentUser);
+
+            // update / deactivate current user
+            currentUser.email = currentUser.email + "." + currentUser.firstName; // email : abc@qq.com.childFirstName
+            currentUser.isInActive = 1; // deactivate
+            currentUser.statusRefId = 0; // ?
+            let updatedUser = await this.userService.createOrUpdate(currentUser);
+            await this.updateFirebaseData(updatedUser, currentUser.password);
+
+            // create a role profile for the new parent user
+            const ureData = new UserRoleEntity();
+            ureData.entityId = currentUser.id;
+            ureData.entityTypeId = EntityType.USER;
+            ureData.userId = parentUser.id;
+            ureData.roleId = Role.PARENT;
+
+            await this.ureService.createOrUpdate(ureData);
+
+            return this.responseWithTokenAndUser(parentUser.email, parentUser.password, parentUser)
+        } catch (error) {
+            logger.error(`Unable to switch parent child: `, error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development
+                    ? 'Something went wrong: ' + error
+                    : 'Something went wrong'
+            });
+        }
+    }
+
+    // this function has been used by below admin functions so it is left intact
+    async switchParentChildAdmin(
+        @HeaderParam('authorization') user: User,
+        @QueryParam('childUserId', { required: true }) childUserId: number,
+        @BodyParam('parentUser', { required: true }) parentUser: User,
+        @Res() response: Response,
+    ) {
+        try {
+            const childUser = await this.userService.findById(childUserId);
+            const childSecurity = await this.userService.findByEmail(childUser.email);
+            
+            // prepare the parent to take over the child
+            parentUser.email = childUser.email;
+            parentUser.password = childSecurity.password;
+            parentUser.createdBy = user.id;
+            parentUser.updatedBy = user.id;
+            parentUser.updatedOn = new Date();
+
+            // update child
+            childUser.email = childUser.email + "." + childUser.firstName;
+            childUser.isInActive = 1;
+            childUser.statusRefId = 0;
+            let updatedUser = await this.userService.createOrUpdate(childUser);
+            await this.updateFirebaseData(updatedUser, childSecurity.password);
+            
+            // create parent
+            await this.userService.createOrUpdate(parentUser);
+
+            const ureData = new UserRoleEntity();
+            ureData.entityId = childUser.id;
+            ureData.entityTypeId = EntityType.USER;
+            ureData.userId = parentUser.id;
+            ureData.roleId = Role.PARENT;
+
+            await this.ureService.createOrUpdate(ureData);
+
+            return response.status(200).send({ userId: parentUser.id });
+        } catch (error) {
+            logger.error(`Unable to switch parent child: `, error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development
+                    ? 'Something went wrong: ' + error
+                    : 'Something went wrong'
+            });
+        }
+    }
+
+    @Authorized()
+    @Post('/child/create')
+    async createOrAddChild(
+        @HeaderParam('authorization') user: User,
+        @QueryParam('parentUserId', { required: true }) parentUserId: number,
+        @QueryParam('sameEmail', { required: true }) sameEmail: number,
+        @BodyParam('childUser', { required: true }) childUser: User,
+        @Res() response: Response,
+    ) {
+         if (parentUserId == user.id) {
+            await this.adminCreateChild(user, parentUserId, sameEmail, childUser, response);
+         } else {
+             return response.status(401).send({
+                    errorCode: 2,
+                    message: 'You are trying to access another user\'s data'
+                });
+         }
+    }
+
+
+    @Authorized('web_users')
+    @Post('/admin/child/create')
+    async adminCreateChild(
+        @HeaderParam('authorization') user: User,
+        @QueryParam('parentUserId', { required: true }) parentUserId: number,
+        @QueryParam('sameEmail', { required: true }) sameEmail: number,
+        @BodyParam('childUser', { required: true }) childUser: User,
+        @Res() response: Response,
+    ) {
+        try {
+            const parentUser = await this.userService.findById(parentUserId);
+
+            if (sameEmail == 1) {
+                childUser.email = parentUser.email + "." + childUser.firstName;
+                childUser.isInActive = 1;
+                childUser.statusRefId = 0;
+            } else {
+                childUser.isInActive = 0;
+                childUser.statusRefId = 1;
+                // TODO: send email
+            }
+
+            childUser.createdBy = user.id;
+            await this.userService.createOrUpdate(childUser);
+            const childUserPassword = md5('password');
+            childUser.password = childUserPassword;
+
+            childUser = await this.userService.createOrUpdate(childUser);
+            await this.updateFirebaseData(childUser, childUser.password);
+
+            const ureData = new UserRoleEntity();
+            ureData.entityId = childUser.id;
+            ureData.entityTypeId = EntityType.USER;
+            ureData.userId = parentUserId;
+            ureData.roleId = Role.PARENT;
+
+            await this.ureService.createOrUpdate(ureData);
+
+            return response.status(200).send({ userId: childUser });
+        } catch (error) {
+            logger.error(`Unable to create child user`, error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development
+                    ? 'Something went wrong: ' + error
+                    : 'Something went wrong'
+            });
+        }
+    }
+
+    @Authorized()
+    @Post('/parent/create')
+    async createParent(
+        @HeaderParam('authorization') user: User,
+        @QueryParam('childUserId', { required: true }) childUserId: number,
+        @QueryParam('sameEmail', { required: true }) sameEmail: number,
+        @BodyParam('parentUser', { required: true }) parentUser: User,
+        @Res() response: Response,
+    ) {
+         if (childUserId == user.id) {
+            await this.adminCreateParent(user, childUserId, sameEmail, parentUser, response);
+         } else {
+             return response.status(401).send({
+                    errorCode: 2,
+                    message: 'You are trying to access another user\'s data'
+                });
+         }
+    }
+
+    @Authorized('web_users')
+    @Post('/admin/parent/create')
+    async adminCreateParent(
+        @HeaderParam('authorization') user: User,
+        @QueryParam('childUserId', { required: true }) childUserId: number,
+        @QueryParam('sameEmail', { required: true }) sameEmail: number,
+        @BodyParam('parentUser', { required: true }) parentUser: User,
+        @Res() response: Response,
+    ) {
+        try {
+            const childUser = await this.userService.findById(childUserId);
+
+            if (sameEmail == 1) {
+                await this.switchParentChildAdmin(user, childUserId, parentUser, response);
+            } else {
+
+                parentUser.createdBy = user.id;
+                parentUser.password = md5(Math.random().toString(36).slice(-8));
+                await this.userService.createOrUpdate(parentUser);
+                // TODO: send email
+
+                await this.updateFirebaseData(parentUser, parentUser.password);
+
+                const ureData = new UserRoleEntity();
+                ureData.entityId = childUser.id;
+                ureData.entityTypeId = EntityType.USER;
+                ureData.userId = parentUser.id;
+                ureData.roleId = Role.PARENT;
+
+                await this.ureService.createOrUpdate(ureData);
+
+                return response.status(200).send({ userId: parentUser.id });
+            }
+        } catch (error) {
+            logger.error(`Unable to create parent user`, error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development
+                    ? 'Something went wrong: ' + error
+                    : 'Something went wrong'
             });
         }
     }

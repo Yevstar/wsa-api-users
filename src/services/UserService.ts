@@ -13,12 +13,14 @@ import { EntityType } from "../models/security/EntityType";
 import { UserRoleEntity } from "../models/security/UserRoleEntity";
 import { LinkedEntities } from "../models/views/LinkedEntities";
 import { logger } from "../logger";
+import {round} from 'lodash'
 import {
   paginationData,
   stringTONumber,
   isArrayPopulated,
   isNotNullAndUndefined,
-  isObjectNotNullAndUndefined
+  isObjectNotNullAndUndefined,
+  feeIsNull
 } from "../utils/Utils";
 import AppConstants from "../constants/AppConstants";
 import { CommunicationTrack } from "../models/CommunicationTrack";
@@ -471,7 +473,7 @@ export default class UserService extends BaseService<User> {
         const mailOptions = {
             from: {
                 name: process.env.MAIL_FROM_NAME ,
-                address: process.env.MAIL_FROM_ADDRESS 
+                address: process.env.MAIL_FROM_ADDRESS
             },
             to: receiverData.email.toLowerCase(),
             replyTo: "donotreply@worldsportaction.com",
@@ -563,7 +565,7 @@ export default class UserService extends BaseService<User> {
             const mailOptions = {
                 from: {
                     name: process.env.MAIL_FROM_NAME ,
-                    address: process.env.MAIL_FROM_ADDRESS 
+                    address: process.env.MAIL_FROM_ADDRESS
                 },
                 to: contact.email,
                 replyTo: "donotreply@worldsportaction.com",
@@ -684,7 +686,7 @@ export default class UserService extends BaseService<User> {
         const mailOptions = {
                 from: {
                     name: process.env.MAIL_FROM_NAME ,
-                    address: process.env.MAIL_FROM_ADDRESS 
+                    address: process.env.MAIL_FROM_ADDRESS
                 },
                 to: playerBody.email,
                 replyTo: "donotreply@worldsportaction.com",
@@ -794,7 +796,7 @@ export default class UserService extends BaseService<User> {
                                 firstName: item.firstName,
                                 middleName: item.middleName,
                                 lastName: item.lastName,
-                                email: (item.isInActive == 1 ?parentEmailString : item.email).toLowerCase(),
+                                email: (item.isInActive == 1 ? parentEmailString : item.email).toLowerCase(),
                                 mobileNumber: item.mobileNumber,
                                 photoUrl: item.photoUrl,
                                 dateOfBirth: item.dateOfBirth,
@@ -809,9 +811,13 @@ export default class UserService extends BaseService<User> {
                                 nationalityName: item.nationalityName,
                                 countryName: item.countryName,
                                 isDisability: item.isDisability,
-                                accrediationLevel: item.accrediationLevel,
+                                accrediationLevel: item.umpireAccreditationLevel,
                                 accreditationLevelUmpireRefId: item.accreditationLevelUmpireRefId,
+                                accreditationLevelCoachRefId: item.accreditationLevelCoachRefId,
                                 accreditationUmpireExpiryDate: item.accreditationUmpireExpiryDate,
+                                accreditationCoachExpiryDate: item.accreditationCoachExpiryDate,
+                                umpireAccreditationLevel: item.umpireAccreditationLevel,
+                                coachAccreditationLevel: item.coachAccreditationLevel,
                                 competitions: []
                             }
 
@@ -981,11 +987,28 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
-
-    public async userRegistrationDetails(requestBody: any) {
+    public async getNetSetGoRegistration(requestBody: any,sortBy: string = undefined, sortOrder: 'ASC' | 'DESC' = undefined) {
         try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
+            let organisationId = requestBody.organisationId;
+            let yearRefId = requestBody.yearRefId;
+            let result = await this.entityManager.query("call wsa_users.usp_get_netsetgo(?,?,?,?,?,?)",
+                [organisationId, yearRefId, limit, offset,sortBy,sortOrder]);
+            if (result != null) {
+                let totalCount = result[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                responseObject["netSetGo"] = result[1];
+                return responseObject;
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+    public async userRegistrationDetails(requestBody: any): Promise<any> {
+        try {
+            let limit = requestBody.myRegPaging.limit;
+            let offset = requestBody.myRegPaging.offset;
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let organisationId = requestBody.organisationId;
@@ -1037,6 +1060,7 @@ export default class UserService extends BaseService<User> {
                             //shopPurchases: item.shopPurchases,
                             paymentStatus: paymentStatus,
                             expiryDate: item.expiryDate ,
+                            compFeesPaid: item.compFeesPaid,
                             competitionEndDate: item.competitionEndDate,
                             //paymentType: item.paymentType,
                             registrationForm: [],
@@ -1134,23 +1158,44 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async userRegistrationYourDetails(requestBody: any) {
+    public async otherRegistrationDetails(requestBody: any): Promise<any> {
         try {
-            let limit = requestBody.paging.limit;
-            let offset = requestBody.paging.offset;
+            let limit = requestBody.otherRegPaging.limit;
+            let offset = requestBody.otherRegPaging.offset;
             let userId = requestBody.userId;
-            let competitionId = requestBody.competitionId;
-            let organisationId = requestBody.organisationId;
-            let yearRefId = requestBody.yearRefId;
-            let query = await this.entityManager.query("call wsa_users.usp_registration_your_details(?,?,?,?,?,?)",
-                        [limit, offset, userId, yearRefId, competitionId, organisationId]);
+            let query = await this.entityManager.query("call wsa_users.usp_registration_your_details(?,?,?)",
+                        [limit, offset, userId]);
 
             if(query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 if(isArrayPopulated(query[1])) {
                     for(let item of query[1]) {
-                        item.organisationId = item.organisationUniqueKey;
+                        let totalPaidFee = 0;
+                        if(isArrayPopulated(item.feePaid)) {
+                            for(let fee of item.feePaid) {
+                                let total = 0;
+                                if(isArrayPopulated(fee)) {
+                                    for(let f of fee) {
+                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                    }
+                                }
+                                else {
+                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                                - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                    totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                }
+                            }
+                        }
+                        item.feePaid = totalPaidFee;
+                        if(item.isInActive == 1) {
+                            let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
+                            item.email = parentEmailString.toLowerCase();
+                        }
                     }
                 }
                 responseObject["registrationYourDetails"] = query[1];
@@ -1162,25 +1207,17 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async userRegistrationTeamDetails(requestBody: any) {
+    public async teamRegistrationDetails(requestBody: any): Promise<any> {
         try {
-            let limit = requestBody.paging.limit;
-            let offset = requestBody.paging.offset;
+            let limit = requestBody.teamRegPaging.limit;
+            let offset = requestBody.teamRegPaging.offset;
             let userId = requestBody.userId;
-            let competitionId = requestBody.competitionId;
-            let organisationId = requestBody.organisationId;
-            let yearRefId = requestBody.yearRefId;
-            let query = await this.entityManager.query("call wsa_users.usp_registration_team_details(?,?,?,?,?,?)",
-                        [limit, offset, userId, yearRefId, competitionId, organisationId]);
+            let query = await this.entityManager.query("call wsa_users.usp_registration_team_details(?,?,?)",
+                        [limit, offset, userId]);
 
             if(query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-                if(isArrayPopulated(query[1])) {
-                    for(let item of query[1]) {
-                        item.organisationId = item.organisationUniqueKey;
-                    }
-                }
                 responseObject["registrationTeamDetails"] = query[1];
                 return responseObject;
             }
@@ -1189,6 +1226,126 @@ export default class UserService extends BaseService<User> {
             throw err;
         }
     }
+
+    public async childRegistrationDetails(requestBody: any): Promise<any> {
+        try{
+            let limit = requestBody.childRegPaging.limit;
+            let offset = requestBody.childRegPaging.offset;
+            let userId = requestBody.userId;
+            let query = await this.entityManager.query("call wsa_users.usp_registration_child_details(?,?,?)",
+                        [limit, offset, userId]);
+
+            if(query != null) {
+                let totalCount = query[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                if(isArrayPopulated(query[1])) {
+                    for(let item of query[1]) {
+                        let totalPaidFee = 0;
+                        if(isArrayPopulated(item.feePaid)) {
+                            for(let fee of item.feePaid) {
+                                let total = 0;
+                                if(isArrayPopulated(fee)) {
+                                    for(let f of fee) {
+                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                    }
+                                }
+                                else {
+                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                                - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                    totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                }
+                            }
+                        }
+                        item.feePaid = totalPaidFee;
+                        if(item.isInActive == 1) {
+                            let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
+                            item.email = parentEmailString.toLowerCase();
+                        }
+                    }
+                }
+                responseObject["childRegistrationDetails"] = query[1];
+                return responseObject;
+            }
+        }
+        catch(error) {
+            throw error;
+        }
+    }
+
+    public async getTeamMembers(teamBody) {
+        try{
+            let teamId = teamBody.teamId;
+            let userId = teamBody.userId;
+            let limit = teamBody.teamMemberPaging.limit;
+            let offset = teamBody.teamMemberPaging.offset;
+
+            let query = await this.entityManager.query(`call wsa_users.usp_registration_team_member_details(?,?,?,?)`,
+                        [limit,offset,userId,teamId]);
+
+            if(query != null) {
+                let totalCount = query[0].find(x => x).totalCount;
+                let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
+                if(isArrayPopulated(query[1])) {
+                    for(let item of query[1]) {
+                        let totalPaidFee = 0;
+                        let totalPendingFee = 0;
+                        //item.organisationId = item.organisationUniqueKey;
+                        if(isArrayPopulated(item.paidFee)) {
+                            for(let fee of item.paidFee) {
+                                let total = 0;
+                                if(isArrayPopulated(fee)) {
+                                    for(let f of fee) {
+                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                    }
+                                }
+                                else {
+                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount)
+                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                    totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                }
+                            }
+                        }
+                        item.paidFee = round(totalPaidFee, 2);
+
+                        if(isArrayPopulated(item.pendingFee)) {
+                            for(let fee of item.pendingFee) {
+                                let total = 0;
+                                if(isArrayPopulated(fee)) {
+                                    for(let f of fee) {
+                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                        totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);
+                                    }
+                                }
+                                else {
+                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount)
+                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                    totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);
+                                }
+                            }
+                        }
+                        item.pendingFee = round(totalPendingFee, 2);
+                    }
+                }
+                responseObject["teamMembers"] = query[1];
+                return responseObject;
+            }
+        }
+        catch(error) {
+            throw error;
+        }
+    }
+
     public async generateTfaSecret(user: User) {
         const secret = speakeasy.generateSecret({
             issuer: 'Netball Live Scores',
@@ -1344,7 +1501,7 @@ export default class UserService extends BaseService<User> {
 
     public async findMatchesForMerging(userId: number) {
         const users = await this.entityManager.query(`
-        SELECT id, firstName, lastname, mobileNumber, email, dateOfBirth
+        SELECT id, firstName, lastName, mobileNumber, email, dateOfBirth
             FROM wsa_users.user
             WHERE id = ?`, [userId]
         )
@@ -1354,21 +1511,30 @@ export default class UserService extends BaseService<User> {
             `SELECT id, firstName, middleName, lastname, mobileNumber, email, dateOfBirth
             FROM wsa_users.user 
             WHERE
-            ((firstName = ? AND lastName = ? AND mobileNumber = ?) OR
-            (firstName = ? AND lastName = ? AND lastName = ?) OR
-            (firstName = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
-            (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?)) AND 
-            (isInActive = 1 AND
+            ((LOWER(firstName) = ? AND mobileNumber = ? AND mobileNumber is not null) OR
+            (LOWER(lastName) = ? AND mobileNumber = ? AND dateOfBirth = ?)) AND 
+            (isDeleted = 0 AND
             id not in (?))`,
             [
-                user.firstName, user.lastName, user.mobileNumber,
-                user.firstName, user.lastName, user.dateOfBirth,
-                user.firstName, user.mobileNumber, user.dateOfBirth,
-                user.lastName, user.lastName, user.dateOfBirth,
+                user.firstName.toLowerCase(), user.mobileNumber,
+                user.lastName.toLowerCase(), user.mobileNumber, user.dateOfBirth,
                 userId
             ]
         )
-        
+    }
+
+    public async findMatchesForLinking(user: User) {
+        return this.entityManager.query(
+            `SELECT id, firstName, middleName, lastname, mobileNumber, email, dateOfBirth
+            FROM wsa_users.user 
+            WHERE
+            ((LOWER(firstName) = ? AND mobileNumber = ? AND mobileNumber is not null) OR
+            (LOWER(lastName) = ? AND mobileNumber = ? AND dateOfBirth = ?))`,
+            [
+                user.firstName.toLowerCase(), user.mobileNumber,
+                user.lastName.toLowerCase(), user.mobileNumber, user.dateOfBirth,
+            ]
+        )
     }
 
     public async updateById(id: number, user: User) {
@@ -1379,8 +1545,9 @@ export default class UserService extends BaseService<User> {
             .execute();
     }
 
-    public async markUserInactive(id: number) {
-        return this.entityManager.query(`UPDATE user SET isInActive = 0 WHERE id = ?`, [id])
+    public async deactivateUser(id: number, updatedBy: number = undefined, mergedUserId: number = undefined) {
+        return this.entityManager.query(`UPDATE user SET statusRefId = 2, 
+            isDeleted = 1, updatedBy = ?, mergedUserId = ? WHERE id = ?`, [updatedBy, id, mergedUserId]);
     }
 
     public async getAffiliates(uids: number[]) {

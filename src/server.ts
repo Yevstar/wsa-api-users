@@ -219,13 +219,13 @@ function setEnvFromCredentialManager(){
         secretAccessKey = process.env.SECRET_ACCESS_KEY,
         secret,
         decodedBinarySecret;
-    
+
         var client = new AWS.SecretsManager({
             region: region,
             accessKeyId,
             secretAccessKey
         });
-    
+
         client.getSecretValue({SecretId: secretName}, function(err, data) {
             if (err) {
                 console.log("If entry With error" + err);
@@ -239,7 +239,7 @@ function setEnvFromCredentialManager(){
                     for(let key of keys){
                         process.env[key] = secretData[key];
                     }
-                   
+
                 } else {
                     let buff = new Buffer(data.SecretBinary, 'base64');
                     decodedBinarySecret = buff.toString('ascii');
@@ -249,7 +249,7 @@ function setEnvFromCredentialManager(){
                         process.env[key] = secretData[key];
                     }
                 }
-    
+
                 resolve();
             }
         });

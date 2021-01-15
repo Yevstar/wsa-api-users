@@ -29,7 +29,7 @@ export class BecsController extends BaseController {
                 name: orgProfile.name,
                 email: orgProfile.email,
             }) 
-            await this.organisationService.addStripeCustomerId(currentUser.id, customer.id)
+            await this.organisationService.addStripeCustomerId(orgId, customer.id)
             stripeCustomerId = customer.id
         } else {
             stripeCustomerId = orgProfile.stripeCustomerAccountId
@@ -42,11 +42,12 @@ export class BecsController extends BaseController {
     }
 
     @Authorized()
-    @Get('/confirm')
+    @Get('/confirm/:orgId')
     async confirmBecsSetup(
         @HeaderParam("authorization") currentUser: User,
+        @Param("orgId") orgId: number
     ): Promise<unknown> {
-        let orgProfile: Organisation = await this.organisationService.findById(currentUser.id);
+        let orgProfile: Organisation = await this.organisationService.findById(orgId);
         let stripeCustomerId;
         if (!orgProfile.stripeCustomerAccountId) {
             throw new Error('Stripe account not found')
@@ -58,7 +59,7 @@ export class BecsController extends BaseController {
             type: 'au_becs_debit'
         });
         if (paymentMethods.data && paymentMethods.data.length) {
-            await this.organisationService.addBecsId(currentUser.id, paymentMethods.data[0].id)
+            await this.organisationService.addBecsId(orgId, paymentMethods.data[0].id)
         } else {
             throw new Error('No BECS account found')
         }        
