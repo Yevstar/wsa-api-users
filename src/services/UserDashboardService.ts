@@ -14,7 +14,7 @@ export default class UserDashboardService extends BaseService<User> {
     public async userDashboardTextualList(requestBody: any, userId: any, sortBy: string = undefined, sortOrder: 'ASC' | 'DESC' = undefined) {
         try {
             let organisationId = requestBody.organisationId;
-            let yearRefId = requestBody.yearRefId;
+            let yearRefId = requestBody.yearId;
             let competitionUniqueKey = requestBody.competitionUniqueKey;
             let roleId = requestBody.roleId;
             let genderRefId = requestBody.genderRefId;
@@ -221,4 +221,91 @@ export default class UserDashboardService extends BaseService<User> {
             throw error;
         }
     }
+
+    public async exportUserRegistrationData(requestBody) {
+        try {
+            let result = await this.entityManager.query('call wsa_users.usp_export_registration_data(?)', [requestBody.userId]);
+
+            result["0"]["0"]["Volunteer - Coach"] = JSON.stringify(result["0"]["0"]["Volunteer - Coach"]);
+            result["0"]["0"]["Volunteer - Manager"] = JSON.stringify(result["0"]["0"]["Volunteer - Manager"]);
+            result["0"]["0"]["Volunteer - Fundraising"] = JSON.stringify(result["0"]["0"]["Volunteer - Fundraising"]);
+            result["0"]["0"]["Volunteer - Other"] = JSON.stringify(result["0"]["0"]["Volunteer - Other"]);
+
+            if (isArrayPopulated(result[0])) {
+                for (let res of result[0]) {
+                    if (res.Venue != null)
+                        res.Venue = res.Venue.join(", ")
+                }
+
+                for (let res1 of result[0]) {
+                    if (res1['Your support can you help'] != null)
+                        res1['Your support can you help'] = res1['Your support can you help'].join(", ")
+                }
+
+                return result[0]
+            } else {
+                let arr = [];
+                let obj = {
+                    "First Name": "",
+                    "Middle Name": "",
+                    "Last Name": "",
+                    "Email": "",
+                    "Mobile Number": "",
+                    "Gender": "",
+                    "Date of Birth": "",
+                    "Street1": "",
+                    "Street2": "",
+                    "Suburb": "",
+                    "State": "",
+                    "Postal Code": "",
+                    "Country": "",
+                    "Is Prerequest Training Complete": "",
+                    "Umpire Accreditation Level": "",
+                    "Umpire Accreditation Expiry Date": "",
+                    "Association Level": "",
+                    "Coach Accreditation Level": "",
+                    "Coach Accreditation Expiry Date": "",
+                    "Children Check Number": "",
+                    "Children Check Expiry Date": "",
+                    "Emergency First Name": "",
+                    "Emergency Last Name": "",
+                    "Emergency Contact Number": "",
+                    "Last App Login": "",
+                    "Marketing Opt In": "",
+                    "Merged User Id": "",
+                    "Existing Medical Condition": "",
+                    "Regular Medication": "",
+                    "Heard About Competition": "",
+                    "Heard By Other": "",
+                    "Favorite team": "",
+                    "Favorite Fire Bird": "",
+                    "Has Disability": "",
+                    "Disability Care Number": "",
+                    "Disability Type": "",
+                    "Injury": "",
+                    "Allergy": "",
+                    "Years Played": "",
+                    "School": "",
+                    "School Grade": "",
+                    "SSP": "",
+                    "Other Sports": "",
+                    "Volunteer - Coach": "",
+                    "Volunteer - Manager": "",
+                    "Volunteer - Fundraising": "",
+                    "Volunteer - Other": "",
+                    "Chest Pain": "",
+                    "Heart Trouble": "",
+                    "Blood Pressure": "",
+                    "Lower Back": "",
+                    "Physical Activity": "",
+                    "Joint or Bone": ""
+                }
+                arr.push(obj);
+                return arr;
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
 }

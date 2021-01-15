@@ -1,5 +1,5 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm-plus";
-import {IsBoolean, IsDate, IsNumber, IsString, IsObject} from "class-validator";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm-plus";
+import { IsBoolean, IsDate, IsNumber, IsString } from "class-validator";
 
 @Entity()
 export class User extends BaseEntity {
@@ -29,7 +29,7 @@ export class User extends BaseEntity {
     email: string;
 
     @IsString()
-    @Column({select: false})
+    @Column({ select: false })
     password: string;
 
     @IsDate()
@@ -45,7 +45,7 @@ export class User extends BaseEntity {
     statusRefId: number;
 
     @IsString()
-    @Column({select: false})
+    @Column({ select: false })
     reset: string;
 
     @IsBoolean()
@@ -79,11 +79,11 @@ export class User extends BaseEntity {
     @IsString()
     @Column()
     emergencyContactName: string;
-  
+
     @IsString()
     @Column()
     emergencyFirstName: string;
-    
+
     @IsString()
     @Column()
     emergencyLastName: string;
@@ -122,6 +122,10 @@ export class User extends BaseEntity {
 
     @IsNumber()
     @Column({ default: 0 })
+    isInActive: number;
+
+    @IsNumber()
+    @Column({ default: 0 })
     tfaEnabled: number;
 
     @IsString()
@@ -143,4 +147,21 @@ export class User extends BaseEntity {
     @IsString()
     @Column({select: false})
     digit_code: string;
+
+    @IsNumber()
+    @Column()
+    accreditationLevelUmpireRefId?: number;
+
+    @IsDate()
+    @Column()
+    accreditationUmpireExpiryDate?: Date;
+
+    @IsNumber()
+    @Column()
+    accreditationLevelCoachRefId?: number;
+
+    @IsDate()
+    @Column()
+    accreditationCoachExpiryDate?: Date;
+
 }

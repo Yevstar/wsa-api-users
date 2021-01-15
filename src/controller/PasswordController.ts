@@ -37,14 +37,14 @@ export class PasswordController extends BaseController {
             if (!email || email === "undefined" || email === "null") {
                 return response.status(400).send({
                     name: 'email_id_error',
-                    message: 'Email id is necessary to be passed.'
+                    message: 'Email id mandatory.'
                 });
             }
 
             if (type !== "email" && type !== "sms") {
                 return response.status(400).send({
                     name: 'reset_type_error',
-                    message: 'Reset type is invalid.'
+                    message: 'Please choose how you would like to receive your password reset link.'
                 });
             }
 
@@ -55,7 +55,7 @@ export class PasswordController extends BaseController {
                 // sending success message so hackers don't know what emails we have
                 return response.status(200).send({
                     name: 'success',
-                    message: `If you have ${email} registered with us, we have sent you instructions to reset your account.`,
+                    message: `If you are registered with us, a password link was sent to your email.`,
                 });
             }
 
@@ -137,12 +137,12 @@ export class PasswordController extends BaseController {
             if (type === 'email') {
                 return response.status(200).send({
                     name: 'success',
-                    message: `If you have ${email} registered with us, we have sent you instructions to reset your account.`,
+                    message: `If you are registered with us, a password link was sent to your email.`,
                 });
             } else {
                 return response.status(200).send({
                     name: 'success',
-                    message: `A password reset link was sent to your phone.`,
+                    message: `If you are registered with us, a password link was sent to your phone.`,
                 });
             }
         } catch (err) {
