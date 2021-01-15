@@ -354,6 +354,31 @@ export class UserDashboardController extends BaseController {
     }
 
     @Authorized()
+    @Post('/export/registration/data')
+    async exportUserRegistrationData(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                const Res = await this.userDashboardService.exportUserRegistrationData(requestBody);
+                response.setHeader('Content-disposition', 'attachment; filename=teamFinal.csv');
+                response.setHeader('content-type', 'text/csv');
+                fastcsv
+                    .write(Res, {headers: true})
+                    .on("finish", function () {
+                    })
+                    .pipe(response);
+            }
+        } catch (error) {
+            logger.error('Error Occurred in dashboard textual' + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+
+    @Authorized()
     @Post('/userprofile/update')
     async userProfileUpdate(
         @HeaderParam("authorization") currentUser: User,
