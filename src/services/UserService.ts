@@ -26,9 +26,11 @@ import AppConstants from "../constants/AppConstants";
 import { CommunicationTrack } from "../models/CommunicationTrack";
 import { Booking } from "../models/Booking";
 import { Team } from "../models/Team";
+import { Organisation } from "../models/Organisation";
 import UserRoleEntityService from "./UserRoleEntityService";
 
 import { LookForExistingUserBody } from '../controller/types';
+import {CommunicationTemplate} from "../models/CommunicationTemplate";
 
 @Service()
 export default class UserService extends BaseService<User> {
@@ -54,6 +56,31 @@ export default class UserService extends BaseService<User> {
             .set({ isDeleted: 1, updatedBy: loginUserId, updatedOn: new Date() })
             .andWhere('user.id = :userId', { userId })
             .execute();
+    }
+
+    public async filter(orgIds: number[], userIds: number[], roleIds: number[]): Promise<User[]> {
+        let query = this.entityManager.createQueryBuilder(User, 'user')
+            .innerJoin(UserRoleEntity, 'ure', 'ure.userId = user.id')
+            .innerJoin(LinkedEntities, 'le', 'le.inputEntityId = ure.entityId and le.linkedEntityTypeId = ure.entityTypeId')
+            .innerJoin(Organisation, 'org', 'le.inputEntityId = org.id and le.linkedEntityTypeId = entityTypeId', {entityTypeId: EntityType.ORGANISATION})
+
+        if (orgIds) {
+            query.andWhere("org.id in (:orgIds)", {orgIds});
+        }
+
+        if (userIds) {
+            query.andWhere("user.id in (:userIds)", {userIds});
+        }
+
+        if (roleIds) {
+            query.andWhere("ure.id in (:roleIds)", {roleIds});
+        }
+
+        if (!orgIds && !userIds && !roleIds) {
+            return [];
+        }
+
+        return query.getMany();
     }
 
     public async findByCredentials(email: string, password: string): Promise<User> {
@@ -619,6 +646,84 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
+
+    public async sentMailForCommunication(contact: User, templateObj: CommunicationTemplate, adminUser: User) {
+        try {
+            let subject = templateObj.emailSubject;
+
+            const transporter = nodeMailer.createTransport({
+                host: "smtp.gmail.com",
+                port: 587,
+                secure: false, // true for 465, false for other ports
+                auth: {
+                    user: process.env.MAIL_USERNAME, // generated ethereal user
+                    pass: process.env.MAIL_PASSWORD // generated ethereal password
+                },
+
+                tls: {
+                    // do not fail on invalid certs
+                    rejectUnauthorized: false
+                }
+            });
+
+            // fs.readFileSync("output/"+fileName);
+            // const path = require('path');
+            const mailOptions = {
+                from: {
+                    name: process.env.MAIL_FROM_NAME ,
+                    address: process.env.MAIL_FROM_ADDRESS
+                },
+                to: contact.email,
+                replyTo: "donotreply@worldsportaction.com",
+                subject: subject,
+                html: templateObj.emailBody
+            };
+
+            if (Number(process.env.SOURCE_MAIL) == 1) {
+                mailOptions.html = ' To: ' + mailOptions.to + '<br><br>' + mailOptions.html
+                mailOptions.to = process.env.TEMP_DEV_EMAIL
+            }
+
+            let cTrack = new CommunicationTrack();
+            // logger.info(`before - sendMail : mailOptions ${mailOptions}`);
+            try {
+                cTrack.id = 0;
+
+                cTrack.communicationType = 8;
+                // cTrack.contactNumber = contact.mobileNumber
+                cTrack.entityId = contact.id;
+                cTrack.deliveryChannelRefId = 1;
+                cTrack.emailId = contact.email;
+                cTrack.userId = contact.id;
+                cTrack.subject = subject;
+                cTrack.content = templateObj.emailBody;
+                cTrack.createdBy = adminUser.id;
+
+                await transporter.sendMail(mailOptions, (err, info) => {
+                    if (err) {
+                        cTrack.statusRefId = 2;
+                        logger.error(`TeamRegistration - sendInviteMail : ${err},  ${contact.email}`);
+                        this.insertIntoCommunicationTrack(cTrack);
+                        // Here i commented the below code as the caller is not handling the promise reject
+                        // return Promise.reject(err);
+                    } else {
+                        cTrack.statusRefId = 1;
+                        logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${contact.email}`);
+                        this.insertIntoCommunicationTrack(cTrack);
+                    }
+                    transporter.close();
+                    return Promise.resolve();
+                });
+            } catch (error) {
+                cTrack.statusRefId = 2;
+                this.insertIntoCommunicationTrack(cTrack);
+            }
+        } catch (error) {
+            logger.error(` ERROR occurred in sending mail ` + error)
+            throw error;
+        }
+    }
+
     public async sendTeamRegisterPlayerInviteMail(resBody, playerBody,templateObj, userId, password,registrationId, roleArray) {
         try{
 
