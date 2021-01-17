@@ -1,8 +1,9 @@
-import {Get, JsonController, Param, Post} from "routing-controllers";
+import {Authorized, Body, Get, JsonController, Param, Post} from "routing-controllers";
 import {BaseController} from "./BaseController";
 import {TC} from "../models/TC";
 
 @JsonController('/organisations/:organisationId/terms-and-conditions')
+@Authorized()
 export class TermsAndConditionsController extends BaseController {
 
     @Get()
@@ -15,7 +16,7 @@ export class TermsAndConditionsController extends BaseController {
     @Post()
     async createOne(
         @Param('organisationId') organisationId: number,
-        body: TC,
+        @Body() body: TC,
     ): Promise<TC> {
         return this.termsAndConditionsService.createForOrganisation(organisationId, body)
     }

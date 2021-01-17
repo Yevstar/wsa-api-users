@@ -2,6 +2,7 @@ import {BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGen
 import {Organisation} from "./Organisation";
 import {TCTypeEnum} from "./enum/TCTypeEnum";
 import {TCUserAcknowledgement} from "./TCUserAcknowledgement";
+import {Exclude} from "class-transformer";
 
 @Entity()
 export class TC extends BaseEntity {
@@ -23,4 +24,12 @@ export class TC extends BaseEntity {
 
     @OneToMany(type => TCUserAcknowledgement, tca => tca.tc)
     acknowledgements: TCUserAcknowledgement[];
+
+    @Column({
+        type: "text",
+    })
+    content: string;
+
+    @Exclude()
+    isAcknowledged: boolean;
 }

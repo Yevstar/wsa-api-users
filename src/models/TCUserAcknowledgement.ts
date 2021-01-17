@@ -10,9 +10,9 @@ export class TCUserAcknowledgement extends BaseEntity {
     @PrimaryColumn()
     userId!: number;
 
-    @ManyToOne(type => TC)
+    @ManyToOne(type => TC, tc => tc.acknowledgements, {eager: true})
     tc: TC;
 
-    @ManyToOne(type => User)
+    @ManyToOne(type => User, {eager: true})
     user: User;
 }
