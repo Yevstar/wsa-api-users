@@ -6,6 +6,7 @@ import { Response, response } from 'express';
 import e = require("express");
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
+import nodeMailer from 'nodemailer';
 import { UserRegistration } from "../models/UserRegistration";
 import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
@@ -13,6 +14,9 @@ import { CommunicationTrack } from "../models/CommunicationTrack";
 import { isNullOrUndefined } from "util";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
 let moment = require('moment');
+import twilio from 'twilio';
+
+import { LookForExistingUserBody } from './types';
 
 @JsonController("/api")
 export class UserDashboardController extends BaseController {
@@ -208,6 +212,238 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+    /**
+     * Look for the existing user during registration process
+     * @param {LookForExistingUserBody} requestBody - body data
+     * @param {Response} response - response object
+     * @returns {Promise<void>}
+     */
+    @Post('/user/existing')
+    async lookForExistingUser(
+      @Body() requestBody: any,
+      @Res() response: Response
+    ) {
+      try {
+        // check body data
+        const {
+          dateOfBirth,
+          email,
+          firstName,
+          lastName,
+          mobileNumber,
+        } = requestBody;
+        if (!(dateOfBirth && firstName && lastName && email && mobileNumber)) {
+          return response.status(400).send({
+            info: 'MISSING_DATA',
+              requestBody,
+          });
+        }
+        const users = await this.userService.findExistingUser(requestBody);
+        if (users.length > 0) {
+          const [{ email, mobileNumber, id }] = users;
+          if (!(email || mobileNumber)) {
+              return response.status(200).send({
+                phone: '',
+                email: '',
+              });
+          }
+          const emailRegexp = /^(.{2}).*@(.{2}).*(\..+)$/;
+          const responsingUsers =  users.map(user => {
+            const { email, mobileNumber, id } = user;
+
+            const result = email.match(emailRegexp);
+            const maskedEmail = email && result
+              ? `${result[1]}***@${result[2]}***${result[3]}`
+              : '';
+            const maskedPhone = mobileNumber && mobileNumber !== 'NULL'
+              ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}`
+              : '';
+            return {
+                phone: maskedPhone,
+                email: maskedEmail,
+                id,
+                firstName:user.firstName,
+                lastName:user.lastName,
+            }
+        })
+
+          return response.status(200).send(
+            [...responsingUsers],
+          );
+        } else {
+          return response.status(200).send();
+        }
+      } catch (error) {
+        logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
+        return response.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development
+            ? AppConstants.errMessage + error
+            : AppConstants.errMessage,
+        });
+      }
+    }
+
+        /**
+     * Send digit code to email or sms
+     * @param {LookForExistingUserBody} requestBody - body data
+     * @param {Response} response - response object
+     * @returns {Promise<void>}
+     */
+    @Post('/user/existing-digit-code')
+    async sendCodeToEmailOrSms(
+      @Body() requestBody: any,
+      @Res() response: Response
+    ) {
+      try {
+        // check body data
+        const {
+          id,
+          type
+        } = requestBody;
+        if (!(id && type)) {
+          return response.status(400).send({
+            info: 'MISSING_DATA',
+            requestBody,
+          });
+        }
+        const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
+        const [{ email, mobileNumber }] = emailAndPhoneById;
+        const digitCode = Math.floor(100000 + Math.random() * 900000);
+
+        let user = await this.userService.findById(id);
+        user.digit_code = String(digitCode);
+        await this.userService.createOrUpdate(user);
+        
+        if(type === 1) {
+            const transporter = nodeMailer.createTransport({
+                host: "smtp.gmail.com",
+                port: 587,
+                secure: false, // true for 465, false for other ports
+                auth: {
+                    user: process.env.MAIL_USERNAME,
+                    pass: process.env.MAIL_PASSWORD
+                },
+                tls: {
+                    rejectUnauthorized: false
+                }
+            });
+
+            await transporter.sendMail({
+                from: `"${process.env.MAIL_FROM_NAME}" ${process.env.MAIL_FROM_ADDRESS}`, // sender address
+                to: `${email}`,
+                subject: "Digit code", // Subject line
+                html: `<b>${digitCode}</b>`, // html body
+            });
+        } else {
+            const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+            const message = await client.messages.create({
+                body: `DIGIT CODE ${digitCode}`,
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to: `+${mobileNumber}`,
+            });
+        }
+
+        return response.status(200).send({
+            message: type === 1? `check your email` : 'check your phone',
+        })
+      } catch (error) {
+        logger.error(`Error @ sendCodeToEmailOrSms: ${requestBody.id || ''}\n${JSON.stringify(error)}`);
+        return response.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development
+            ? AppConstants.errMessage + error
+            : AppConstants.errMessage,
+        });
+      }
+    }
+
+    @Post('/user/check-existing-digit-code')
+    async checkDigitCode(
+      @Body() requestBody: any,
+      @Res() response: Response
+    ) {
+      try {
+        // check body data
+        const {
+          id,
+          digitCode
+        } = requestBody;
+        if (!(id && digitCode)) {
+            return response.status(400).send({
+              info: 'MISSING_DATA',
+              requestBody,
+            });
+          }
+        let message ='';
+        const digitCodeById = await this.userService.getDigitCodeById(id)
+        const currentDigitCode = digitCodeById[0].digit_code;
+        if (currentDigitCode === digitCode) {
+            message = 'success';
+            
+            //delete code from db
+            let user = await this.userService.findById(id);
+            user.digit_code = null;
+            await this.userService.createOrUpdate(user);
+        } else {
+            message = 'decline';
+        }
+
+        return response.status(200).send({
+            message,
+            id
+        })
+      } catch (error) {
+        logger.error(`Error @ checkDigitCode: ${requestBody.id || ''}\n${JSON.stringify(error)}`);
+        return response.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development
+            ? AppConstants.errMessage + error
+            : AppConstants.errMessage,
+        });
+      }
+    }
+
+    @Post('/user/confirm-details')
+    async confirmDetails(
+      @Body() requestBody: any,
+      @Res() response: Response
+    ) {
+      try {
+        const {
+          id,
+          type,
+          detail
+        } = requestBody;
+        if (!(id && type && detail)) {
+            return response.status(400).send({
+              info: 'MISSING_DATA',
+              requestBody,
+            });
+          }
+        let message ='';
+        const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
+        const [{ email, mobileNumber }] = emailAndPhoneById;
+
+        if (Number(type) === 1 && email === detail) {
+            message = 'success';
+        } else if( Number(type) === 2 && mobileNumber === detail) {
+            message = 'success';
+        } else {
+            message = 'decline';
+        }
+
+        return response.status(200).send({
+            message,
+        })
+      } catch (error) {
+        logger.error(`Error @ confirmDetails: ${requestBody.id || ''}\n${JSON.stringify(error)}`);
+        return response.status(500).send({
+          message: process.env.NODE_ENV == AppConstants.development
+            ? AppConstants.errMessage + error
+            : AppConstants.errMessage,
+        });
+      }
+    }
+
     @Authorized()
     @Post('/user/registration')
     async userRegistrationDetails(
@@ -222,11 +458,13 @@ export class UserDashboardController extends BaseController {
                 // }
                 let responseObj = {};
 
+                // todo: refactor below and remove redundant promises?
+
                 const userRegRes = new Promise(async(resolve,reject) => {
                         responseObj["myRegistrations"] = await this.userService.userRegistrationDetails(requestBody);
                         resolve(responseObj["myRegistrations"]);
                     });
-                  
+
 
                 const otherRegRes = new Promise(async(resolve,reject) => {
                         responseObj["otherRegistrations"] = await this.userService.otherRegistrationDetails(requestBody);
@@ -242,10 +480,10 @@ export class UserDashboardController extends BaseController {
                         responseObj["teamRegistrations"] = await this.userService.teamRegistrationDetails(requestBody);
                         resolve(responseObj["teamRegistrations"]);
                     });
-                                
+
                 await Promise.all([userRegRes,otherRegRes,childRegRes,teamRegRes])
                             .then(results => {console.log(`${JSON.stringify(results)}`);});
-                
+
                 return response.status(200).send(responseObj);
             }
         } catch (error) {
@@ -269,11 +507,11 @@ export class UserDashboardController extends BaseController {
                 // if (validateComp != null) {
                 //     return response.status(212).send(validateComp);
                 // }
-           
-               
+
+
                 const responseObj = await this.userService.getNetSetGoRegistration(requestBody,sortBy,sortOrder);
-                
-                
+
+
                 return response.status(200).send(responseObj);
             }
         } catch (error) {
@@ -348,7 +586,32 @@ export class UserDashboardController extends BaseController {
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
-        
+
+    }
+
+    @Authorized()
+    @Post('/export/registration/data')
+    async exportUserRegistrationData(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                const Res = await this.userDashboardService.exportUserRegistrationData(requestBody);
+                response.setHeader('Content-disposition', 'attachment; filename=teamFinal.csv');
+                response.setHeader('content-type', 'text/csv');
+                fastcsv
+                    .write(Res, {headers: true})
+                    .on("finish", function () {
+                    })
+                    .pipe(response);
+            }
+        } catch (error) {
+            logger.error('Error Occurred in dashboard textual' + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
     }
 
     @Authorized()
@@ -369,19 +632,37 @@ export class UserDashboardController extends BaseController {
                let organisation = await this.organisationService.findOrgByUniquekey(organisationId)
                organisationName = organisation.name;
             }
-            if(section == 'address'){
-
-           
+            if(section == 'address') {
+                // does the email exist in the database, and compare with current user in db
                 let userFromDb = await this.userService.findById(requestBody.userId);
-                let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
-                if(userDb2 != undefined){
-                    if (userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
-                        return response.status(212).send({
-                            errorCode: 7,
-                            message: 'This email address is already in use. Please use a different email address'
-                        });
+                logger.info(`changing address for user: ${requestBody.userId} Email from web:${requestBody.email} firstName: ${requestBody.firstName} `);
+
+                let emailChanged = false;
+                if (userFromDb != undefined) {
+                    logger.info(`existing email: ${userFromDb.email}`);
+                    // check if email was changed
+                    if (requestBody.email.toLowerCase().trim() != userFromDb.email.toLowerCase()) {
+                        let pseudoEmail = `${requestBody.email.toLowerCase().trim()}.${requestBody.firstName.toLowerCase().trim()}`;
+                        logger.info(`checking details for : ${pseudoEmail}`);
+                        if ( pseudoEmail !=  userFromDb.email.toLowerCase()) { // also check child user format
+
+                            // email was changed
+                            let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                            if (userDb2 != undefined) { // if email exists in DB
+                                return response.status(212).send({
+                                    errorCode: 7,
+                                    message: 'This email address is already in use. Please use a different email address'
+                                });
+                            } else {
+                                emailChanged = true;
+                                logger.info(`changing email to : ${requestBody.email}`);
+                                user.email = requestBody.email.toLowerCase();
+
+                            }
+                        }
                     }
                 }
+
                 user.id = requestBody.userId;
                 user.firstName = requestBody.firstName;
                 user.lastName = requestBody.lastName;
@@ -393,20 +674,18 @@ export class UserDashboardController extends BaseController {
                 user.suburb = requestBody.suburb;
                 user.stateRefId = requestBody.stateRefId;
                 user.postalCode = requestBody.postalCode;
-                user.email = requestBody.email.toLowerCase();
 
                 let userData = await this.userService.createOrUpdate(user);
 
-                if(userFromDb != undefined){
-                    if(userFromDb.email.toLowerCase() !== user.email.toLowerCase()){
+                if(emailChanged == true) {
 
                         await this.updateFirebaseData(userData, userFromDb.password);
                         let mailObjOld = await this.communicationTemplateService.findById(12);
                         await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
-                        
+
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-                    }
+                    
                 }
 
                 return response.status(200).send({message: "Successfully updated"})
@@ -435,6 +714,7 @@ export class UserDashboardController extends BaseController {
                 user.suburb = requestBody.suburb;
                 user.stateRefId = requestBody.stateRefId;
                 user.postalCode = requestBody.postalCode;
+                user.dateOfBirth = requestBody.dateOfBirth;
                 user.mobileNumber = requestBody.mobileNumber;
                 user.email = requestBody.email.toLowerCase();
                 if (user.id != 0 || user.id != null) {
@@ -446,7 +726,7 @@ export class UserDashboardController extends BaseController {
                 }
                 let userData =  await this.userService.createOrUpdate(user);
 
-                
+
                 let getData;
                 if(section == 'child') {
                     getData = await this.ureService.findExisting(requestBody.userId,userData.id,4,9);
@@ -454,7 +734,7 @@ export class UserDashboardController extends BaseController {
                     ureData.entityId = userData.id;
                 }
                 else {
-                    getData = await this.ureService.findExisting(userData.id,requestBody.userId,4,9);  
+                    getData = await this.ureService.findExisting(userData.id,requestBody.userId,4,9);
                     ureData.userId = userData.id;
                     ureData.entityId = requestBody.userId;
                 }
@@ -477,10 +757,10 @@ export class UserDashboardController extends BaseController {
                         await this.updateFirebaseData(userData, userFromDb.password);
                         let mailObjOld = await this.communicationTemplateService.findById(12);
                         await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
-                        
+
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-                        
+
                     }
                 }
                 return response.status(200).send({message: "Successfully updated"})
@@ -494,7 +774,7 @@ export class UserDashboardController extends BaseController {
                 }
                 else{
                     existingRoleId = AppConstants.PARENT_UNLINKED;
-                    roleId = AppConstants.PARENT_LINKED;   
+                    roleId = AppConstants.PARENT_LINKED;
                 }
 
                 let getData = await this.ureService.findExisting(requestBody.parentUserId, requestBody.childUserId,4, existingRoleId);
@@ -505,7 +785,7 @@ export class UserDashboardController extends BaseController {
                     ureData.updatedAt = new Date();
                     await this.ureService.createOrUpdate(ureData);
                     return response.status(200).send({message: "Successfully Deleted"});
-                }    
+                }
             }
 
             else if(section == 'emergency'){
@@ -518,6 +798,7 @@ export class UserDashboardController extends BaseController {
             }
             else if(section == 'other'){
                 userReg.id = requestBody.userRegistrationId;
+                
                 userReg.countryRefId = requestBody.countryRefId;
                 await this.userRegistrationService.createOrUpdate(userReg);
 
@@ -536,7 +817,7 @@ export class UserDashboardController extends BaseController {
                     this.actionsService.clearActionChildrenCheckNumber(user.id,currentUser.id);
                     let actions = [];
                     let masterId = 0;
-                    
+
                     if(moment(user.childrenCheckExpiryDate).isAfter(moment())){
                         actions = await this.actionsService.getActionDataForChildrenCheck13(user.id);
                         masterId = 13;
@@ -582,7 +863,7 @@ export class UserDashboardController extends BaseController {
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
-        
+
     }
 
     @Authorized()
@@ -621,7 +902,7 @@ export class UserDashboardController extends BaseController {
                 if (validateUserId != null) {
                     return response.status(212).send(validateUserId);
                 }
-             
+
                 if(isArrayPopulated(requestBody.organisations)){
                     for(let organisation of  requestBody.organisations){
                    //     let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
@@ -635,7 +916,7 @@ export class UserDashboardController extends BaseController {
                         }
                     }
                 }
-               
+
 
                 return response.status(200).send({message: 'Successfully deleted user'});
             }

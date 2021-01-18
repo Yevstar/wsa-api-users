@@ -13,6 +13,7 @@ import { EntityType } from "../models/security/EntityType";
 import { UserRoleEntity } from "../models/security/UserRoleEntity";
 import { LinkedEntities } from "../models/views/LinkedEntities";
 import { logger } from "../logger";
+import {round} from 'lodash'
 import {
   paginationData,
   stringTONumber,
@@ -26,6 +27,8 @@ import { CommunicationTrack } from "../models/CommunicationTrack";
 import { Booking } from "../models/Booking";
 import { Team } from "../models/Team";
 import UserRoleEntityService from "./UserRoleEntityService";
+
+import { LookForExistingUserBody } from '../controller/types';
 
 @Service()
 export default class UserService extends BaseService<User> {
@@ -470,7 +473,7 @@ export default class UserService extends BaseService<User> {
         const mailOptions = {
             from: {
                 name: process.env.MAIL_FROM_NAME ,
-                address: process.env.MAIL_FROM_ADDRESS 
+                address: process.env.MAIL_FROM_ADDRESS
             },
             to: receiverData.email.toLowerCase(),
             replyTo: "donotreply@worldsportaction.com",
@@ -562,7 +565,7 @@ export default class UserService extends BaseService<User> {
             const mailOptions = {
                 from: {
                     name: process.env.MAIL_FROM_NAME ,
-                    address: process.env.MAIL_FROM_ADDRESS 
+                    address: process.env.MAIL_FROM_ADDRESS
                 },
                 to: contact.email,
                 replyTo: "donotreply@worldsportaction.com",
@@ -683,7 +686,7 @@ export default class UserService extends BaseService<User> {
         const mailOptions = {
                 from: {
                     name: process.env.MAIL_FROM_NAME ,
-                    address: process.env.MAIL_FROM_ADDRESS 
+                    address: process.env.MAIL_FROM_ADDRESS
                 },
                 to: playerBody.email,
                 replyTo: "donotreply@worldsportaction.com",
@@ -1186,12 +1189,12 @@ export default class UserService extends BaseService<User> {
                                                 - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                 }
-                            }   
+                            }
                         }
                         item.feePaid = feeIsNull(totalPaidFee);
                         if(item.isInActive == 1) {
                             let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
-                            item.email = parentEmailString.toLowerCase(); 
+                            item.email = parentEmailString.toLowerCase();
                         }
                     }
                 }
@@ -1246,7 +1249,7 @@ export default class UserService extends BaseService<User> {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
                                                 - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
                                                 - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
-                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);      
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                     }
                                 }
                                 else {
@@ -1255,12 +1258,12 @@ export default class UserService extends BaseService<User> {
                                                 - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                 }
-                            }   
+                            }
                         }
                         item.feePaid = feeIsNull(totalPaidFee);
                         if(item.isInActive == 1) {
                             let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
-                            item.email = parentEmailString.toLowerCase(); 
+                            item.email = parentEmailString.toLowerCase();
                         }
                     }
                 }
@@ -1279,7 +1282,7 @@ export default class UserService extends BaseService<User> {
             let userId = teamBody.userId;
             let limit = teamBody.teamMemberPaging.limit;
             let offset = teamBody.teamMemberPaging.offset;
-            
+
             let query = await this.entityManager.query(`call wsa_users.usp_registration_team_member_details(?,?,?,?)`,
                         [limit,offset,userId,teamId]);
 
@@ -1299,7 +1302,7 @@ export default class UserService extends BaseService<User> {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
                                                 - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
                                                 - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
-                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);      
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                     }
                                 }
                                 else {
@@ -1308,9 +1311,9 @@ export default class UserService extends BaseService<User> {
                                                 - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                 }
-                            }   
+                            }
                         }
-                        item.paidFee = feeIsNull(totalPaidFee);
+                        item.paidFee = round(totalPaidFee, 2);
 
                         if(isArrayPopulated(item.pendingFee)) {
                             for(let fee of item.pendingFee) {
@@ -1320,7 +1323,7 @@ export default class UserService extends BaseService<User> {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
                                                 -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount)
                                                 - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
-                                        totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);      
+                                        totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);
                                     }
                                 }
                                 else {
@@ -1329,14 +1332,14 @@ export default class UserService extends BaseService<User> {
                                                 - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);
                                 }
-                            }   
+                            }
                         }
-                        item.pendingFee = feeIsNull(totalPendingFee);
+                        item.pendingFee = round(totalPendingFee, 2);
                     }
                 }
                 responseObject["teamMembers"] = query[1];
                 return responseObject;
-            } 
+            }
         }
         catch(error) {
             throw error;
@@ -1453,6 +1456,50 @@ export default class UserService extends BaseService<User> {
             .execute();
     }
 
+    public findExistingUser(data: LookForExistingUserBody) {
+      return this.entityManager.query(`
+        SELECT
+          id,
+          mobileNumber,
+          email,
+          firstName,
+          lastName
+        FROM
+          wsa_users.user 
+        WHERE (
+          (firstName = ? AND lastName = ? AND mobileNumber = ?) OR
+          (firstName = ? AND lastName = ? AND dateOfBirth = ?) OR
+          (firstName = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
+          (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?)
+        )
+        `,
+        [
+          data.firstName, data.lastName, data.mobileNumber,
+          data.firstName, data.lastName, data.dateOfBirth,
+          data.firstName, data.mobileNumber, data.dateOfBirth,
+          data.lastName, data.mobileNumber, data.dateOfBirth,
+        ],
+      );
+    }
+    public async getEmailAndPhoneById(userId: number) {
+      return await this.entityManager.query(`
+      SELECT email,mobileNumber
+          FROM wsa_users.user
+          WHERE id = ?
+          LIMIT 1
+          `, [userId]
+      )
+    }
+    public async getDigitCodeById(userId: number) {
+      return await this.entityManager.query(`
+      SELECT digit_code
+          FROM wsa_users.user
+          WHERE id = ?
+          LIMIT 1
+          `, [userId]
+      )
+    }
+
     public async findMatchesForMerging(userId: number) {
         const users = await this.entityManager.query(`
         SELECT id, firstName, lastName, mobileNumber, email, dateOfBirth
@@ -1474,7 +1521,7 @@ export default class UserService extends BaseService<User> {
                 user.lastName.toLowerCase(), user.mobileNumber, user.dateOfBirth,
                 userId
             ]
-        ) 
+        )
     }
 
     public async findMatchesForLinking(user: User) {
@@ -1488,7 +1535,7 @@ export default class UserService extends BaseService<User> {
                 user.firstName.toLowerCase(), user.mobileNumber,
                 user.lastName.toLowerCase(), user.mobileNumber, user.dateOfBirth,
             ]
-        ) 
+        )
     }
 
     public async updateById(id: number, user: User) {
