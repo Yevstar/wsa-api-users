@@ -25,7 +25,7 @@ export class Communication extends BaseEntity {
 
     @IsDate()
     @Column()
-    communication_expire_date: Date;
+    communicationExpireDate: Date;
 
     @IsNumber()
     @Column()

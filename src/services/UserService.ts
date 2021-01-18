@@ -62,7 +62,7 @@ export default class UserService extends BaseService<User> {
         let query = this.entityManager.createQueryBuilder(User, 'user')
             .innerJoin(UserRoleEntity, 'ure', 'ure.userId = user.id')
             .innerJoin(LinkedEntities, 'le', 'le.inputEntityId = ure.entityId and le.linkedEntityTypeId = ure.entityTypeId')
-            .innerJoin(Organisation, 'org', 'le.inputEntityId = org.id and le.linkedEntityTypeId = entityTypeId', {entityTypeId: EntityType.ORGANISATION})
+            .innerJoin(Organisation, 'org', 'le.inputEntityId = org.id and le.linkedEntityTypeId = :entityTypeId', {entityTypeId: EntityType.ORGANISATION})
 
         if (orgIds) {
             query.andWhere("org.id in (:orgIds)", {orgIds});
