@@ -1188,7 +1188,7 @@ export default class UserService extends BaseService<User> {
                                 }
                             }   
                         }
-                        item.feePaid = totalPaidFee;
+                        item.feePaid = feeIsNull(totalPaidFee);
                         if(item.isInActive == 1) {
                             let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
                             item.email = parentEmailString.toLowerCase(); 
@@ -1257,7 +1257,7 @@ export default class UserService extends BaseService<User> {
                                 }
                             }   
                         }
-                        item.feePaid = totalPaidFee;
+                        item.feePaid = feeIsNull(totalPaidFee);
                         if(item.isInActive == 1) {
                             let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
                             item.email = parentEmailString.toLowerCase(); 
@@ -1310,7 +1310,7 @@ export default class UserService extends BaseService<User> {
                                 }
                             }   
                         }
-                        item.paidFee = totalPaidFee;
+                        item.paidFee = feeIsNull(totalPaidFee);
 
                         if(isArrayPopulated(item.pendingFee)) {
                             for(let fee of item.pendingFee) {
@@ -1331,7 +1331,7 @@ export default class UserService extends BaseService<User> {
                                 }
                             }   
                         }
-                        item.pendingFee = totalPendingFee;
+                        item.pendingFee = feeIsNull(totalPendingFee);
                     }
                 }
                 responseObject["teamMembers"] = query[1];
