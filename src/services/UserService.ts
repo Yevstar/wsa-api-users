@@ -702,13 +702,13 @@ export default class UserService extends BaseService<User> {
                 await transporter.sendMail(mailOptions, (err, info) => {
                     if (err) {
                         cTrack.statusRefId = 2;
-                        logger.error(`TeamRegistration - sendInviteMail : ${err},  ${contact.email}`);
+                        logger.error(`Communication - sendMail : ${err},  ${contact.email}`);
                         this.insertIntoCommunicationTrack(cTrack);
                         // Here i commented the below code as the caller is not handling the promise reject
                         // return Promise.reject(err);
                     } else {
                         cTrack.statusRefId = 1;
-                        logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${contact.email}`);
+                        logger.info(`Communication - sendMail : Mail sent successfully,  ${contact.email}`);
                         this.insertIntoCommunicationTrack(cTrack);
                     }
                     transporter.close();
