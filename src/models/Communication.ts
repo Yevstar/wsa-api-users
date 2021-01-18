@@ -17,15 +17,15 @@ export class Communication extends BaseEntity {
 
     @IsString()
     @Column()
-    image: string;
+    imageUrl: string;
 
     @IsString()
     @Column()
-    video: string;
+    videoUrl: string;
 
     @IsDate()
     @Column()
-    expireDate: Date;
+    expiryDate: Date;
 
     @IsNumber()
     @Column()
@@ -53,7 +53,7 @@ export class Communication extends BaseEntity {
 
     @IsDate()
     @Column()
-    published_at: Date;
+    publishedAt: Date;
 
     @IsString()
     @Column()
