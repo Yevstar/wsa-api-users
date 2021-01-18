@@ -240,7 +240,9 @@ export class UserDashboardController extends BaseController {
           });
         }
         const users = await this.userService.findExistingUser(requestBody);
+        let existStatus = false;
         if (users.length > 0) {
+          existStatus = true;
           const [{ email, mobileNumber, id }] = users;
           if (!(email || mobileNumber)) {
               return response.status(200).send({
@@ -272,7 +274,7 @@ export class UserDashboardController extends BaseController {
             [...responsingUsers],
           );
         } else {
-          return response.status(200).send();
+          return response.status(200).send(existStatus);
         }
       } catch (error) {
         logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
