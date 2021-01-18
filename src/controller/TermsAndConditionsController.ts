@@ -3,7 +3,7 @@ import {BaseController} from "./BaseController";
 import {TC} from "../models/TC";
 
 @JsonController('/organisations/:organisationId/terms-and-conditions')
-@Authorized()
+@Authorized('web_users')
 export class TermsAndConditionsController extends BaseController {
 
     @Get()
