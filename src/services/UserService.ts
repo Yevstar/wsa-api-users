@@ -1191,7 +1191,7 @@ export default class UserService extends BaseService<User> {
                                 }
                             }
                         }
-                        item.feePaid = totalPaidFee;
+                        item.feePaid = feeIsNull(totalPaidFee);
                         if(item.isInActive == 1) {
                             let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
                             item.email = parentEmailString.toLowerCase();
@@ -1260,7 +1260,7 @@ export default class UserService extends BaseService<User> {
                                 }
                             }
                         }
-                        item.feePaid = totalPaidFee;
+                        item.feePaid = feeIsNull(totalPaidFee);
                         if(item.isInActive == 1) {
                             let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
                             item.email = parentEmailString.toLowerCase();
@@ -1282,9 +1282,10 @@ export default class UserService extends BaseService<User> {
             let userId = teamBody.userId;
             let limit = teamBody.teamMemberPaging.limit;
             let offset = teamBody.teamMemberPaging.offset;
+            let divisionId = teamBody.competitionMembershipProductDivisionId;
 
-            let query = await this.entityManager.query(`call wsa_users.usp_registration_team_member_details(?,?,?,?)`,
-                        [limit,offset,userId,teamId]);
+            let query = await this.entityManager.query(`call wsa_users.usp_registration_team_member_details(?,?,?,?,?)`,
+                        [limit,offset,userId,teamId,divisionId]);
 
             if(query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
