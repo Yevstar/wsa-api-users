@@ -1,5 +1,6 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm-plus";
+import {BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm-plus";
 import { IsBoolean, IsDate, IsNumber, IsString } from "class-validator";
+import {TCUserAcknowledgement} from "./TCUserAcknowledgement";
 
 @Entity()
 export class User extends BaseEntity {
@@ -164,4 +165,6 @@ export class User extends BaseEntity {
     @Column()
     accreditationCoachExpiryDate?: Date;
 
+    @OneToMany(type => TCUserAcknowledgement, tca => tca.user)
+    TcAcknowledgements: TCUserAcknowledgement[];
 }

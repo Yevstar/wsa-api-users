@@ -716,6 +716,7 @@ export class UserDashboardController extends BaseController {
                 user.suburb = requestBody.suburb;
                 user.stateRefId = requestBody.stateRefId;
                 user.postalCode = requestBody.postalCode;
+                user.dateOfBirth = requestBody.dateOfBirth;
                 user.mobileNumber = requestBody.mobileNumber;
                 user.email = requestBody.email.toLowerCase();
                 if (user.id != 0 || user.id != null) {
