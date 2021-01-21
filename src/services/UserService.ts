@@ -40,6 +40,16 @@ export default class UserService extends BaseService<User> {
         return User.name;
     }
 
+    public async getRegistrationFormDetails(requestBody) {
+        const userRegistrationDraftResponse = await this.entityManager.query(`SELECT * FROM wsa_registrations.userRegistrationDraft WHERE participantData->'$.registrationId' = "${requestBody.registrationId}"`);
+
+        const registrationTrackResponse = await this.entityManager.query(`SELECT * FROM wsa_registrations.registrationTrack WHERE registrationId = ${userRegistrationDraftResponse[0].registrationId} AND stepsId = 2`);
+
+        userRegistrationDraftResponse.push(registrationTrackResponse[0]);
+
+        return userRegistrationDraftResponse;
+    }
+
     public async findByEmail(email: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', { email: email.toLowerCase() })
