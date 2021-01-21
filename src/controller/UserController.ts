@@ -390,7 +390,7 @@ export class UserController extends BaseController {
         }
 
         let result = await this.userService.filter(
-            parseIds(communication.toOrganizationIds),
+            parseIds(communication.toOrganisationIds),
             parseIds(communication.toUserIds),
             parseIds(communication.toUserRoleIds),
         );

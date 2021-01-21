@@ -49,7 +49,7 @@ export class Communication extends BaseEntity {
 
     @IsNumber()
     @Column()
-    organizationId: number;
+    organisationId: number;
 
     @IsDate()
     @Column()
@@ -61,7 +61,7 @@ export class Communication extends BaseEntity {
 
     @IsString()
     @Column({nullable:true,default:null})
-    toOrganizationIds: string;
+    toOrganisationIds: string;
 
     @IsString()
     @Column()
