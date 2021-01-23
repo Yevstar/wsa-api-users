@@ -1,34 +1,34 @@
-import {Inject, Service} from "typedi";
-import {Brackets, In} from "typeorm-plus";
+import { round } from 'lodash';
 import nodeMailer from "nodemailer";
-import speakeasy from "speakeasy";
 import QRcode from "qrcode";
-
-import BaseService from "./BaseService";
-import { User } from "../models/User";
-import { RoleFunction } from "../models/security/RoleFunction";
+import speakeasy from "speakeasy";
+import twilio from 'twilio';
+import { Inject, Service } from "typedi";
+import { Brackets, In } from "typeorm-plus";
+import AppConstants from "../constants/AppConstants";
+import EmailConstants from "../constants/EmailConstants";
+import { LookForExistingUserBody } from '../controller/types';
+import { logger } from "../logger";
+import { Booking } from "../models/Booking";
+import { CommunicationTrack } from "../models/CommunicationTrack";
+import { EntityType } from "../models/security/EntityType";
 import { Function } from "../models/security/Function";
 import { Role } from "../models/security/Role";
-import { EntityType } from "../models/security/EntityType";
+import { RoleFunction } from "../models/security/RoleFunction";
 import { UserRoleEntity } from "../models/security/UserRoleEntity";
-import { LinkedEntities } from "../models/views/LinkedEntities";
-import { logger } from "../logger";
-import {round} from 'lodash'
-import {
-  paginationData,
-  stringTONumber,
-  isArrayPopulated,
-  isNotNullAndUndefined,
-  isObjectNotNullAndUndefined,
-  feeIsNull
-} from "../utils/Utils";
-import AppConstants from "../constants/AppConstants";
-import { CommunicationTrack } from "../models/CommunicationTrack";
-import { Booking } from "../models/Booking";
 import { Team } from "../models/Team";
+import { User } from "../models/User";
+import { LinkedEntities } from "../models/views/LinkedEntities";
+import {
+    feeIsNull, isArrayPopulated,
+    isNotNullAndUndefined,
+    isObjectNotNullAndUndefined, paginationData,
+    stringTONumber
+} from "../utils/Utils";
+import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
 
-import { LookForExistingUserBody } from '../controller/types';
+
 
 @Service()
 export default class UserService extends BaseService<User> {
@@ -449,10 +449,9 @@ export default class UserService extends BaseService<User> {
 
     }
 
-
     public async sentMail(templateObj, OrganisationName, receiverData, password, entityId, userId) {
         let url = process.env.liveScoresWebHost;
-        logger.info(`TeamService - sendMail : url ${url}`);
+        logger.info(`sendMail : url ${url}`);
         console.log("*****Template---:" + templateObj + "--" + JSON.stringify(templateObj))
         //  let html = ``;
         let subject = templateObj.emailSubject;
@@ -466,71 +465,9 @@ export default class UserService extends BaseService<User> {
         templateObj.emailBody = templateObj.emailBody.replace('${process.env.liveScoresWebHost}', url);
         templateObj.emailBody = templateObj.emailBody.replace('${Organisation}', OrganisationName);
 
-        const transporter = nodeMailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 587,
-            secure: false, // true for 465, false for other ports
-            auth: {
-                user: process.env.MAIL_USERNAME, // generated ethereal user
-                pass: process.env.MAIL_PASSWORD // generated ethereal password
-            },
-            tls: {
-                // do not fail on invalid certs
-                rejectUnauthorized: false
-            }
-        });
 
-        const mailOptions = {
-            from: {
-                name: process.env.MAIL_FROM_NAME ,
-                address: process.env.MAIL_FROM_ADDRESS
-            },
-            to: receiverData.email.toLowerCase(),
-            replyTo: "donotreply@worldsportaction.com",
-            subject: subject,
-            html: templateObj.emailBody
-        };
-        if (Number(process.env.SOURCE_MAIL) == 1) {
-            mailOptions.html = ' To: ' + mailOptions.to + '<br><br>' + mailOptions.html
-            mailOptions.to = process.env.TEMP_DEV_EMAIL
-        }
-        logger.info(`TeamService - sendMail : mailOptions ${mailOptions}`);
-        let cTrack = new CommunicationTrack();
         try {
-            cTrack.id = 0;
-
-            cTrack.communicationType = 3;
-            //cTrack.contactNumber = receiverData.mobileNumber
-            cTrack.entityId = entityId;
-            cTrack.deliveryChannelRefId = 1;
-            cTrack.emailId = receiverData.email;
-            cTrack.userId = receiverData.id;
-            cTrack.subject = mailOptions.subject;
-
-            cTrack.createdBy = userId;
-            await transporter.sendMail(mailOptions, (err, info) => {
-                //logger.info(`TeamService - sendMail : ${err}, ${info}`);
-                if (err) {
-                    logger.error(`TeamService - sendMail : ${err}`);
-                    cTrack.statusRefId = 2;
-                    templateObj.emailBody = templateObj.emailBody.replace(password, "******")
-                    cTrack.content = templateObj.emailBody;
-                    this.insertIntoCommunicationTrack(cTrack);
-                    // Here i commented the below code as the caller is not handling the promise reject
-                    // return Promise.reject(err);
-                } else {
-                    logger.info(`TeamService - sendMail : Mail sent successfully`);
-                    cTrack.statusRefId = 1;
-                    templateObj.emailBody = templateObj.emailBody.replace(password, "******")
-                    cTrack.content = templateObj.emailBody;
-                    this.insertIntoCommunicationTrack(cTrack);
-                }
-                transporter.close();
-                return Promise.resolve();
-            });
-            templateObj.emailBody = templateObj.emailBody.replace(password, "******")
-            cTrack.content = templateObj.emailBody;
-
+            await this.sendAndLogEmail(receiverData.email, receiverData.id, subject, templateObj.emailBody, password, 3, entityId, userId);
         } catch (error) {
             //cTrack.statusRefId = 2;
         }
@@ -555,74 +492,10 @@ export default class UserService extends BaseService<User> {
             templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
             templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
 
-            const transporter = nodeMailer.createTransport({
-                host: "smtp.gmail.com",
-                port: 587,
-                secure: false, // true for 465, false for other ports
-                auth: {
-                    user: process.env.MAIL_USERNAME, // generated ethereal user
-                    pass: process.env.MAIL_PASSWORD // generated ethereal password
-                },
-
-                tls: {
-                    // do not fail on invalid certs
-                    rejectUnauthorized: false
-                }
-            });
-
-            // fs.readFileSync("output/"+fileName);
-            // const path = require('path');
-            const mailOptions = {
-                from: {
-                    name: process.env.MAIL_FROM_NAME ,
-                    address: process.env.MAIL_FROM_ADDRESS
-                },
-                to: contact.email,
-                replyTo: "donotreply@worldsportaction.com",
-                subject: subject,
-                html: templateObj.emailBody
-            };
-
-            if (Number(process.env.SOURCE_MAIL) == 1) {
-                mailOptions.html = ' To: ' + mailOptions.to + '<br><br>' + mailOptions.html
-                mailOptions.to = process.env.TEMP_DEV_EMAIL
-            }
-
-            let cTrack = new CommunicationTrack();
-            // logger.info(`before - sendMail : mailOptions ${mailOptions}`);
             try {
-                cTrack.id = 0;
-
-                cTrack.communicationType = 8;
-                // cTrack.contactNumber = contact.mobileNumber
-                cTrack.entityId = contact.id;
-                cTrack.deliveryChannelRefId = 1;
-                cTrack.emailId = contact.email;
-                cTrack.userId = contact.id;
-                cTrack.subject = subject;
-                cTrack.content = templateObj.emailBody;
-                cTrack.createdBy = adminUser.id;
-
-                await transporter.sendMail(mailOptions, (err, info) => {
-                    if (err) {
-                        cTrack.statusRefId = 2;
-                        logger.error(`TeamRegistration - sendInviteMail : ${err},  ${contact.email}`);
-                        this.insertIntoCommunicationTrack(cTrack);
-                        // Here i commented the below code as the caller is not handling the promise reject
-                        // return Promise.reject(err);
-                    } else {
-                        cTrack.statusRefId = 1;
-                        logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${contact.email}`);
-                        this.insertIntoCommunicationTrack(cTrack);
-                    }
-                    transporter.close();
-                    return Promise.resolve();
-                });
-
-                // return cTrack;
+                await this.sendAndLogEmail(contact.email, contact.id, subject, templateObj.emailBody, "", 8, contact.id, adminUser.id);
             } catch (error) {
-                // cTrack.statusRefId = 2;
-                // return cTrack;
+                //cTrack.statusRefId = 2;
             }
         } catch (error) {
             logger.error(` ERROR occurred in individual mail ` + error)
@@ -630,8 +503,8 @@ export default class UserService extends BaseService<User> {
         }
     }
     public async sendTeamRegisterPlayerInviteMail(resBody, playerBody,templateObj, userId, password,registrationId, roleArray) {
-        try{
 
+        try {
             let subject = templateObj.emailSubject ;
             subject = subject.replace(AppConstants.teamName, resBody.teamName);
             let url = process.env.TEAM_REGISTRATION_URL;
@@ -661,7 +534,7 @@ export default class UserService extends BaseService<User> {
             //         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.clickHereToRegister, "");
             //     }
             // }
-            if(playerBody.notPaid == null){
+            if(playerBody.notPaid == null) {
                 templateObj.emailBody = templateObj.emailBody.replace(AppConstants.completeYouRegistration, AppConstants.updateYourProfile);
                 templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerBoforeCloseDate, '');
             }
@@ -677,86 +550,12 @@ export default class UserService extends BaseService<User> {
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.AffiliateName, resBody.organisationName);
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.AffiliateName, resBody.organisationName);
 
-            const transporter = nodeMailer.createTransport({
-                host: "smtp.gmail.com",
-                port: 587,
-                secure: false, // true for 465, false for other ports
-                auth: {
-                    user: process.env.MAIL_USERNAME, // generated ethereal user
-                    pass: process.env.MAIL_PASSWORD // generated ethereal password
-                },
-
-                tls: {
-                    // do not fail on invalid certs
-                    rejectUnauthorized: false
-                }
-
-            });
-
-        const mailOptions = {
-                from: {
-                    name: process.env.MAIL_FROM_NAME ,
-                    address: process.env.MAIL_FROM_ADDRESS
-                },
-                to: playerBody.email,
-                replyTo: "donotreply@worldsportaction.com",
-                subject: subject,
-                html: templateObj.emailBody
-
-            };
-            if(Number(process.env.SOURCE_MAIL) == 1){
-                mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html
-                mailOptions.to = process.env.TEMP_DEV_EMAIL
-            }
-            let cTrack = new CommunicationTrack();
-
-         //   logger.info(`before - sendMail : mailOptions ${mailOptions}`);
-            try{
-
-                cTrack.id= 0;
-
-                cTrack.communicationType = 2;
-               // cTrack.contactNumber = playerBody.mobileNumber
-                cTrack.entityId = registrationId;
-                cTrack.deliveryChannelRefId = 1;
-                cTrack.emailId = playerBody.email;
-                cTrack.userId = playerBody.userId;
-                cTrack.subject = subject;
-                //cTrack.content = templateObj.emailBody;
-                cTrack.createdBy = userId;
-
-                await transporter.sendMail(mailOptions, (err, info) => {
-                    if (err) {
-                        cTrack.statusRefId = 2;
-                        cTrack.content  = mailOptions.html.replace(password,"******");
-                        logger.error(`TeamRegistration - sendInviteMail : ${err},  ${playerBody.email}`);
-                        this.insertIntoCommunicationTrack(cTrack);
-                        // Here i commented the below code as the caller is not handling the promise reject
-                        // return Promise.reject(err);
-                    } else {
-                        cTrack.statusRefId = 1;
-                        cTrack.content  = mailOptions.html.replace(password,"******");
-                      logger.info(`TeamRegistration - sendInviteMail : Mail sent successfully,  ${playerBody.email}`);
-                      this.insertIntoCommunicationTrack(cTrack);
-                    }
-                    transporter.close();
-                    return Promise.resolve();
-                });
-
-                //return cTrack
-            }
-            catch(error){
-                cTrack.statusRefId = 2;
-               // return cTrack;
-            }
-
-
+            await this.sendAndLogEmail(playerBody.email, playerBody.userId, subject, templateObj.emailBody, "", 0, registrationId , userId);
         } catch (error) {
-            throw error;
+            //cTrack.statusRefId = 2;
         }
-
-
     }
+
     public async userPersonalDetails(userId: number, organisationUniqueKey: any) {
         try {
             let result = await this.entityManager.query("call wsa_users.usp_user_personal_details(?,?)",
@@ -1611,5 +1410,346 @@ export default class UserService extends BaseService<User> {
         });
 
         return parentRoles.length > 0;
+    }
+
+    public async sendAndLogSMS(toNumber: string, toUserId: number, body: string, communicationType: number,
+        entityId: number, creatorId:number) {
+            try {
+
+            let cTrack = new CommunicationTrack();
+            cTrack.id = 0;
+            cTrack.communicationType = communicationType;
+            cTrack.entityId = entityId;
+            cTrack.deliveryChannelRefId = 2;
+            cTrack.contactNumber = toNumber;
+            cTrack.userId = toUserId;
+            cTrack.subject = "";
+            cTrack.createdBy = creatorId;
+        
+            const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+            await client.messages.create({
+                body: `${body}`,
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to: `+${toNumber}`,
+            });
+    
+            cTrack.statusRefId = 1;
+            logger.info(`sendSMS: {body} : SMS sent succesfully,  ${toNumber}`);
+            this.insertIntoCommunicationTrack(cTrack);
+            return Promise.resolve();
+
+        } catch (error) {
+            let cTrack = new CommunicationTrack();
+            cTrack.id = 0;
+            cTrack.communicationType = communicationType;
+            cTrack.entityId = entityId;
+            cTrack.deliveryChannelRefId = 2;
+            cTrack.contactNumber = toNumber;
+            cTrack.userId = toUserId;
+            cTrack.subject = "";
+            cTrack.createdBy = creatorId;
+
+            cTrack.statusRefId = 2;
+            logger.error(`sendSMS: {body} : SMS error ${error},  ${toNumber}`);
+            this.insertIntoCommunicationTrack(cTrack);
+
+            // Here i commented the below code as the caller is not handling the promise reject
+            // return Promise.reject(err);s
+            throw error;
+        }  
+    }
+
+    public async sendAndLogEmail(toEmail: string, toUserId: number, subject: string, htmlBody: string, password: string, communicationType: number,
+        entityId: number, creatorId:number) {
+          try {
+              console.log("~~~~sendAndLogEmail");
+            const transporter = nodeMailer.createTransport({
+                host: "smtp.gmail.com",
+                port: 587,
+                secure: false, // true for 465, false for other ports
+                auth: {
+                    user: process.env.MAIL_USERNAME, // generated ethereal user
+                    pass: process.env.MAIL_PASSWORD, // generated ethereal password
+                },
+                tls: {
+                    // do not fail on invalid certs
+                    rejectUnauthorized: false,
+                },
+            });
+        
+            const mailOptions = {
+                from: {
+                    name: process.env.MAIL_FROM_NAME,
+                    address: process.env.MAIL_FROM_ADDRESS,
+                },
+                to: toEmail,
+                replyTo: "donotreply@worldsportaction.com",
+                subject: subject,
+                html: htmlBody,
+            };
+        
+            if (Number(process.env.SOURCE_MAIL) == 1) {
+                mailOptions.html = " To : " + mailOptions.to + "<br><br>" + mailOptions.html;
+                mailOptions.to = process.env.TEMP_DEV_EMAIL;
+            }
+        
+            let cTrack = new CommunicationTrack();
+            cTrack.id = 0;
+            cTrack.communicationType = communicationType;
+            // cTrack.contactNumber = contact.mobileNumber
+            cTrack.entityId = entityId;
+            cTrack.deliveryChannelRefId = 1;
+            cTrack.emailId = toEmail.toLowerCase();
+            cTrack.userId = toUserId;
+            cTrack.subject = subject;
+            if (isNotNullAndUndefined(password) && password.length > 1) {
+                cTrack.content = mailOptions.html.replace(password, "******");
+            } else {
+                cTrack.content = htmlBody;
+            }
+            cTrack.createdBy = creatorId;
+        
+            // await
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    cTrack.statusRefId = 2;
+                    logger.error(`sendMail: {subject} : Mail error ${err},  ${toEmail}`);
+                    this.insertIntoCommunicationTrack(cTrack);
+                    // Here i commented the below code as the caller is not handling the promise reject
+                    // return Promise.reject(err);
+                } else {
+                    cTrack.statusRefId = 1;
+                    logger.info(`sendMail: {subject} : Mail sent successfully,  ${toEmail}`);
+                    this.insertIntoCommunicationTrack(cTrack);
+                }
+                transporter.close();
+                return Promise.resolve();
+            });
+        } catch (error) {
+            throw error;
+        }  
+    }
+
+    private composeEmail(title: string, content: string, toUser: User, password: string) : string {
+
+        let html = 
+        `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml">
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <title>Netball Livescores</title>
+                <style type="text/css">
+                    @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,700,900');
+                </style>
+                <style type="text/css">
+                    body { width: 100% !important; -webkit-font-smoothing: antialiased; }
+                    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; padding:0; margin:0;  }
+                    p { margin: 0; }
+                    table td {border-collapse: collapse !important; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+                    img { border:0; height:auto; outline:none; text-decoration:none; max-width:100%; }
+                    table { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+                    #outlook a {padding:0;}
+                    body, td, th, p, div, li, a, span { 
+                    -webkit-text-size-adjust: 100%;
+                    -ms-text-size-adjust: 100%;
+                    mso-line-height-rule: exactly;
+                    }
+                    
+                    /*START DESKTOP STYLES*/
+                    .container { width: 100%; max-width: 700px; margin: 0 auto; }
+                    .d-b-padding-32 { padding-bottom: 32px; }
+                    .d-t-padding-32 { padding-top: 32px; }
+                    .d-b-padding-24 { padding-bottom: 24px; }
+                    .d-title { font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 20px; mso-line-height-rule: exactly; line-height: 36px; padding: 20px 48px; }
+                    .d-container-a { background-color: #FF8237; border-top-right-radius: 8px; border-top-left-radius: 8px; }
+                    .d-container-b { background-color: #ffffff; padding: 36px 48px 0 48px }
+                    .d-container-c { background-color: #ffffff; padding: 0px 48px 12px 48px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+                    .d-b-padding-8 { padding-bottom: 8px; }
+                    .d-b-padding-4 { padding-bottom: 4px; }
+                    table .d-paragraph { font-family: Helvetica, Arial, sans-serif; color: #4C4C6D; font-size: 16px; mso-line-height-rule: exactly; line-height: 24px; padding: 20px 0 20px 0; }
+                    .d-paragraph span { color : #4c4c6d; }
+                    .d-signature { font-family: Helvetica, Arial, sans-serif; color: #4C4C6D; font-size: 20px; mso-line-height-rule: exactly; line-height: 32px; padding: 36px 0 32px 0; }
+                    .d-hello { font-family: Helvetica, Arial, sans-serif; color: #4C4C6D; font-size: 20px; font-weight: bold; mso-line-height-rule: exactly; line-height: 20px; }
+
+                    .d-steps-table { padding: 16px; background-color: #fdfdfe; }
+                    .d-steps-number { width: 48px; max-width: 48px; font-family: Helvetica, Arial, sans-serif; font-weight: bold; color: #18BBFF; font-size: 32px; }
+                    .d-steps-value { font-family: Helvetica, Arial, sans-serif; color: #4C4C6D; font-size: 16px; mso-line-height-rule: exactly; line-height: 28px; }
+                    .d-steps-value a { color: #FF8237; text-decoration: underline; }
+
+                    .d-register-table { padding: 36px; background-color: #fdfdfe; }
+                    .d-register-title { font-family: Helvetica, Arial, sans-serif; color: #4C4C6D; font-size: 18px; mso-line-height-rule: exactly; line-height: 28px; }
+                    .d-button { font-size: 20px }
+
+                    .d-steps-number { width: 48px; max-width: 48px; font-family: Helvetica, Arial, sans-serif; font-weight: bold; color: #18BBFF; font-size: 32px; }
+                    .d-steps-value { font-family: Helvetica, Arial, sans-serif; color: #4C4C6D; font-size: 16px; mso-line-height-rule: exactly; line-height: 28px; }
+                    .d-steps-value a { color: #FF8237; text-decoration: underline; }
+
+                    .d-team-table { border-top: 1px solid #EBF0F3; }
+                    .d-team-name { font-family: Helvetica, Arial, sans-serif; color: #4C4C6D; font-size: 12px; mso-line-height-rule: exactly; line-height: 32px; padding: 6px 0; border-bottom: 1px solid #EBF0F3; }
+                    .d-team-role { font-family: Helvetica, Arial, sans-serif; color: #9B9BAD; font-size: 12px; mso-line-height-rule: exactly; line-height: 32px; padding: 6px 0; border-bottom: 1px solid #EBF0F3; }
+
+                    .d-team-table { border-top: 1px solid #EBF0F3; }
+                    .d-team-name { font-family: Helvetica, Arial, sans-serif; color: #4C4C6D; font-size: 12px; mso-line-height-rule: exactly; line-height: 32px; padding: 6px 0; border-bottom: 1px solid #EBF0F3; }
+                    .d-team-role { font-family: Helvetica, Arial, sans-serif; color: #9B9BAD; font-size: 12px; mso-line-height-rule: exactly; line-height: 32px; padding: 6px 0; border-bottom: 1px solid #EBF0F3; }
+
+                    .d-paswd-table, .d-usr-table { padding: 16px 24px; background-color: #FDFDFE; }
+                    .d-paswd-icon, .d-usr-icon { width: 32px; max-width: 32px; font-family: Helvetica, Arial, sans-serif; font-weight: bold; color: #18BBFF; font-size: 32px; }
+                    .d-paswd-title, .d-usr-title { font-family: Helvetica, Arial, sans-serif; color: #9B9BAD; font-size: 14px; mso-line-height-rule: exactly; line-height: 18px; }
+                    .d-paswd-value, .d-usr-value { font-family: Helvetica, Arial, sans-serif; color: #FF8237; font-size: 14px; mso-line-height-rule: exactly; line-height: 32px; padding-bottom: 20px}
+                    .d-paswd-value a, .d-usr-value a { color: #FF8237; text-decoration: none; }
+
+                    .ind-left { font-family: Helvetica, Arial, sans-serif; color: #4C4C6D; font-size: 16px; mso-line-height-rule: exactly; line-height: 24px; padding: 6px 0 0;  }
+                    .ind-right { font-family: Helvetica, Arial, sans-serif; color: #9B9BAD; font-size: 16px; mso-line-height-rule: exactly; line-height: 24px; padding: 6px 0 0;  }
+                    .ind-subtext { font-family: Helvetica, Arial, sans-serif;  font-size: 14px; mso-line-height-rule: exactly; line-height: 20px; padding: 6px 0 12px; border-bottom: 1px solid #EBF0F3; }
+
+                    /*END DESKTOP STYLES*/
+
+                    .tp-body { background-color: #EBF0F3; }
+                    .specialLinks a, .d-contacts a { color:#FF8237; text-decoration: none;}
+                    .click-to-action {
+                        width: 100%;
+                        margin: 32px 0;
+                    }
+                    .click-to-action a.d-button { color: #FFFFFF; }
+                    .click-to-action .btn a { color: #ffffff; text-decoration: none; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-weight: bold; padding: 20px 32px; border-radius: 6px; background: #FF8237; } 
+                    .d-contacts {
+                        padding: 12px 12px;
+                        margin: 12px 0 24px;
+                        background-color: #f6f6f6;
+                        mso-line-height-rule: exactly;
+                        line-height: 20px;
+                        font-size: 14px;
+                    }
+                    .d-contacts p {
+                        margin-bottom: 6px;
+                        color: #4c4c6d;
+                    }
+                    
+                    @media screen and (min-width: 421px) and (max-width: 700px) {
+                        .container { width: 100% !important; }
+                    }
+                    
+                    @media only screen and (max-width:420px) {
+                        img.inline { display: inline !important; }
+                        img.m-full { width: 100% !important; max-width: 100% !important; }
+                        table.m-center { margin: 0 auto !important; }
+                        td.m-hide, tr.m-hide { display: none !important; }
+                        td.m-center { text-align:center !important; }
+                        td.m-left { text-align:left !important; }
+                        td.m-right { text-align:right !important; }
+                        td.coll { display:block !important; width:100% !important; }
+                        td.rt-padding { padding-right: 20px !important; }
+                        td.nrt-padding { padding-right: 0 !important; }
+                        td.lt-padding { padding-left: 20px !important; }
+                        td.nlt-padding { padding-left: 0 !important; }
+                        td.l-padding { padding-left: 20px !important; padding-right: 20px !important; }   
+                        td.nl-padding { padding-left: 0 !important; padding-right: 0 !important; }
+                        td.b-padding { padding-bottom: 20px !important; }
+                        td.nb-padding { padding-bottom: 0 !important; }
+                        td.t-padding { padding-top: 20px !important; }
+                        td.nt-padding { padding-top: 0 !important; }
+                        .m-txt { font-size: 16px !important; line-height: 24px !important; }
+                        td.d-container-a { border-top-right-radius: 0px; border-top-left-radius: 0px; }
+                        td.d-container-c { border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; }
+                    }		
+                    @media screen and (max-width: 420px) {
+                        u ~ div {
+                            min-width: 95vw;
+                        }
+                    }	
+                </style>
+                <!--[if (gte mso 9)|(IE)]>
+                    <style type="text/css">
+                        td, a, div, span, p { font-family: Helvetica, Arial, sans-serif !important; }
+                    </style>    
+                <![endif]-->
+            </head>
+            <body class="tp-body">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="table-layout:fixed;" class="tp-body">
+                    <tr>
+                        <td align="center" valign="top" class="tp-body d-b-padding-32 d-t-padding-32 nb-padding nt-padding">
+                            <!--[if (gte mso 9)|(IE)]>
+                            <table width="700"  style="background-color: #FFFFFF" align="center" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td align="center" valign="top">
+                                        <![endif]-->
+                                            <table cellpadding="0" cellspacing="0" border="0" align="center" class="container">`;
+
+            if (isNotNullAndUndefined(title) && title.length > 0) {
+                let headerHtml = `<tr>
+                                    <td align="center" valign="top" class="d-container-a">
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="left" valign="top" class="d-title l-padding">
+                                                    $(title)
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>`;
+                html += headerHtml.replace('$(title)', title);
+            }
+
+            let passwordHtml = '';
+            if (isNotNullAndUndefined(password) && password.length > 0) { 
+                let parentsLogin = (toUser.isInActive == 1) ? AppConstants.parentsLogin : '';
+                passwordHtml =  `
+                                                    <tr>
+                                                        <td align="center" valign="top" class="d-b-padding-4">
+                                                            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                                <tr>
+                                                                    <td align="left" valign="middle" class="d-usr-title">USERNAME ${parentsLogin}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td align="left" valign="top" class="d-usr-value m-txt">
+                                                                        <strong>$(username)</strong>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td align="left" valign="middle" class="d-usr-title">PASSWORD</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td align="left" valign="top" class="d-usr-value m-txt">
+                                                                        <strong>$(password)</strong>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>`;
+                passwordHtml = passwordHtml.replace('$(username)', toUser.email);
+                passwordHtml = passwordHtml.replace('$(password)', password);
+            }
+
+
+            html += ` 
+                                                    <tr>
+                                                    <td class="d-hello d-container-b l-padding t-padding">
+                                                        Hi $(addressee)
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td align="left" valign="top" class="d-container-c l-padding b-padding">
+                                                    $(content)
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        <!--[if (gte mso 9)|(IE)]>
+                                    </td>
+                                </tr>
+                            </table>
+                            <![endif]--> 
+                        </td>
+                    </tr>
+                </table>
+            </body>
+        </html>`;
+
+        html = html.replace('$(addressee)', toUser.firstName + " " + toUser.lastName + ",");
+        html = html.replace('$(content)', content);
+        html = html.replace(EmailConstants.credentials, passwordHtml);
+
+        return html;
+    
     }
 }

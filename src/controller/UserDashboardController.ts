@@ -10,12 +10,10 @@ import nodeMailer from 'nodemailer';
 import { UserRegistration } from "../models/UserRegistration";
 import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
-import { CommunicationTrack } from "../models/CommunicationTrack";
 import { isNullOrUndefined } from "util";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
 let moment = require('moment');
 import twilio from 'twilio';
-
 import { LookForExistingUserBody } from './types';
 
 @JsonController("/api")
@@ -221,72 +219,58 @@ export class UserDashboardController extends BaseController {
      */
     @Post('/user/existing')
     async lookForExistingUser(
-      @Body() requestBody: any,
-      @Res() response: Response
+        @Body() requestBody: any,
+        @Res() response: Response
     ) {
-      try {
-        // check body data
-        const {
-          dateOfBirth,
-          email,
-          firstName,
-          lastName,
-          mobileNumber,
-        } = requestBody;
-        if (!(dateOfBirth && firstName && lastName && email && mobileNumber)) {
-          return response.status(400).send({
-            info: 'MISSING_DATA',
-              requestBody,
-          });
-        }
-        const users = await this.userService.findExistingUser(requestBody);
-        let existStatus = false;
-        if (users.length > 0) {
-          existStatus = true;
-          const [{ email, mobileNumber, id }] = users;
-          if (!(email || mobileNumber)) {
-              return response.status(200).send({
-                phone: '',
-                email: '',
-              });
-          }
-          const emailRegexp = /^(.{2}).*@(.{2}).*(\..+)$/;
-          const responsingUsers =  users.map(user => {
-            const { email, mobileNumber, id } = user;
-
-            const result = email.match(emailRegexp);
-            const maskedEmail = email && result
-              ? `${result[1]}***@${result[2]}***${result[3]}`
-              : '';
-            const maskedPhone = mobileNumber && mobileNumber !== 'NULL'
-              ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}`
-              : '';
-            return {
-                phone: maskedPhone,
-                email: maskedEmail,
-                id,
-                firstName:user.firstName,
-                lastName:user.lastName,
+        try {
+            // check body data
+            const { dateOfBirth, email, firstName, lastName, mobileNumber } = requestBody;
+            if (!(dateOfBirth && firstName && lastName && email && mobileNumber)) {
+                return response.status(400).send({
+                    info: "MISSING_DATA",
+                    requestBody,
+                });
             }
-        })
+            const users = await this.userService.findExistingUser(requestBody);
+            let existStatus = false;
+            if (users.length > 0) {
+                existStatus = true;
+                const [{ email, mobileNumber, id }] = users;
+                if (!(email || mobileNumber)) {
+                    return response.status(200).send({
+                        phone: "",
+                        email: "",
+                    });
+                }
+                const emailRegexp = /^(.{2}).*@(.{2}).*(\..+)$/;
+                const responsingUsers = users.map((user) => {
+                    const { email, mobileNumber, id } = user;
 
-          return response.status(200).send(
-            [...responsingUsers],
-          );
-        } else {
-          return response.status(200).send(existStatus);
+                    const result = email.match(emailRegexp);
+                    const maskedEmail = email && result ? `${result[1]}***@${result[2]}***${result[3]}` : "";
+                    const maskedPhone = mobileNumber && mobileNumber !== "NULL" ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}` : "";
+                    return {
+                        phone: maskedPhone,
+                        email: maskedEmail,
+                        id,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                    };
+                });
+
+                return response.status(200).send([...responsingUsers]);
+            } else {
+                return response.status(200).send(existStatus);
+            }
+        } catch (error) {
+            logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ""}\n${JSON.stringify(error)}`);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
+            });
         }
-      } catch (error) {
-        logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ''}\n${JSON.stringify(error)}`);
-        return response.status(500).send({
-          message: process.env.NODE_ENV == AppConstants.development
-            ? AppConstants.errMessage + error
-            : AppConstants.errMessage,
-        });
-      }
     }
 
-        /**
+    /**
      * Send digit code to email or sms
      * @param {LookForExistingUserBody} requestBody - body data
      * @param {Response} response - response object
@@ -294,156 +278,118 @@ export class UserDashboardController extends BaseController {
      */
     @Post('/user/existing-digit-code')
     async sendCodeToEmailOrSms(
-      @Body() requestBody: any,
-      @Res() response: Response
+        @Body() requestBody: any,
+        @Res() response: Response
     ) {
-      try {
-        // check body data
-        const {
-          id,
-          type
-        } = requestBody;
-        if (!(id && type)) {
-          return response.status(400).send({
-            info: 'MISSING_DATA',
-            requestBody,
-          });
-        }
-        const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
-        const [{ email, mobileNumber }] = emailAndPhoneById;
-        const digitCode = Math.floor(100000 + Math.random() * 900000);
+        try {
+            // check body data
+            const { id, type } = requestBody;
+            if (!(id && type)) {
+                return response.status(400).send({
+                    info: "MISSING_DATA",
+                    requestBody,
+                });
+            }
+            const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
+            const [{ email, mobileNumber }] = emailAndPhoneById;
+            const digitCode = Math.floor(100000 + Math.random() * 900000);
 
-        let user = await this.userService.findById(id);
-        user.digit_code = String(digitCode);
-        await this.userService.createOrUpdate(user);
-        
-        if(type === 1) {
-            const transporter = nodeMailer.createTransport({
-                host: "smtp.gmail.com",
-                port: 587,
-                secure: false, // true for 465, false for other ports
-                auth: {
-                    user: process.env.MAIL_USERNAME,
-                    pass: process.env.MAIL_PASSWORD
-                },
-                tls: {
-                    rejectUnauthorized: false
-                }
-            });
+            let user = await this.userService.findById(id);
+            user.digit_code = String(digitCode);
+            await this.userService.createOrUpdate(user);
 
-            await transporter.sendMail({
-                from: `"${process.env.MAIL_FROM_NAME}" ${process.env.MAIL_FROM_ADDRESS}`, // sender address
-                to: `${email}`,
-                subject: "Digit code", // Subject line
-                html: `<b>${digitCode}</b>`, // html body
+            if (type === 1) {
+                await this.userService.sendAndLogEmail(`${email}`, id, "NetballConnect Verification",  `<b>${digitCode}</b>`, "", 3, id, id);
+
+            } else {
+                await this.userService.sendAndLogSMS(`${mobileNumber}`, id, `Your Netball Verification Code is:<b>${digitCode}</b>`, 3, id, id);
+            }
+            
+            return response.status(200).send({
+                message: type === 1 ? `Please check your email.` : "Please check your phone",
             });
-        } else {
-            const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-            const message = await client.messages.create({
-                body: `DIGIT CODE ${digitCode}`,
-                from: process.env.TWILIO_PHONE_NUMBER,
-                to: `+${mobileNumber}`,
+        } catch (error) {
+            logger.error(`Error @ sendCodeToEmailOrSms: ${requestBody.id || ""}\n${JSON.stringify(error)}`);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
             });
         }
 
-        return response.status(200).send({
-            message: type === 1? `check your email` : 'check your phone',
-        })
-      } catch (error) {
-        logger.error(`Error @ sendCodeToEmailOrSms: ${requestBody.id || ''}\n${JSON.stringify(error)}`);
-        return response.status(500).send({
-          message: process.env.NODE_ENV == AppConstants.development
-            ? AppConstants.errMessage + error
-            : AppConstants.errMessage,
-        });
-      }
     }
 
     @Post('/user/check-existing-digit-code')
     async checkDigitCode(
-      @Body() requestBody: any,
-      @Res() response: Response
+        @Body() requestBody: any,
+        @Res() response: Response
     ) {
-      try {
-        // check body data
-        const {
-          id,
-          digitCode
-        } = requestBody;
-        if (!(id && digitCode)) {
-            return response.status(400).send({
-              info: 'MISSING_DATA',
-              requestBody,
-            });
-          }
-        let message ='';
-        const digitCodeById = await this.userService.getDigitCodeById(id)
-        const currentDigitCode = digitCodeById[0].digit_code;
-        if (currentDigitCode === digitCode) {
-            message = 'success';
-            
-            //delete code from db
-            let user = await this.userService.findById(id);
-            user.digit_code = null;
-            await this.userService.createOrUpdate(user);
-        } else {
-            message = 'decline';
-        }
+        try {
+            // check body data
+            const { id, digitCode } = requestBody;
+            if (!(id && digitCode)) {
+                return response.status(400).send({
+                    info: "MISSING_DATA",
+                    requestBody,
+                });
+            }
+            let message = "";
+            const digitCodeById = await this.userService.getDigitCodeById(id);
+            const currentDigitCode = digitCodeById[0].digit_code;
+            if (currentDigitCode === digitCode) {
+                message = "success";
 
-        return response.status(200).send({
-            message,
-            id
-        })
-      } catch (error) {
-        logger.error(`Error @ checkDigitCode: ${requestBody.id || ''}\n${JSON.stringify(error)}`);
-        return response.status(500).send({
-          message: process.env.NODE_ENV == AppConstants.development
-            ? AppConstants.errMessage + error
-            : AppConstants.errMessage,
-        });
-      }
+                //delete code from db
+                let user = await this.userService.findById(id);
+                user.digit_code = null;
+                await this.userService.createOrUpdate(user);
+            } else {
+                message = "decline";
+            }
+
+            return response.status(200).send({
+                message,
+                id,
+            });
+        } catch (error) {
+            logger.error(`Error @ checkDigitCode: ${requestBody.id || ""}\n${JSON.stringify(error)}`);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
+            });
+        }
     }
 
     @Post('/user/confirm-details')
     async confirmDetails(
-      @Body() requestBody: any,
-      @Res() response: Response
+        @Body() requestBody: any,
+        @Res() response: Response
     ) {
-      try {
-        const {
-          id,
-          type,
-          detail
-        } = requestBody;
-        if (!(id && type && detail)) {
-            return response.status(400).send({
-              info: 'MISSING_DATA',
-              requestBody,
+        try {
+            const { id, type, detail } = requestBody;
+            if (!(id && type && detail)) {
+                return response.status(400).send({
+                    info: "MISSING_DATA",
+                    requestBody,
+                });
+            }
+            let message = "";
+            const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
+            const [{ email, mobileNumber }] = emailAndPhoneById;
+
+            if (Number(type) === 1 && email === detail) {
+                message = "success";
+            } else if (Number(type) === 2 && mobileNumber === detail) {
+                message = "success";
+            } else {
+                message = "decline";
+            }
+            return response.status(200).send({
+                message,
             });
-          }
-        let message ='';
-        const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
-        const [{ email, mobileNumber }] = emailAndPhoneById;
-
-        if (Number(type) === 1 && email === detail) {
-            message = 'success';
-        } else if( Number(type) === 2 && mobileNumber === detail) {
-            message = 'success';
-        } else {
-            message = 'decline';
+        } catch (error) {
+            logger.error(`Error @ confirmDetails: ${requestBody.id || ""}\n${JSON.stringify(error)}`);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
+            });
         }
-
-        return response.status(200).send({
-            message,
-        })
-      } catch (error) {
-        logger.error(`Error @ confirmDetails: ${requestBody.id || ''}\n${JSON.stringify(error)}`);
-        return response.status(500).send({
-          message: process.env.NODE_ENV == AppConstants.development
-            ? AppConstants.errMessage + error
-            : AppConstants.errMessage,
-        });
-      }
     }
 
     @Authorized()
