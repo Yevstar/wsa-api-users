@@ -97,4 +97,12 @@ export class Organisation extends BaseEntity {
 
     @OneToMany(type => TC, tc => tc.organisation)
     termsAndConditionEntities: TC[];
+
+    @IsString()
+    @Column({ default: null, nullable: true })
+    posTerminalId: string;
+
+    @IsString()
+    @Column({ default: null, nullable: true })
+    storeChannelCode: string;
 }

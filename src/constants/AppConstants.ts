@@ -1,4 +1,5 @@
 const AppConstants = {
+    password: 'password',
     loginErrMsg: "You don’t have access to the administration platform. Please contact your Affiliated Organisation to re-activate your access.",
     loginAccessErrMsg: "Login is invalid with this endpoint. Please use other endpoint.",
     loginUnsuccessfulMsg : "Login Unsuccessful. Incorrect Username or Password",
@@ -34,6 +35,7 @@ const AppConstants = {
     registerBoforeCloseDate: '<br><br>It’s important that you register before the registration close date of $(registration_close_date). $(Competition_Name) starts on $(start_date).',
     PARENT_UNLINKED: 23,
     PARENT_LINKED: 9,
+    parentsLogin: '(Parent`s login)',
     appName: '{{appName}}'
 };
 

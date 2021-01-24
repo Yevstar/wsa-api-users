@@ -1097,22 +1097,45 @@ export class UserController extends BaseController {
     ) {
         try {
             const parentUser = await this.userService.findById(parentUserId);
+            let isSameEmail = 0;
+            if (parentUser.email.toLowerCase() == childUser.email.toLowerCase()) {
+                isSameEmail = 1;
+            }
 
-            if (sameEmail == 1) {
-                childUser.email = parentUser.email + "." + childUser.firstName;
+            if (isSameEmail == 1) {
+                childUser.email = parentUser.email.toLowerCase() + "." + childUser.firstName.toLowerCase();
                 childUser.isInActive = 1;
                 childUser.statusRefId = 0;
+                childUser.createdBy = user.id;
+
             } else {
                 childUser.isInActive = 0;
                 childUser.statusRefId = 1;
-                // TODO: send email
+
+                let userDb = await this.userService.findByEmail(childUser.email.toLowerCase().trim())
+                if (userDb) {
+                    if (childUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && 
+                        childUser.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim()) {
+                        childUser.id = userDb.id
+                    }
+                    else {
+                        return response.status(212).send({
+                            errorCode: 7,
+                            message: 'A user with this email already exists, but the details you have entered do not match'
+                        });
+                    }
+                }
+
+                // TODO: for new user send email but for now we've give instructions to reset email
             }
 
-            childUser.createdBy = user.id;
-            await this.userService.createOrUpdate(childUser);
-            const childUserPassword = md5('password');
-            childUser.password = childUserPassword;
+            childUser = await this.userService.createOrUpdate(childUser);
+            let password = AppConstants.password;
+            if (childUser.isInActive == 0) {
+                password = Math.random().toString(36).slice(-8);
+            }
 
+            childUser.password = md5(password);
             childUser = await this.userService.createOrUpdate(childUser);
             await this.updateFirebaseData(childUser, childUser.password);
 
@@ -1164,11 +1187,28 @@ export class UserController extends BaseController {
         @Res() response: Response,
     ) {
         try {
+            
             const childUser = await this.userService.findById(childUserId);
+            let isSameEmail = 0;
+            if (parentUser.email.toLowerCase() == childUser.email.toLowerCase()) {
+                isSameEmail = 1;
+            }
 
             if (sameEmail == 1) {
                 await this.switchParentChildAdmin(user, childUserId, parentUser, response);
             } else {
+
+                let userDb = await this.userService.findByEmail(parentUser.email.toLowerCase().trim())
+                if (parentUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && 
+                        parentUser.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim()) {
+                        parentUser.id = userDb.id
+                }
+                else {
+                    return response.status(212).send({
+                        errorCode: 7,
+                        message: 'A user with this email already exists, but the details you have entered do not match'
+                    });
+                }
 
                 parentUser.createdBy = user.id;
                 parentUser.password = md5(Math.random().toString(36).slice(-8));
