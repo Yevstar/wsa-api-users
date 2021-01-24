@@ -30,7 +30,6 @@ import { Organisation } from "../models/Organisation";
 import UserRoleEntityService from "./UserRoleEntityService";
 
 import { LookForExistingUserBody } from '../controller/types';
-import {CommunicationTemplate} from "../models/CommunicationTemplate";
 
 @Service()
 export default class UserService extends BaseService<User> {
@@ -643,83 +642,6 @@ export default class UserService extends BaseService<User> {
             }
         } catch (error) {
             logger.error(` ERROR occurred in individual mail ` + error)
-            throw error;
-        }
-    }
-
-    public async sentMailForCommunication(contact: User, templateObj: CommunicationTemplate, adminUser: User) {
-        try {
-            let subject = templateObj.emailSubject;
-
-            const transporter = nodeMailer.createTransport({
-                host: "smtp.gmail.com",
-                port: 587,
-                secure: false, // true for 465, false for other ports
-                auth: {
-                    user: process.env.MAIL_USERNAME, // generated ethereal user
-                    pass: process.env.MAIL_PASSWORD // generated ethereal password
-                },
-
-                tls: {
-                    // do not fail on invalid certs
-                    rejectUnauthorized: false
-                }
-            });
-
-            // fs.readFileSync("output/"+fileName);
-            // const path = require('path');
-            const mailOptions = {
-                from: {
-                    name: process.env.MAIL_FROM_NAME ,
-                    address: process.env.MAIL_FROM_ADDRESS
-                },
-                to: contact.email,
-                replyTo: "donotreply@worldsportaction.com",
-                subject: subject,
-                html: templateObj.emailBody
-            };
-
-            if (Number(process.env.SOURCE_MAIL) == 1) {
-                mailOptions.html = ' To: ' + mailOptions.to + '<br><br>' + mailOptions.html
-                mailOptions.to = process.env.TEMP_DEV_EMAIL
-            }
-
-            let cTrack = new CommunicationTrack();
-            // logger.info(`before - sendMail : mailOptions ${mailOptions}`);
-            try {
-                cTrack.id = 0;
-
-                cTrack.communicationType = 8;
-                // cTrack.contactNumber = contact.mobileNumber
-                cTrack.entityId = contact.id;
-                cTrack.deliveryChannelRefId = 1;
-                cTrack.emailId = contact.email;
-                cTrack.userId = contact.id;
-                cTrack.subject = subject;
-                cTrack.content = templateObj.emailBody;
-                cTrack.createdBy = adminUser.id;
-
-                await transporter.sendMail(mailOptions, (err, info) => {
-                    if (err) {
-                        cTrack.statusRefId = 2;
-                        logger.error(`Communication - sendMail : ${err},  ${contact.email}`);
-                        this.insertIntoCommunicationTrack(cTrack);
-                        // Here i commented the below code as the caller is not handling the promise reject
-                        // return Promise.reject(err);
-                    } else {
-                        cTrack.statusRefId = 1;
-                        logger.info(`Communication - sendMail : Mail sent successfully,  ${contact.email}`);
-                        this.insertIntoCommunicationTrack(cTrack);
-                    }
-                    transporter.close();
-                    return Promise.resolve();
-                });
-            } catch (error) {
-                cTrack.statusRefId = 2;
-                this.insertIntoCommunicationTrack(cTrack);
-            }
-        } catch (error) {
-            logger.error(` ERROR occurred in sending mail ` + error)
             throw error;
         }
     }
