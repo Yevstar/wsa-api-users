@@ -10,6 +10,17 @@ export default class AffiliateService extends BaseService<Affiliate> {
         return Affiliate.name;
     }
 
+    public async affiliatesByOrgId(affiliatedToOrgId) {
+        try {
+            let query = this.entityManager.createQueryBuilder(Affiliate, 'affiliate')
+                .where("affiliate.affiliatedToOrgId = :affiliatedToOrgId", {affiliatedToOrgId});
+
+            return query.getMany();
+        } catch (err) {
+            console.log('err  :::: ', err);
+        }
+    }
+
     public async affiliatesList(requestFilter: any, sortBy:string=undefined, sortOrder:"ASC"|"DESC" = undefined) {
         try{
         let organisationId = requestFilter.organisationId;
@@ -138,26 +149,26 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
                     console.log("****" + JSON.stringify(aff));
 
-                    
-                   
+
+
                     if(aff.charityRoundUp!= null){
                         affiliateObj.charityRoundUp = JSON.parse(aff.charityRoundUp)
                     }
                     else{
                         let obj = {
-                            'id': 0, 
+                            'id': 0,
                             'charityRoundUpRefId': null
                         }
                         affiliateObj.charityRoundUp.push(obj);
                     }
 
-                    
+
                     if(aff.charity!= null){
                         affiliateObj.charity = JSON.parse(aff.charity);
                     }
                     else{
                         let obj = {
-                            'id': 0, 
+                            'id': 0,
                             'title': "",
                             'description': ''
                         }
@@ -219,7 +230,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                 inner join wsa_users.affiliate a
                     on a.affiliateOrgId = ure.entityId and a.isDeleted =0
                 where a.id = ?`,[affiliateId]);
-            
+
             let deleteUserRoleEntity = await this.entityManager.query(
                 ` UPDATE wsa_users.userRoleEntity ure
                 inner join wsa_users.affiliate a
@@ -252,7 +263,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                                 where id = ?`,[c.userId]);
                         }
                     }
-                   
+
                 }
             await this.entityManager.createQueryBuilder(Affiliate, 'affiliate')
             .update(Affiliate)
@@ -275,12 +286,12 @@ export default class AffiliateService extends BaseService<Affiliate> {
             let searchText = requestFilter.searchText;
             let limit = requestFilter.paging.limit;
             let offset = requestFilter.paging.offset;
-    
+
             let affiliateArray = [];
-    
+
             let result = await this.entityManager.query("call wsa_users.usp_affiliate_directory(?,?,?,?,?,?,?,?,?)",
                 [organisationId, yearRefId, organisationTypeRefId, searchText, limit, offset, 1, sortBy, sortOrder]);
-    
+
             if (result != null) {
                 let totalCount = result[1].find(x=>x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -328,7 +339,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         }
                     }
                 }
-                
+
                 responseObject["affiliates"] = affiliateArray;
                 responseObject["organisationTypes"] = result[2];
                 return responseObject;
@@ -349,7 +360,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
             let searchText = requestFilter.searchText;
 
             let affiliateArray = [];
-    
+
             let result = await this.entityManager.query("call wsa_users.usp_export_affiliate_directory(?,?,?,?)",
                 [organisationId, yearRefId, organisationTypeRefId, searchText]);
 
@@ -411,11 +422,11 @@ export default class AffiliateService extends BaseService<Affiliate> {
                     "Contact 1 Last Name": "",
                     "Contact 1 Email": "",
                     "Contact 1 Phone Number": ""
-                 }   
+                 }
                  affiliateArray.push(obj)
 
                 }
-               
+
 
                 return affiliateArray;
             }
@@ -423,7 +434,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
                 return [];
             }
-            
+
         }
         catch(error){
             throw error;

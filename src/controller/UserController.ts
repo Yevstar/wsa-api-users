@@ -348,68 +348,6 @@ export class UserController extends BaseController {
     }
 
     @Authorized()
-    @Get('/filterByRelations')
-    async filterByParams(
-        @QueryParam('orgIds', ) orgIds: number[],
-        @QueryParam('userIds') userIds: number[],
-        @QueryParam('roleIds') roleIds: number[],
-        @Res() response: Response
-    ) {
-        let result = await this.userService.filter(
-            orgIds,
-            userIds,
-            roleIds,
-        );
-
-        try {
-            return response.status(200).send(result);
-        } catch (e) {
-            return response.status(500).send({
-                name: 'filter_error',
-                message: 'Unexpected error on filter.'
-            });
-        }
-    }
-
-    @Authorized()
-    @Post('/sendCommunicationEmail')
-    async sendEmail(
-        @HeaderParam("authorization") adminUser: User,
-        @QueryParam('communicationId' ) communicationId: number,
-        @Res() response: Response
-    ) {
-
-        const communication =  await this.communicationService.findById(communicationId);
-
-        const parseIds = (ids: string): number[] => {
-            let array = JSON.parse(ids);
-            if (Array.isArray(array) && array.length > 0) {
-                return array;
-            }
-            return [];
-        }
-
-        let result = await this.userService.filter(
-            parseIds(communication.toOrganisationIds),
-            parseIds(communication.toUserIds),
-            parseIds(communication.toUserRoleIds),
-        );
-
-        if (Array.isArray(result) && result.length > 0) {
-            // Todo send email for communication
-        }
-
-        try {
-            return response.status(200).send({success: true});
-        } catch (e) {
-            return response.status(500).send({
-                name: 'filter_error',
-                message: 'Unexpected error on sending email.'
-            });
-        }
-    }
-
-    @Authorized()
     @Get('/byRole')
     async loadUserByRole(
         @QueryParam('roleId', { required: true }) roleId: number,
