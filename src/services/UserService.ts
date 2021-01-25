@@ -52,7 +52,7 @@ export default class UserService extends BaseService<User> {
 
     public async findByEmail(email: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', { email: email.toLowerCase() })
+            .andWhere('LOWER(user.email) = :email and user.isDeleted = 0', { email: email.toLowerCase().trim() })
             .addSelect("user.password")
             .addSelect("user.reset")
             .getOne();
@@ -1425,14 +1425,14 @@ export default class UserService extends BaseService<User> {
             cTrack.userId = toUserId;
             cTrack.subject = "";
             cTrack.createdBy = creatorId;
-        
+
             const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
             await client.messages.create({
                 body: `${body}`,
                 from: process.env.TWILIO_PHONE_NUMBER,
                 to: `+${toNumber}`,
             });
-    
+
             cTrack.statusRefId = 1;
             logger.info(`sendSMS: {body} : SMS sent succesfully,  ${toNumber}`);
             this.insertIntoCommunicationTrack(cTrack);
@@ -1456,7 +1456,7 @@ export default class UserService extends BaseService<User> {
             // Here i commented the below code as the caller is not handling the promise reject
             // return Promise.reject(err);s
             throw error;
-        }  
+        }
     }
 
     public async sendAndLogEmail(toEmail: string, toUserId: number, subject: string, htmlBody: string, password: string, communicationType: number,
@@ -1476,7 +1476,7 @@ export default class UserService extends BaseService<User> {
                     rejectUnauthorized: false,
                 },
             });
-        
+
             const mailOptions = {
                 from: {
                     name: process.env.MAIL_FROM_NAME,
@@ -1487,12 +1487,12 @@ export default class UserService extends BaseService<User> {
                 subject: subject,
                 html: htmlBody,
             };
-        
+
             if (Number(process.env.SOURCE_MAIL) == 1) {
                 mailOptions.html = " To : " + mailOptions.to + "<br><br>" + mailOptions.html;
                 mailOptions.to = process.env.TEMP_DEV_EMAIL;
             }
-        
+
             let cTrack = new CommunicationTrack();
             cTrack.id = 0;
             cTrack.communicationType = communicationType;
@@ -1508,7 +1508,7 @@ export default class UserService extends BaseService<User> {
                 cTrack.content = htmlBody;
             }
             cTrack.createdBy = creatorId;
-        
+
             // await
             transporter.sendMail(mailOptions, (err, info) => {
                 if (err) {
@@ -1527,12 +1527,12 @@ export default class UserService extends BaseService<User> {
             });
         } catch (error) {
             throw error;
-        }  
+        }
     }
 
     private composeEmail(title: string, content: string, toUser: User, password: string) : string {
 
-        let html = 
+        let html =
         `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml">
             <head>
@@ -1692,7 +1692,7 @@ export default class UserService extends BaseService<User> {
             }
 
             let passwordHtml = '';
-            if (isNotNullAndUndefined(password) && password.length > 0) { 
+            if (isNotNullAndUndefined(password) && password.length > 0) {
                 let parentsLogin = (toUser.isInActive == 1) ? AppConstants.parentsLogin : '';
                 passwordHtml =  `
                                                     <tr>
@@ -1750,6 +1750,6 @@ export default class UserService extends BaseService<User> {
         html = html.replace(EmailConstants.credentials, passwordHtml);
 
         return html;
-    
+
     }
 }

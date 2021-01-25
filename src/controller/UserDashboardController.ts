@@ -304,7 +304,7 @@ export class UserDashboardController extends BaseController {
             } else {
                 await this.userService.sendAndLogSMS(`${mobileNumber}`, id, `Your Netball Verification Code is:<b>${digitCode}</b>`, 3, id, id);
             }
-            
+
             return response.status(200).send({
                 message: type === 1 ? `Please check your email.` : "Please check your phone",
             });
@@ -616,7 +616,7 @@ export class UserDashboardController extends BaseController {
                         if ( pseudoEmail !=  userFromDb.email.toLowerCase()) { // also check child user format
 
                             // email was changed
-                            let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                            let userDb2 = await this.userService.findByEmail(requestBody.email)
                             if (userDb2 != undefined) { // if email exists in DB
                                 return response.status(212).send({
                                     errorCode: 7,
@@ -654,7 +654,7 @@ export class UserDashboardController extends BaseController {
 
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-                    
+
                 }
 
                 return response.status(200).send({message: "Successfully updated"})
@@ -667,7 +667,7 @@ export class UserDashboardController extends BaseController {
                     user.id = requestBody.childUserId;
                 }
                 let userFromDb = await this.userService.findById(user.id);
-                let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                let userDb2 = await this.userService.findByEmail(requestBody.email)
                 if(userDb2 != undefined){
                     if (userFromDb && userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
                         return response.status(212).send({
@@ -767,7 +767,7 @@ export class UserDashboardController extends BaseController {
             }
             else if(section == 'other'){
                 userReg.id = requestBody.userRegistrationId;
-                
+
                 userReg.countryRefId = requestBody.countryRefId;
                 await this.userRegistrationService.createOrUpdate(userReg);
 

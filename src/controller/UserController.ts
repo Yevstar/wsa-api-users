@@ -967,7 +967,7 @@ export class UserController extends BaseController {
         try {
             const childUser = await this.userService.findById(childUserId);
             const childSecurity = await this.userService.findByEmail(childUser.email);
-            
+
             // prepare the parent to take over the child
             parentUser.email = childUser.email;
             parentUser.password = childSecurity.password;
@@ -981,7 +981,7 @@ export class UserController extends BaseController {
             childUser.statusRefId = 0;
             let updatedUser = await this.userService.createOrUpdate(childUser);
             await this.updateFirebaseData(updatedUser, childSecurity.password);
-            
+
             // create parent
             await this.userService.createOrUpdate(parentUser);
 
@@ -1050,9 +1050,9 @@ export class UserController extends BaseController {
                 childUser.isInActive = 0;
                 childUser.statusRefId = 1;
 
-                let userDb = await this.userService.findByEmail(childUser.email.toLowerCase().trim())
+                let userDb = await this.userService.findByEmail(childUser.email)
                 if (userDb) {
-                    if (childUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && 
+                    if (childUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() &&
                         childUser.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim()) {
                         childUser.id = userDb.id
                     }
@@ -1125,7 +1125,7 @@ export class UserController extends BaseController {
         @Res() response: Response,
     ) {
         try {
-            
+
             const childUser = await this.userService.findById(childUserId);
             let isSameEmail = 0;
             if (parentUser.email.toLowerCase() == childUser.email.toLowerCase()) {
@@ -1136,8 +1136,8 @@ export class UserController extends BaseController {
                 await this.switchParentChildAdmin(user, childUserId, parentUser, response);
             } else {
 
-                let userDb = await this.userService.findByEmail(parentUser.email.toLowerCase().trim())
-                if (parentUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && 
+                let userDb = await this.userService.findByEmail(parentUser.email)
+                if (parentUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() &&
                         parentUser.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim()) {
                         parentUser.id = userDb.id
                 }
