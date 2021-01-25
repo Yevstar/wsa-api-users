@@ -532,7 +532,7 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
-    @Authorized()
+    @Authorized() 
     @Post('/export/registration/questions')
     async exportRegistrationQuestions(
         @HeaderParam("authorization") currentUser: User,
