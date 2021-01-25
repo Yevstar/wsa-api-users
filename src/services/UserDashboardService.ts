@@ -227,19 +227,6 @@ export default class UserDashboardService extends BaseService<User> {
         try {
             let result = await this.entityManager.query('call wsa_users.usp_export_registration_data(?)', [requestBody.userId]);
 
-            if (result["0"]["0"]["Volunteer - Coach"]) {
-                result["0"]["0"]["Volunteer - Coach"] = JSON.stringify(result["0"]["0"]["Volunteer - Coach"]);
-            }
-            if (result["0"]["0"]["Volunteer - Manager"]) {
-                result["0"]["0"]["Volunteer - Manager"] = JSON.stringify(result["0"]["0"]["Volunteer - Manager"]);
-            }
-            if (result["0"]["0"]["Volunteer - Fundraising"]) {
-                result["0"]["0"]["Volunteer - Fundraising"] = JSON.stringify(result["0"]["0"]["Volunteer - Fundraising"]);
-            }
-            if (result["0"]["0"]["Volunteer - Other"]) {
-                result["0"]["0"]["Volunteer - Other"] = JSON.stringify(result["0"]["0"]["Volunteer - Other"]);
-            }
-
             if (isArrayPopulated(result[0])) {
                 for (let res of result[0]) {
                     if (res.Venue != null)
