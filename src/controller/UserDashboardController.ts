@@ -224,7 +224,8 @@ export class UserDashboardController extends BaseController {
     ) {
         try {
             // check body data
-            const { dateOfBirth, email, firstName, lastName, mobileNumber } = requestBody;
+            const { dateOfBirth, firstName, lastName, mobileNumber, parentOrGuardian } = requestBody;
+            const email = requestBody.email || parentOrGuardian[0].email;
             if (!(dateOfBirth && firstName && lastName && email && mobileNumber)) {
                 return response.status(400).send({
                     info: "MISSING_DATA",
