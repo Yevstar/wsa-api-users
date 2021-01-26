@@ -250,7 +250,7 @@ export class UserDashboardController extends BaseController {
                 email: '',
               });
           }
-          const emailRegexp = /^(.{2}).*@(.{2}).*(\..+)$/;
+          const emailRegexp = /^(.{2}).*@(.{1}).*(\..+)$/;
           const responsingUsers =  users.map(user => {
             const { email, mobileNumber, id } = user;
 
