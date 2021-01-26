@@ -1013,14 +1013,14 @@ export class UserController extends BaseController {
         @BodyParam('childUser', { required: true }) childUser: User,
         @Res() response: Response,
     ) {
-         if (parentUserId == user.id) {
+        if (parentUserId == user.id) {
             await this.adminCreateChild(user, parentUserId, sameEmail, childUser, response);
-         } else {
-             return response.status(401).send({
-                    errorCode: 2,
-                    message: 'You are trying to access another user\'s data'
-                });
-         }
+        } else {
+            return response.status(401).send({
+                errorCode: 2,
+                message: 'You are trying to access another user\'s data'
+            });
+        }
     }
 
 
@@ -1045,7 +1045,6 @@ export class UserController extends BaseController {
                 childUser.isInActive = 1;
                 childUser.statusRefId = 0;
                 childUser.createdBy = user.id;
-
             } else {
                 childUser.isInActive = 0;
                 childUser.statusRefId = 1;
@@ -1055,8 +1054,7 @@ export class UserController extends BaseController {
                     if (childUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() &&
                         childUser.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim()) {
                         childUser.id = userDb.id
-                    }
-                    else {
+                    } else {
                         return response.status(212).send({
                             errorCode: 7,
                             message: 'A user with this email already exists, but the details you have entered do not match'
@@ -1105,14 +1103,14 @@ export class UserController extends BaseController {
         @BodyParam('parentUser', { required: true }) parentUser: User,
         @Res() response: Response,
     ) {
-         if (childUserId == user.id) {
+        if (childUserId == user.id) {
             await this.adminCreateParent(user, childUserId, sameEmail, parentUser, response);
-         } else {
-             return response.status(401).send({
-                    errorCode: 2,
-                    message: 'You are trying to access another user\'s data'
-                });
-         }
+        } else {
+            return response.status(401).send({
+                errorCode: 2,
+                message: 'You are trying to access another user\'s data'
+            });
+        }
     }
 
     @Authorized('web_users')
@@ -1135,17 +1133,17 @@ export class UserController extends BaseController {
             if (sameEmail == 1) {
                 await this.switchParentChildAdmin(user, childUserId, parentUser, response);
             } else {
-
-                let userDb = await this.userService.findByEmail(parentUser.email)
-                if (parentUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() &&
+                let userDb = await this.userService.findByEmail(parentUser.email);
+                if (userDb) {
+                    if (parentUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() &&
                         parentUser.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim()) {
-                        parentUser.id = userDb.id
-                }
-                else {
-                    return response.status(212).send({
-                        errorCode: 7,
-                        message: 'A user with this email already exists, but the details you have entered do not match'
-                    });
+                        parentUser.id = userDb.id;
+                    } else {
+                        return response.status(212).send({
+                            errorCode: 7,
+                            message: 'A user with this email already exists, but the details you have entered do not match'
+                        });
+                    }
                 }
 
                 parentUser.createdBy = user.id;
