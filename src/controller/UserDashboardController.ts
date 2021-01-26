@@ -247,7 +247,6 @@ export class UserDashboardController extends BaseController {
                     const { email, mobileNumber, id } = user;
 
                     const result = email.match(emailRegexp);
-
                     const maskedEmail = email && result ? `${result[1]}***@${result[2]}***${result[3]}` : "";
                     const maskedPhone = mobileNumber && mobileNumber !== "NULL" ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}` : "";
                     return {
