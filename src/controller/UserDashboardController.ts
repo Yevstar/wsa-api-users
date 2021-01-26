@@ -299,7 +299,7 @@ export class UserDashboardController extends BaseController {
             await this.userService.createOrUpdate(user);
 
             if (type === 1) {
-                await this.userService.sendAndLogEmail(`${email}`, id, "NetballConnect Verification",  `<b>${digitCode}</b>`, "", 3, id, id);
+                await this.userService.sendAndLogEmail(`${email}`, id, "NetballConnect Verification",  `Your Netball Verification Code is:<b>${digitCode}</b>`, "", 3, id, id);
 
             } else {
                 await this.userService.sendAndLogSMS(`${mobileNumber}`, id, `Your Netball Verification Code is:<b>${digitCode}</b>`, 3, id, id);
