@@ -160,7 +160,7 @@ export default class UserDashboardService extends BaseService<User> {
 
     public async exportRegistrationQuestions(requestBody: any, userId) {
         try {
-            let result = await this.entityManager.query('call wsa_users.usp_export_registration_questions_temp(?,?,?,?,?,?,?,?)',
+            let result = await this.entityManager.query('call wsa_users.usp_export_registration_questions(?,?,?,?,?,?,?,?)',
                 [requestBody.organisationId, requestBody.yearRefId, requestBody.competitionUniqueKey, requestBody.roleId, requestBody.genderRefId, requestBody.linkedEntityId, requestBody.postCode, userId]);
 
             if (isArrayPopulated(result[0])) {
@@ -210,7 +210,8 @@ export default class UserDashboardService extends BaseService<User> {
                     "Played Grade": "",
                     "Played Year": "",
                     "Been to a Firebird Game": "",
-                    "1st & 2nd playing position": "",
+                    "Position 1": "",
+                    "Position 2": "",
                     "Your support can you help": "",
                     "Photo Consent": ""
                 }
@@ -225,11 +226,6 @@ export default class UserDashboardService extends BaseService<User> {
     public async exportUserRegistrationData(requestBody) {
         try {
             let result = await this.entityManager.query('call wsa_users.usp_export_registration_data(?)', [requestBody.userId]);
-
-            result["0"]["0"]["Volunteer - Coach"] = JSON.stringify(result["0"]["0"]["Volunteer - Coach"]);
-            result["0"]["0"]["Volunteer - Manager"] = JSON.stringify(result["0"]["0"]["Volunteer - Manager"]);
-            result["0"]["0"]["Volunteer - Fundraising"] = JSON.stringify(result["0"]["0"]["Volunteer - Fundraising"]);
-            result["0"]["0"]["Volunteer - Other"] = JSON.stringify(result["0"]["0"]["Volunteer - Other"]);
 
             if (isArrayPopulated(result[0])) {
                 for (let res of result[0]) {
@@ -246,6 +242,10 @@ export default class UserDashboardService extends BaseService<User> {
             } else {
                 let arr = [];
                 let obj = {
+                    "Competition Name": "",
+                    "Membership Division": "",
+                    "Competition Division": "",
+                    "Organisation": "",
                     "First Name": "",
                     "Middle Name": "",
                     "Last Name": "",
@@ -277,8 +277,10 @@ export default class UserDashboardService extends BaseService<User> {
                     "Regular Medication": "",
                     "Heard About Competition": "",
                     "Heard By Other": "",
-                    "Favorite team": "",
-                    "Favorite Fire Bird": "",
+                    "Favorite Team": "",
+                    "Favorite Firebird": "",
+                    "Position 1": "",
+                    "Position 2": "",
                     "Has Disability": "",
                     "Disability Care Number": "",
                     "Disability Type": "",
@@ -298,7 +300,8 @@ export default class UserDashboardService extends BaseService<User> {
                     "Blood Pressure": "",
                     "Lower Back": "",
                     "Physical Activity": "",
-                    "Joint or Bone": ""
+                    "Joint or Bone": "",
+                    "Created Date": ""
                 }
                 arr.push(obj);
                 return arr;

@@ -967,7 +967,7 @@ export class UserController extends BaseController {
         try {
             const childUser = await this.userService.findById(childUserId);
             const childSecurity = await this.userService.findByEmail(childUser.email);
-            
+
             // prepare the parent to take over the child
             parentUser.email = childUser.email;
             parentUser.password = childSecurity.password;
@@ -981,7 +981,7 @@ export class UserController extends BaseController {
             childUser.statusRefId = 0;
             let updatedUser = await this.userService.createOrUpdate(childUser);
             await this.updateFirebaseData(updatedUser, childSecurity.password);
-            
+
             // create parent
             await this.userService.createOrUpdate(parentUser);
 
@@ -1013,14 +1013,14 @@ export class UserController extends BaseController {
         @BodyParam('childUser', { required: true }) childUser: User,
         @Res() response: Response,
     ) {
-         if (parentUserId == user.id) {
+        if (parentUserId == user.id) {
             await this.adminCreateChild(user, parentUserId, sameEmail, childUser, response);
-         } else {
-             return response.status(401).send({
-                    errorCode: 2,
-                    message: 'You are trying to access another user\'s data'
-                });
-         }
+        } else {
+            return response.status(401).send({
+                errorCode: 2,
+                message: 'You are trying to access another user\'s data'
+            });
+        }
     }
 
 
@@ -1045,18 +1045,16 @@ export class UserController extends BaseController {
                 childUser.isInActive = 1;
                 childUser.statusRefId = 0;
                 childUser.createdBy = user.id;
-
             } else {
                 childUser.isInActive = 0;
                 childUser.statusRefId = 1;
 
-                let userDb = await this.userService.findByEmail(childUser.email.toLowerCase().trim())
+                let userDb = await this.userService.findByEmail(childUser.email)
                 if (userDb) {
-                    if (childUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && 
+                    if (childUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() &&
                         childUser.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim()) {
                         childUser.id = userDb.id
-                    }
-                    else {
+                    } else {
                         return response.status(212).send({
                             errorCode: 7,
                             message: 'A user with this email already exists, but the details you have entered do not match'
@@ -1105,14 +1103,14 @@ export class UserController extends BaseController {
         @BodyParam('parentUser', { required: true }) parentUser: User,
         @Res() response: Response,
     ) {
-         if (childUserId == user.id) {
+        if (childUserId == user.id) {
             await this.adminCreateParent(user, childUserId, sameEmail, parentUser, response);
-         } else {
-             return response.status(401).send({
-                    errorCode: 2,
-                    message: 'You are trying to access another user\'s data'
-                });
-         }
+        } else {
+            return response.status(401).send({
+                errorCode: 2,
+                message: 'You are trying to access another user\'s data'
+            });
+        }
     }
 
     @Authorized('web_users')
@@ -1125,7 +1123,7 @@ export class UserController extends BaseController {
         @Res() response: Response,
     ) {
         try {
-            
+
             const childUser = await this.userService.findById(childUserId);
             let isSameEmail = 0;
             if (parentUser.email.toLowerCase() == childUser.email.toLowerCase()) {
@@ -1135,17 +1133,17 @@ export class UserController extends BaseController {
             if (sameEmail == 1) {
                 await this.switchParentChildAdmin(user, childUserId, parentUser, response);
             } else {
-
-                let userDb = await this.userService.findByEmail(parentUser.email.toLowerCase().trim())
-                if (parentUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && 
+                let userDb = await this.userService.findByEmail(parentUser.email);
+                if (userDb) {
+                    if (parentUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() &&
                         parentUser.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim()) {
-                        parentUser.id = userDb.id
-                }
-                else {
-                    return response.status(212).send({
-                        errorCode: 7,
-                        message: 'A user with this email already exists, but the details you have entered do not match'
-                    });
+                        parentUser.id = userDb.id;
+                    } else {
+                        return response.status(212).send({
+                            errorCode: 7,
+                            message: 'A user with this email already exists, but the details you have entered do not match'
+                        });
+                    }
                 }
 
                 parentUser.createdBy = user.id;

@@ -43,10 +43,10 @@ export class AffiliateController extends BaseController {
                                 let arr = [];
                                 for (let contact of requestBody.contacts) {
                                     if (contact.userId == 0) {
-                                        let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
+                                        let userDb = await this.userService.findByEmail(contact.email)
                                         if (userDb) {
-                                            if (contact.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && contact.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim() && 
-                                            ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) == 
+                                            if (contact.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && contact.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim() &&
+                                            ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) ==
                                                     (userDb.mobileNumber!= null ? userDb.mobileNumber.trim() : userDb.mobileNumber)) ) {
                                                 contact.userId = userDb.id
                                                 continue;
@@ -61,7 +61,7 @@ export class AffiliateController extends BaseController {
                                     } else if (contact.userId != 0) {
                                         if (currentUser.id != contact.userId) {
                                             let userDb1 = await this.userService.findById(contact.userId)
-                                            let userDb2 = await this.userService.findByEmail(contact.email.toLowerCase().trim())
+                                            let userDb2 = await this.userService.findByEmail(contact.email)
                                             if(userDb2 != undefined){
                                                 if (userDb1.email.toLowerCase().trim() != contact.email.toLowerCase().trim()) {
                                                     return response.status(212).send({
@@ -70,13 +70,13 @@ export class AffiliateController extends BaseController {
                                                     });
                                                 }
                                             }
-                                          
+
                                         } else {
-                                            let userDb = await this.userService.findByEmail(contact.email.toLowerCase().trim())
+                                            let userDb = await this.userService.findByEmail(contact.email)
                                             if(!(isNullOrUndefined(userDb))){
                                                 if (userDb.id != contact.userId) {
-                                                    if (contact.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && contact.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim() && 
-                                                    ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) == 
+                                                    if (contact.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() && contact.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim() &&
+                                                    ((contact.mobileNumber!= null ? contact.mobileNumber.trim() : contact.mobileNumber) ==
                                                     (userDb.mobileNumber!= null ? userDb.mobileNumber.trim() : userDb.mobileNumber) )) {
                                                         contact.userId = userDb.id
                                                         continue;
@@ -121,7 +121,7 @@ export class AffiliateController extends BaseController {
                             organisation.updatedOn = new Date();
                         }
                         if(organisationLogoFile && organisationLogoFile.length > 0){
-                           
+
                             if(requestBody.termsAndConditionId == 0){
                                 let termAndConditionfile = null;
                                 if(requestBody.organisationLogoId == 0){
@@ -134,7 +134,7 @@ export class AffiliateController extends BaseController {
                                 if (isPdf(termAndConditionfile.mimetype)) {
                                     let filename = `/organisation/termsAndCondition_org_${organisation.organisationUniqueKey}_${timestamp()}.${fileExt(termAndConditionfile.originalname)}`;
                                     let fileUploaded = await this.firebaseService.upload(filename, termAndConditionfile);
-                                  
+
                                     if (fileUploaded) {
                                         organisation.termsAndConditions = fileUploaded['url'];
                                     }
@@ -166,7 +166,7 @@ export class AffiliateController extends BaseController {
                         }
 
                         let orgLogoDb = await this.organisationLogoService.findByOrganisationId(affiliateRes.affiliateOrgId)
-                        if (organisationLogoFile != null && organisationLogoFile.length > 0 
+                        if (organisationLogoFile != null && organisationLogoFile.length > 0
                                 && organisationLogoFile[0] != null && requestBody.organisationLogoId == 0) {
                             if (isPhoto(organisationLogoFile[0].mimetype)) {
                                 //   let organisation_logo_file = requestBody.organisationLogo ;
@@ -232,7 +232,7 @@ export class AffiliateController extends BaseController {
                                 if( contact.userId != '' && contact.userId != null && contact.userId != 0){
                                     if(contactDb.email.toLowerCase() != contact.email.toLowerCase()){
 
-                                       
+
                                         let mailObjOld = await this.communicationTemplateService.findById(12);
                                         await this.userService.sentMailForEmailUpdate(contactDb, mailObjOld ,adminUser, requestBody.name );
 
@@ -255,7 +255,7 @@ export class AffiliateController extends BaseController {
                                             let password = "";
                                             let mailObj;
                                             if (contact.userId != 0) {
-                                               
+
                                                 mailObj = await this.communicationTemplateService.findById(3);
                                                 await this.userService.sentMail(mailObj, OrgObject.name, userRes, password,affiliateRes.id,userId)
                                             }
@@ -272,7 +272,7 @@ export class AffiliateController extends BaseController {
                                     }
                                 }
                                 if (contact.userId == 0) {
-                                   
+
                                     await this.updateFirebaseData(userRes, userRes.password);
                                     let mailObj = await this.communicationTemplateService.findById(1);
                                     await this.userService.sentMail(mailObj, OrgObject.name, userRes, password,affiliateRes.id,userId)
@@ -307,7 +307,7 @@ export class AffiliateController extends BaseController {
                             message: 'Empty Body'
                         });
                     }
-                } 
+                }
                 else {
                     return response.status(401).send({
                         errorCode: 2,
@@ -342,7 +342,7 @@ export class AffiliateController extends BaseController {
                     let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
                     let charityRoundUpArr = [];
                     let charityArr = [];
-                    
+
                     if(isArrayPopulated(requestBody.charityRoundUp)){
                         requestBody.charityRoundUp.map((x, index) => {
                             let obj = new CharityRoundUp();
@@ -457,7 +457,7 @@ export class AffiliateController extends BaseController {
                         if (isPdf(termsAndConditionFile.mimetype)) {
                             let filename = `/organisation/termsAndCondition_org_${requestBody.organisationId}_${timestamp()}.${fileExt(termsAndConditionFile.originalname)}`;
                             let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile);
-                            
+
                             if (fileUploaded) {
                                 organisation.termsAndConditions = fileUploaded['url'];
                             }
