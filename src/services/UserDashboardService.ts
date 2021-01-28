@@ -169,51 +169,80 @@ export default class UserDashboardService extends BaseService<User> {
                         res.Venue = res.Venue.join(", ")
                 }
 
-                for (let res1 of result[0]) {
-                    if (res1['Your support can you help'] != null)
-                        res1['Your support can you help'] = res1['Your support can you help'].join(", ")
-                }
+                // for (let res1 of result[0]) {
+                //     if (res1['Your support can you help'] != null)
+                //         res1['Your support can you help'] = res1['Your support can you help'].join(", ")
+                // }
 
                 return result[0]
             } else {
                 let arr = [];
                 let obj = {
-                    "First Name": "",
-                    "Last Name": "",
-                    "Gender": "",
-                    "DOB": "",
-                    "PostalCode": "",
-                    "Mobile": "",
-                    "Address": "",
-                    "State": "",
-                    "Affiliate Name": "",
-                    "Competition Name": "",
-                    "Start Date": "",
-                    "End Date": "",
-                    "Venue": "",
-                    "Training details": "",
-                    "Membership Product": "",
-                    "Division": "",
-                    "Emergency Contact": "",
-                    "Emergency Contact Mobile": "",
-                    "Regular Medications": "",
-                    "Hear about Netball": "",
-                    "Favorite team": "",
-                    "Agreed Terms and Conditions": "",
-                    "Country of birth": "",
-                    "Nationality": "",
-                    "Languages spoken at home": "",
-                    "Do you have a Disability": "",
-                    "Have you ever played netball before": "",
-                    "Last captain name": "",
-                    "Played Club": "",
-                    "Played Grade": "",
-                    "Played Year": "",
-                    "Been to a Firebird Game": "",
-                    "Position 1": "",
-                    "Position 2": "",
-                    "Your support can you help": "",
-                    "Photo Consent": ""
+                    "Id": "",
+                        "First Name": "",
+                        "Middle Name": "",
+                        "Last Name": "",
+                        "Gender": "",
+                        "Date of Birth": "",
+                        "Email": "",
+                        "Mobile Number": "",
+                        "PostalCode": "",
+                        "Address": "",
+                        "Street1": "",
+                        "Street2": "",
+                        "Suburb": "",
+                        "State": "",
+                        "Country": "",
+                        "Competition Name": "",
+                        "Membership Division": "",
+                        "Orgnisation": "",
+                        "Start Date": "",
+                        "End Date": "",
+                        "Venue": "",
+                        "Membership Product": "",
+                        "Competition Division": "",
+                        "Umpire Accreditation Level": "",
+                        "Umpire Accreditation Expiry Date": "",
+                        "Association Level": "",
+                        "Coach Accreditation Level": "",
+                        "Coach Accreditation Expiry Date": "",
+                        "Children Check Number": "",
+                        "Children Check Expiry Date": "",
+                        "Emergency First Name": "",
+                        "Emergency Last Name": "",
+                        "Emergency Contact Number": "",
+                        "Last App Login": "",
+                        "Marketing Opt In": "",
+                        "Merged User Id": "",
+                        "Existing Medical Condition": "",
+                        "Regular Medication": "",
+                        "Heard About Competition": "",
+                        "Heard By Other": "",
+                        "Favorite Team": "",
+                        "Favorite Firebird": "",
+                        "Position 1": "",
+                        "Position 2": "",
+                        "Has Disability": "",
+                        "Disability Care Number": "",
+                        "Disability Type": "",
+                        "Injury": "",
+                        "Allergy": "",
+                        "Years Played": "",
+                        "School": "",
+                        "School Grade": "",
+                        "SSP": "",
+                        "Other Sports": "",
+                        "Volunteer - Coach": "",
+                        "Volunteer - Manager": "",
+                        "Volunteer - Fundraising": "",
+                        "Volunteer - Other": "",
+                        "Chest Pain": "",
+                        "Heart Trouble": "",
+                        "Blood Pressure": "",
+                        "Lower Back": "",
+                        "Physical Activity": "",
+                        "Joint or Bone": "",
+                        "Created Date": ""
                 }
                 arr.push(obj);
                 return arr;
@@ -233,33 +262,38 @@ export default class UserDashboardService extends BaseService<User> {
                         res.Venue = res.Venue.join(", ")
                 }
 
-                for (let res1 of result[0]) {
-                    if (res1['Your support can you help'] != null)
-                        res1['Your support can you help'] = res1['Your support can you help'].join(", ")
-                }
+                // for (let res1 of result[0]) {
+                //     if (res1['Your support can you help'] != null)
+                //         res1['Your support can you help'] = res1['Your support can you help'].join(", ")
+                // }
 
                 return result[0]
             } else {
                 let arr = [];
                 let obj = {
-                    "Competition Name": "",
-                    "Membership Division": "",
-                    "Competition Division": "",
-                    "Organisation": "",
+                    "Id": "",
                     "First Name": "",
                     "Middle Name": "",
                     "Last Name": "",
-                    "Email": "",
-                    "Mobile Number": "",
                     "Gender": "",
                     "Date of Birth": "",
+                    "Email": "",
+                    "Mobile Number": "",
+                    "PostalCode": "",
+                    "Address": "",
                     "Street1": "",
                     "Street2": "",
                     "Suburb": "",
                     "State": "",
-                    "Postal Code": "",
                     "Country": "",
-                    "Is Prerequest Training Complete": "",
+                    "Competition Name": "",
+                    "Membership Division": "",
+                    "Orgnisation": "",
+                    "Start Date": "",
+                    "End Date": "",
+                    "Venue": "",
+                    "Membership Product": "",
+                    "Competition Division": "",
                     "Umpire Accreditation Level": "",
                     "Umpire Accreditation Expiry Date": "",
                     "Association Level": "",
