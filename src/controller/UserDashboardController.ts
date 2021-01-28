@@ -233,36 +233,34 @@ export class UserDashboardController extends BaseController {
                 });
             }
             const users = await this.userService.findExistingUser(requestBody);
-            let existStatus = false;
             if (users.length > 0) {
-                existStatus = true;
                 const [{ email, mobileNumber, id }] = users;
-                if (!(email || mobileNumber)) {
+                if (!(email || mobileNumber)) { // why??
                     return response.status(200).send({
                         phone: "",
                         email: "",
                     });
                 }
                 const emailRegexp = /^(.{1,2}).*@(.{1,2}).*(\..+)$/;
-                const responsingUsers = users.map((user) => {
+                const foundUsers = users.map((user) => {
                     const { email, mobileNumber, id } = user;
 
                     const result = email.match(emailRegexp);
                     const maskedEmail = email && result ? `${result[1]}***@${result[2]}***${result[3]}` : "";
                     const maskedPhone = mobileNumber && mobileNumber !== "NULL" ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}` : "";
                     return {
+                        id,
                         phone: maskedPhone,
                         email: maskedEmail,
-                        id,
                         firstName: user.firstName,
                         lastName: user.lastName,
                     };
                 });
 
-                return response.status(200).send([...responsingUsers]);
-            } else {
-                return response.status(200).send(existStatus);
+                return response.status(200).send({exists: true, users: foundUsers});
             }
+            return response.status(200).json({exists: false});
+
         } catch (error) {
             logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ""}\n${JSON.stringify(error)}`);
             return response.status(500).send({
@@ -332,27 +330,26 @@ export class UserDashboardController extends BaseController {
                     requestBody,
                 });
             }
-            let message = "";
+            let success = false;
             const digitCodeById = await this.userService.getDigitCodeById(id);
             const currentDigitCode = digitCodeById[0].digit_code;
             if (currentDigitCode === digitCode) {
-                message = "success";
+                success = true;
 
                 //delete code from db
                 let user = await this.userService.findById(id);
                 user.digit_code = null;
                 await this.userService.createOrUpdate(user);
-            } else {
-                message = "decline";
             }
 
             return response.status(200).send({
-                message,
+                success,
                 id,
             });
         } catch (error) {
             logger.error(`Error @ checkDigitCode: ${requestBody.id || ""}\n${JSON.stringify(error)}`);
             return response.status(500).send({
+                success: false,
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
             });
         }
@@ -533,7 +530,7 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
-    @Authorized() 
+    @Authorized()
     @Post('/export/registration/questions')
     async exportRegistrationQuestions(
         @HeaderParam("authorization") currentUser: User,
