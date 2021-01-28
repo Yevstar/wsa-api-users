@@ -233,37 +233,36 @@ export class UserDashboardController extends BaseController {
                 });
             }
             const users = await this.userService.findExistingUser(requestBody);
-            if (users.length > 0) {
-                const [{ email, mobileNumber, id }] = users;
-                if (!(email || mobileNumber)) { // why??
-                    return response.status(200).send({
-                        phone: "",
-                        email: "",
-                    });
-                }
-                const emailRegexp = /^(.{1,2}).*@(.{1,2}).*(\..+)$/;
-                const foundUsers = users.map((user) => {
-                    const { email, mobileNumber, id } = user;
-
-                    const result = email.match(emailRegexp);
-                    const maskedEmail = email && result ? `${result[1]}***@${result[2]}***${result[3]}` : "";
-                    const maskedPhone = mobileNumber && mobileNumber !== "NULL" ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}` : "";
-                    return {
-                        id,
-                        phone: maskedPhone,
-                        email: maskedEmail,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                    };
-                });
-
-                return response.status(200).send({exists: true, users: foundUsers});
+            if (!users.length) {
+                return response.status(200).json([]);
             }
-            return response.status(200).json({exists: false});
+            if (!(users[0].email || !users[0].mobileNumber)) { // why??
+                return response.status(200).send([]);
+            }
+
+            // FOUND
+            const emailRegexp = /^(.{1,2}).*@(.{1,2}).*(\..+)$/;
+            const foundUsers = users.map((user) => {
+                const {email, mobileNumber, id} = user;
+
+                const result = email.match(emailRegexp);
+                const maskedEmail = email && result ? `${result[1]}***@${result[2]}***${result[3]}` : "";
+                const maskedPhone = mobileNumber && mobileNumber !== "NULL" ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}` : "";
+                return {
+                    id,
+                    phone: maskedPhone,
+                    email: maskedEmail,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                };
+            });
+
+            return response.status(200).send(foundUsers);
 
         } catch (error) {
             logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ""}\n${JSON.stringify(error)}`);
             return response.status(500).send({
+                users: [],
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
             });
         }
@@ -368,23 +367,22 @@ export class UserDashboardController extends BaseController {
                     requestBody,
                 });
             }
-            let message = "";
+            let success;
             const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
             const [{ email, mobileNumber }] = emailAndPhoneById;
 
             if (Number(type) === 1 && email === detail) {
-                message = "success";
-            } else if (Number(type) === 2 && mobileNumber === detail) {
-                message = "success";
+                success = true;
             } else {
-                message = "decline";
+                success = Number(type) === 2 && mobileNumber === detail;
             }
             return response.status(200).send({
-                message,
+                success,
             });
         } catch (error) {
             logger.error(`Error @ confirmDetails: ${requestBody.id || ""}\n${JSON.stringify(error)}`);
             return response.status(500).send({
+                success: false,
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
             });
         }
