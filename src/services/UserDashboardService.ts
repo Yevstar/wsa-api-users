@@ -211,7 +211,6 @@ export default class UserDashboardService extends BaseService<User> {
                     "Emergency First Name": "",
                     "Emergency Last Name": "",
                     "Emergency Contact Number": "",
-                    "Last App Login": "",
                     "Marketing Opt In": "",
                     "Merged User Id": "",
                     "Existing Medical Condition": "",
@@ -241,8 +240,7 @@ export default class UserDashboardService extends BaseService<User> {
                     "Blood Pressure": "",
                     "Lower Back": "",
                     "Physical Activity": "",
-                    "Joint or Bone": "",
-                    "Created Date": ""
+                    "Joint or Bone": ""
                 }
                 arr.push(obj);
                 return arr;
@@ -304,7 +302,6 @@ export default class UserDashboardService extends BaseService<User> {
                     "Emergency First Name": "",
                     "Emergency Last Name": "",
                     "Emergency Contact Number": "",
-                    "Last App Login": "",
                     "Marketing Opt In": "",
                     "Merged User Id": "",
                     "Existing Medical Condition": "",
@@ -334,8 +331,7 @@ export default class UserDashboardService extends BaseService<User> {
                     "Blood Pressure": "",
                     "Lower Back": "",
                     "Physical Activity": "",
-                    "Joint or Bone": "",
-                    "Created Date": ""
+                    "Joint or Bone": ""
                 }
                 arr.push(obj);
                 return arr;
