@@ -571,7 +571,7 @@ export default class UserService extends BaseService<User> {
                     for (let item of result[0]) {
                         let userTemp = userMap.get(item.userId);
                         let competitionTemp = competitionMap.get(item.competitionId);
-                        let teamTemp = teamMap.get(item.teamId);
+                        let teamTemp = (item.teamUniqueKey == null)?teamMap.get(item.teamId):teamMap.get(item.teamUniqueKey);
                         let divTemp = divisionMap.get(item.divisionId);
                         let competitionObj = {
                             competitionId: item.competitionId,
