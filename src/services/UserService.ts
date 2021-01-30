@@ -1357,6 +1357,41 @@ export default class UserService extends BaseService<User> {
             .execute();
     }
 
+    public async replaceUserId(oldId: number, newId: number): Promise<any> {
+        await this.entityManager.query("call wsa_users.usp_update_user_id_in_all_scope(?,?)",
+            [newId, oldId]);
+    }
+
+    public async replaceUserIdsInNews(oldId: number, newId: number): Promise<any> {
+        const newsRows = await this.entityManager.query(`
+            SELECT  id, toUserIds 
+            FROM wsa.news
+            WHERE toUserIds IS NOT NULL AND toUserIds <> '' AND JSON_CONTAINS(toUserIds, '${oldId}', '$')`
+        );
+        newsRows.forEach(async(news: any)=>{
+            const toUserIds = JSON.parse(news.toUserIds);
+            const index = toUserIds.indexOf(oldId);
+            toUserIds[index] = newId;
+            const query = `UPDATE wsa.news set toUserIds='[${toUserIds.join(',')}]' where id=${news.id}`;
+            await this.entityManager.query(query);
+        });
+    }
+
+    public async replaceUserIdsInCommunication(oldId: number, newId: number): Promise<any> {
+        const communicationRows = await this.entityManager.query(`
+            SELECT  id, toUserIds 
+            FROM wsa_common.communication
+            WHERE toUserIds IS NOT NULL AND toUserIds <> '' AND JSON_CONTAINS(CONCAT('[', toUserIds, ']'), '${oldId}', '$')`
+        );
+        communicationRows.forEach(async(communication: any)=>{
+            const toUserIds = JSON.parse(communication.toUserIds);
+            const index = toUserIds.indexOf(oldId);
+            toUserIds[index] = newId;
+            const query = `UPDATE wsa.news set toUserIds='${toUserIds.join(',')}' where id=${communication.id}`;
+            await this.entityManager.query(query);
+        });
+    }
+
     public async deactivateUser(id: number, updatedBy: number = undefined, mergedUserId: number = undefined) {
         return this.entityManager.query(`UPDATE user SET statusRefId = 2, 
             isDeleted = 1, updatedBy = ?, mergedUserId = ? WHERE id = ?`, [updatedBy, id, mergedUserId]);
