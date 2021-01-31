@@ -257,7 +257,7 @@ export class UserDashboardController extends BaseController {
                 };
             });
 
-            return response.status(200).send(foundUsers);
+            return response.status(200).send({users: foundUsers});
 
         } catch (error) {
             logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ""}\n${JSON.stringify(error)}`);
@@ -309,9 +309,9 @@ export class UserDashboardController extends BaseController {
             await this.userService.createOrUpdate(user);
 
             if (type === 'email') {
-                await this.userService.sendAndLogEmail(`${email}`, userId, "NetballConnect Verification",  `Your Netball Verification Code is:<b>${digitCode}</b>`, "", 3, id, id);
+                await this.userService.sendAndLogEmail(`${email}`, userId, "NetballConnect Verification",  `Your Netball Verification Code is:<b>${digitCode}</b>`, "", 3, userId, userId);
             } else { // type === 'sms'
-                await this.userService.sendAndLogSMS(`${mobileNumber}`, userId, `Your Netball Verification Code is:<b>${digitCode}</b>`, 3, id, id);
+                await this.userService.sendAndLogSMS(`${mobileNumber}`, userId, `Your Netball Verification Code is:<b>${digitCode}</b>`, 3, userId, userId);
             }
             return response.status(200).json({success: true});
         } catch (error) {
@@ -331,28 +331,28 @@ export class UserDashboardController extends BaseController {
     ) {
         try {
             // check body data
-            const { id, digitCode } = requestBody;
-            if (!(id && digitCode)) {
+            const { userId, digitCode } = requestBody;
+            if (!(userId && digitCode)) {
                 return response.status(400).send({
                     info: "MISSING_DATA",
                     requestBody,
                 });
             }
             let success = false;
-            const digitCodeById = await this.userService.getDigitCodeById(id);
+            const digitCodeById = await this.userService.getDigitCodeById(userId);
             const currentDigitCode = digitCodeById[0].digit_code;
             if (currentDigitCode === digitCode) {
                 success = true;
 
                 //delete code from db
-                let user = await this.userService.findById(id);
+                let user = await this.userService.findById(userId);
                 user.digit_code = null;
                 await this.userService.createOrUpdate(user);
             }
 
             return response.status(200).send({
                 success,
-                id,
+                userId,
             });
         } catch (error) {
             logger.error(`Error @ checkDigitCode: ${requestBody.id || ""}\n${JSON.stringify(error)}`);
