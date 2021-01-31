@@ -160,7 +160,7 @@ export default class UserDashboardService extends BaseService<User> {
 
     public async exportRegistrationQuestions(requestBody: any, userId) {
         try {
-            let result = await this.entityManager.query('call wsa_users.usp_export_registration_questions_temp(?,?,?,?,?,?,?,?)',
+            let result = await this.entityManager.query('call wsa_users.usp_export_registration_questions(?,?,?,?,?,?,?,?)',
                 [requestBody.organisationId, requestBody.yearRefId, requestBody.competitionUniqueKey, requestBody.roleId, requestBody.genderRefId, requestBody.linkedEntityId, requestBody.postCode, userId]);
 
             if (isArrayPopulated(result[0])) {
@@ -169,50 +169,78 @@ export default class UserDashboardService extends BaseService<User> {
                         res.Venue = res.Venue.join(", ")
                 }
 
-                for (let res1 of result[0]) {
-                    if (res1['Your support can you help'] != null)
-                        res1['Your support can you help'] = res1['Your support can you help'].join(", ")
-                }
+                // for (let res1 of result[0]) {
+                //     if (res1['Your support can you help'] != null)
+                //         res1['Your support can you help'] = res1['Your support can you help'].join(", ")
+                // }
 
                 return result[0]
             } else {
                 let arr = [];
                 let obj = {
+                    "Id": "",
                     "First Name": "",
+                    "Middle Name": "",
                     "Last Name": "",
                     "Gender": "",
-                    "DOB": "",
+                    "Date of Birth": "",
+                    "Email": "",
+                    "Mobile Number": "",
                     "PostalCode": "",
-                    "Mobile": "",
                     "Address": "",
+                    "Street1": "",
+                    "Street2": "",
+                    "Suburb": "",
                     "State": "",
-                    "Affiliate Name": "",
+                    "Country": "",
+                    "Organisation": "",
                     "Competition Name": "",
                     "Start Date": "",
                     "End Date": "",
                     "Venue": "",
-                    "Training details": "",
                     "Membership Product": "",
-                    "Division": "",
-                    "Emergency Contact": "",
-                    "Emergency Contact Mobile": "",
-                    "Regular Medications": "",
-                    "Hear about Netball": "",
-                    "Favorite team": "",
-                    "Agreed Terms and Conditions": "",
-                    "Country of birth": "",
-                    "Nationality": "",
-                    "Languages spoken at home": "",
-                    "Do you have a Disability": "",
-                    "Have you ever played netball before": "",
-                    "Last captain name": "",
-                    "Played Club": "",
-                    "Played Grade": "",
-                    "Played Year": "",
-                    "Been to a Firebird Game": "",
-                    "1st & 2nd playing position": "",
-                    "Your support can you help": "",
-                    "Photo Consent": ""
+                    "Membership Division": "",
+                    "Competition Division": "",
+                    "Umpire Accreditation Level": "",
+                    "Umpire Accreditation Expiry Date": "",
+                    "Association Level": "",
+                    "Coach Accreditation Level": "",
+                    "Coach Accreditation Expiry Date": "",
+                    "Children Check Number": "",
+                    "Children Check Expiry Date": "",
+                    "Emergency First Name": "",
+                    "Emergency Last Name": "",
+                    "Emergency Contact Number": "",
+                    "Marketing Opt In": "",
+                    "Merged User Id": "",
+                    "Existing Medical Condition": "",
+                    "Regular Medication": "",
+                    "Heard About Competition": "",
+                    "Heard By Other": "",
+                    "Favorite Team": "",
+                    "Favorite Firebird": "",
+                    "Position 1": "",
+                    "Position 2": "",
+                    "Has Disability": "",
+                    "Disability Care Number": "",
+                    "Disability Type": "",
+                    "Injury": "",
+                    "Allergy": "",
+                    "Years Played": "",
+                    "School": "",
+                    "School Grade": "",
+                    "SSP": "",
+                    "Other Sports": "",
+                    "Volunteer - Coach": "",
+                    "Volunteer - Manager": "",
+                    "Volunteer - Fundraising": "",
+                    "Volunteer - Other": "",
+                    "Chest Pain": "",
+                    "Heart Trouble": "",
+                    "Blood Pressure": "",
+                    "Lower Back": "",
+                    "Physical Activity": "",
+                    "Joint or Bone": ""
                 }
                 arr.push(obj);
                 return arr;
@@ -226,40 +254,44 @@ export default class UserDashboardService extends BaseService<User> {
         try {
             let result = await this.entityManager.query('call wsa_users.usp_export_registration_data(?)', [requestBody.userId]);
 
-            result["0"]["0"]["Volunteer - Coach"] = JSON.stringify(result["0"]["0"]["Volunteer - Coach"]);
-            result["0"]["0"]["Volunteer - Manager"] = JSON.stringify(result["0"]["0"]["Volunteer - Manager"]);
-            result["0"]["0"]["Volunteer - Fundraising"] = JSON.stringify(result["0"]["0"]["Volunteer - Fundraising"]);
-            result["0"]["0"]["Volunteer - Other"] = JSON.stringify(result["0"]["0"]["Volunteer - Other"]);
-
             if (isArrayPopulated(result[0])) {
                 for (let res of result[0]) {
                     if (res.Venue != null)
                         res.Venue = res.Venue.join(", ")
                 }
 
-                for (let res1 of result[0]) {
-                    if (res1['Your support can you help'] != null)
-                        res1['Your support can you help'] = res1['Your support can you help'].join(", ")
-                }
+                // for (let res1 of result[0]) {
+                //     if (res1['Your support can you help'] != null)
+                //         res1['Your support can you help'] = res1['Your support can you help'].join(", ")
+                // }
 
                 return result[0]
             } else {
                 let arr = [];
                 let obj = {
+                    "Id": "",
                     "First Name": "",
                     "Middle Name": "",
                     "Last Name": "",
-                    "Email": "",
-                    "Mobile Number": "",
                     "Gender": "",
                     "Date of Birth": "",
+                    "Email": "",
+                    "Mobile Number": "",
+                    "PostalCode": "",
+                    "Address": "",
                     "Street1": "",
                     "Street2": "",
                     "Suburb": "",
                     "State": "",
-                    "Postal Code": "",
                     "Country": "",
-                    "Is Prerequest Training Complete": "",
+                    "Organisation": "",
+                    "Competition Name": "",
+                    "Start Date": "",
+                    "End Date": "",
+                    "Venue": "",
+                    "Membership Product": "",
+                    "Membership Division": "",
+                    "Competition Division": "",
                     "Umpire Accreditation Level": "",
                     "Umpire Accreditation Expiry Date": "",
                     "Association Level": "",
@@ -270,15 +302,16 @@ export default class UserDashboardService extends BaseService<User> {
                     "Emergency First Name": "",
                     "Emergency Last Name": "",
                     "Emergency Contact Number": "",
-                    "Last App Login": "",
                     "Marketing Opt In": "",
                     "Merged User Id": "",
                     "Existing Medical Condition": "",
                     "Regular Medication": "",
                     "Heard About Competition": "",
                     "Heard By Other": "",
-                    "Favorite team": "",
-                    "Favorite Fire Bird": "",
+                    "Favorite Team": "",
+                    "Favorite Firebird": "",
+                    "Position 1": "",
+                    "Position 2": "",
                     "Has Disability": "",
                     "Disability Care Number": "",
                     "Disability Type": "",

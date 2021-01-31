@@ -48,7 +48,7 @@ export class PasswordController extends BaseController {
                 });
             }
 
-            const user = await this.userService.findByEmail(email.toLowerCase());
+            const user = await this.userService.findByEmail(email);
 
             if (!user) {
                 logger.warn(`Password reset link requested for ${email}, but couldn't find a user. Ignoring request.`);

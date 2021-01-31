@@ -12,6 +12,8 @@ import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
 import { isNullOrUndefined } from "util";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
+import {Role} from "../models/security/Role";
+import {EntityType} from "../models/security/EntityType";
 let moment = require('moment');
 import twilio from 'twilio';
 import { LookForExistingUserBody } from './types';
@@ -224,7 +226,8 @@ export class UserDashboardController extends BaseController {
     ) {
         try {
             // check body data
-            const { dateOfBirth, email, firstName, lastName, mobileNumber } = requestBody;
+            const { dateOfBirth, firstName, lastName, mobileNumber, parentOrGuardian } = requestBody;
+            const email = requestBody.email || parentOrGuardian[0].email;
             if (!(dateOfBirth && firstName && lastName && email && mobileNumber)) {
                 return response.status(400).send({
                     info: "MISSING_DATA",
@@ -242,7 +245,7 @@ export class UserDashboardController extends BaseController {
                         email: "",
                     });
                 }
-                const emailRegexp = /^(.{2}).*@(.{2}).*(\..+)$/;
+                const emailRegexp = /^(.{1,2}).*@(.{1,2}).*(\..+)$/;
                 const responsingUsers = users.map((user) => {
                     const { email, mobileNumber, id } = user;
 
@@ -299,12 +302,12 @@ export class UserDashboardController extends BaseController {
             await this.userService.createOrUpdate(user);
 
             if (type === 1) {
-                await this.userService.sendAndLogEmail(`${email}`, id, "NetballConnect Verification",  `<b>${digitCode}</b>`, "", 3, id, id);
+                await this.userService.sendAndLogEmail(`${email}`, id, "NetballConnect Verification",  `Your Netball Verification Code is:<b>${digitCode}</b>`, "", 3, id, id);
 
             } else {
                 await this.userService.sendAndLogSMS(`${mobileNumber}`, id, `Your Netball Verification Code is:<b>${digitCode}</b>`, 3, id, id);
             }
-            
+
             return response.status(200).send({
                 message: type === 1 ? `Please check your email.` : "Please check your phone",
             });
@@ -532,7 +535,7 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
-    @Authorized()
+    @Authorized() 
     @Post('/export/registration/questions')
     async exportRegistrationQuestions(
         @HeaderParam("authorization") currentUser: User,
@@ -584,6 +587,37 @@ export class UserDashboardController extends BaseController {
     }
 
     @Authorized()
+    @Get('/parents') 
+    async getParents(
+        @HeaderParam("authorization") currentUser: User,
+        @QueryParam("userId") userId: number,
+        @Res() response: Response
+    ) {
+        try {
+            return await this.userService.getUsersBySecurity(
+                EntityType.USER,
+                userId,
+                null,
+                { roleIds: [Role.PARENT] },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                false,
+                undefined,
+                undefined,
+                false
+            );
+        } catch (error) {
+            logger.error(`Error Occurred in getParents `+ error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+
+    @Authorized()
     @Post('/userprofile/update')
     async userProfileUpdate(
         @HeaderParam("authorization") currentUser: User,
@@ -616,7 +650,7 @@ export class UserDashboardController extends BaseController {
                         if ( pseudoEmail !=  userFromDb.email.toLowerCase()) { // also check child user format
 
                             // email was changed
-                            let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                            let userDb2 = await this.userService.findByEmail(requestBody.email)
                             if (userDb2 != undefined) { // if email exists in DB
                                 return response.status(212).send({
                                     errorCode: 7,
@@ -654,7 +688,7 @@ export class UserDashboardController extends BaseController {
 
                         let mailObjNew = await this.communicationTemplateService.findById(13);
                         await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-                    
+
                 }
 
                 return response.status(200).send({message: "Successfully updated"})
@@ -667,7 +701,7 @@ export class UserDashboardController extends BaseController {
                     user.id = requestBody.childUserId;
                 }
                 let userFromDb = await this.userService.findById(user.id);
-                let userDb2 = await this.userService.findByEmail(requestBody.email.toLowerCase().trim())
+                let userDb2 = await this.userService.findByEmail(requestBody.email)
                 if(userDb2 != undefined){
                     if (userFromDb && userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
                         return response.status(212).send({
@@ -767,7 +801,7 @@ export class UserDashboardController extends BaseController {
             }
             else if(section == 'other'){
                 userReg.id = requestBody.userRegistrationId;
-                
+
                 userReg.countryRefId = requestBody.countryRefId;
                 await this.userRegistrationService.createOrUpdate(userReg);
 

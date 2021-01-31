@@ -71,7 +71,10 @@ export class UserRoleEntityController extends BaseController {
     }).then(_ => { })
 
     await Promise.all([
-      this.ureService.replaceUserId(payload.otherUserId, payload.masterUserId),
+      // this.ureService.replaceUserId(payload.otherUserId, payload.masterUserId),
+      this.userService.replaceUserId(payload.otherUserId, payload.masterUserId),
+      this.userService.replaceUserIdsInNews(payload.otherUserId, payload.masterUserId),
+      this.userService.replaceUserIdsInCommunication(payload.otherUserId, payload.masterUserId),
       this.userService.deactivateUser(payload.otherUserId, currentUser.id, payload.masterUserId)
     ])
 
@@ -84,4 +87,5 @@ export class UserRoleEntityController extends BaseController {
 
     return "User merged successfully";
   }
+
 }
