@@ -270,45 +270,54 @@ export class UserDashboardController extends BaseController {
 
     /**
      * Send digit code to email or sms
+     * Must pass correct contact detail for this step
      * @param {LookForExistingUserBody} requestBody - body data
      * @param {Response} response - response object
      * @returns {Promise<void>}
      */
-    @Post('/user/existing-digit-code')
-    async sendCodeToEmailOrSms(
+    @Post('/user/request-digit-code')
+    async requestDigitCodeToEmailOrSms(
         @Body() requestBody: any,
         @Res() response: Response
     ) {
         try {
             // check body data
-            const { id, type } = requestBody;
-            if (!(id && type)) {
+            let { userId, type, contactValue } = requestBody;
+            if (!userId || !type || !contactValue) {
                 return response.status(400).send({
+                    success: false,
                     info: "MISSING_DATA",
                     requestBody,
                 });
             }
-            const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
+            contactValue = contactValue.toLowerCase()
+            const emailAndPhoneById = await this.userService.getEmailAndPhoneById(userId);
             const [{ email, mobileNumber }] = emailAndPhoneById;
+
+            // ensure correct email and mobileNumber has been passed
+            if ((type === 'email' && contactValue !== email.toLowerCase()) || (type === 'sms' && contactValue !== mobileNumber)) {
+                return response.status(400).send({
+                    success: false,
+                    error: "INCORRECT_EMAIL_OR_MOBILE",
+                });
+            }
+
             const digitCode = Math.floor(100000 + Math.random() * 900000);
 
-            let user = await this.userService.findById(id);
+            let user = await this.userService.findById(userId);
             user.digit_code = String(digitCode);
             await this.userService.createOrUpdate(user);
 
-            if (type === 1) {
-                await this.userService.sendAndLogEmail(`${email}`, id, "NetballConnect Verification",  `Your Netball Verification Code is:<b>${digitCode}</b>`, "", 3, id, id);
-
-            } else {
-                await this.userService.sendAndLogSMS(`${mobileNumber}`, id, `Your Netball Verification Code is:<b>${digitCode}</b>`, 3, id, id);
+            if (type === 'email') {
+                await this.userService.sendAndLogEmail(`${email}`, userId, "NetballConnect Verification",  `Your Netball Verification Code is:<b>${digitCode}</b>`, "", 3, id, id);
+            } else { // type === 'sms'
+                await this.userService.sendAndLogSMS(`${mobileNumber}`, userId, `Your Netball Verification Code is:<b>${digitCode}</b>`, 3, id, id);
             }
-
-            return response.status(200).send({
-                message: type === 1 ? `Please check your email.` : "Please check your phone",
-            });
+            return response.status(200).json({success: true});
         } catch (error) {
-            logger.error(`Error @ sendCodeToEmailOrSms: ${requestBody.id || ""}\n${JSON.stringify(error)}`);
+            logger.error(`Error @ requestDigitCodeToEmailOrSms: ${requestBody.userId || ""}\n${JSON.stringify(error)}`);
             return response.status(500).send({
+                success: false,
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
             });
         }
@@ -354,39 +363,6 @@ export class UserDashboardController extends BaseController {
         }
     }
 
-    @Post('/user/confirm-details')
-    async confirmDetails(
-        @Body() requestBody: any,
-        @Res() response: Response
-    ) {
-        try {
-            const { id, type, detail } = requestBody;
-            if (!(id && type && detail)) {
-                return response.status(400).send({
-                    info: "MISSING_DATA",
-                    requestBody,
-                });
-            }
-            let success;
-            const emailAndPhoneById = await this.userService.getEmailAndPhoneById(id);
-            const [{ email, mobileNumber }] = emailAndPhoneById;
-
-            if (Number(type) === 1 && email === detail) {
-                success = true;
-            } else {
-                success = Number(type) === 2 && mobileNumber === detail;
-            }
-            return response.status(200).send({
-                success,
-            });
-        } catch (error) {
-            logger.error(`Error @ confirmDetails: ${requestBody.id || ""}\n${JSON.stringify(error)}`);
-            return response.status(500).send({
-                success: false,
-                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
-            });
-        }
-    }
 
     @Authorized()
     @Post('/user/registration')
