@@ -816,9 +816,6 @@ export default class UserService extends BaseService<User> {
     }
     public async userRegistrationDetails(requestBody: any): Promise<any> {
         try {
-            //  console.log('='.repeat(20));
-            // console.log(requestBody);
-            // console.log('='.repeat(20));
             let limit = requestBody.myRegPaging.limit;
             let offset = requestBody.myRegPaging.offset;
             let userId = requestBody.userId;
@@ -827,13 +824,7 @@ export default class UserService extends BaseService<User> {
             let yearRefId = requestBody.yearRefId;
             let result = await this.entityManager.query("call wsa_users.usp_user_registration_details(?,?,?,?,?,?)",
                 [limit, offset, userId, yearRefId, competitionId, organisationId]);
-            console.log('========= result =============');
-            console.log( JSON.stringify(result) );
-            console.log('========= result =============');
             if (result != null) {
-                // console.log('___'.repeat(20));
-                // console.log(JSON.stringify(result));
-                // console.log('___'.repeat(20));
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 let arr = [];
@@ -857,11 +848,6 @@ export default class UserService extends BaseService<User> {
                             userMap.set(key, obj);
                           }
                         });
-
-                        // console.log('='.repeat(20));
-                        // console.log(JSON.stringify(item) );
-                        // console.log('='.repeat(20));
-
                         let obj = {
                             key: item.key,
                             affiliate: item.affiliate,

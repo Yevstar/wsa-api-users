@@ -19,9 +19,6 @@ export class UserRegistrationController extends BaseController {
             if (requestBody != null) {
                 const responseJSON = await this.userRegistrationService.userTransferRegistration(requestBody);
 
-                // console.log(JSON.stringify(responseJSON));
-                // console.log(responseJSON);
-
                 return response.status(200).send(responseJSON);
             }
         } catch (error) {
