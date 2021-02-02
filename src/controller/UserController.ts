@@ -717,6 +717,52 @@ export class UserController extends BaseController {
             return response.status(500).send({ message: process.env.NODE_ENV == AppConstants.development? 'Something went wrong' + error : 'Something went wrong'});
         }
     }
+    @Authorized()
+    @Post('/export/friends')
+    async exportFriend(
+        @Body() requestBody: any,
+        @HeaderParam("authorization") user: User,
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC"
+    ) {
+        const res = await this.userService.friendExportData(requestBody, sortBy, sortOrder);
+        let friends = [];
+        if (isArrayPopulated(res)) {
+            friends = res.map(e => ({
+                "User Id": e.userId,
+                "First Name": e.firstName, 
+                "Last Name": e.lastName,
+                "Email": e.email,
+                "Affiliate Name": e.affiliateName,
+                "Competition Name": e.competitionName,
+                "Division Name": e.divisionName,
+                "Friend Status": e.friendStatus,
+                "Friend Competition Name": e.friendCompetitionName,
+                "Friend Comp Division":e.friendCompDivision
+            }));
+        } else {
+            friends.push({
+                "User Id": "",
+                "First Name": "", 
+                "Last Name": "",
+                "Email": "",
+                "Affiliate Name": "",
+                "Competition Name": "",
+                "Division Name": "",
+                "Friend Status": "",
+                "Friend Competition Name": "",
+                "Friend Comp Division":""
+            });
+        }
+
+        response.setHeader('Content-disposition', 'attachment; filename=friend-list.csv');
+        response.setHeader('content-type', 'text/csv');
+        fastcsv.write(friends, {headers: true})
+            .on("finish", function () {
+            })
+            .pipe(response);
+    }
 
     @Authorized()
     @Post('/dashboard/referfriend')

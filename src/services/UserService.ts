@@ -185,6 +185,21 @@ export default class UserService extends BaseService<User> {
         }
     }
 
+    public async friendExportData(requestBody: any, sortBy: string = undefined, sortOrder: "ASC" | "DESC" = undefined) {
+        try {
+            let limit = requestBody.paging.limit;
+            let offset = requestBody.paging.offset;
+            let result = await this.entityManager.query("call wsa_users.usp_friend_dashboard(?,?,?,?,?,?)", [requestBody.yearRefId, requestBody.organisationUniqueKey, limit, offset, sortBy, sortOrder]);
+
+            if (isArrayPopulated(result[1])) {
+                return result[1];
+            } else
+                return [];
+        } catch (error) {
+            throw error
+        }
+    }
+
     public async referFriendDashboard(requestBody: any, sortBy: string = undefined, sortOrder: "ASC" | "DESC" = undefined) {
         try {
             let limit = requestBody.paging.limit;
