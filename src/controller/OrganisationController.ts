@@ -6,6 +6,7 @@ import { User } from '../models/User';
 import { logger } from '../logger';
 import AppConstants from '../constants/AppConstants';
 import { isArrayPopulated } from '../utils/Utils';
+import { RequiredQueryParam } from "../decorators/RequiredQueryParamDecorator";
 
 @JsonController('/api')
 export class OrganisationController extends BaseController {
@@ -32,6 +33,17 @@ export class OrganisationController extends BaseController {
             });
         }
     }
+
+    @Authorized()
+    @Get('/organisation-details')
+    async organisationDetails(
+        @RequiredQueryParam('organisationUniqueKey') organisationUniqueKey: string,
+        @Res() response: Response
+    ) {
+
+        return await this.organisationService.findOrgByUniquekey(organisationUniqueKey);
+    }
+
 
     @Authorized()
     @Get('/userorganisation')
