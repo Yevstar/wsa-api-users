@@ -22,6 +22,7 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
     public async affiliatesList(requestFilter: any, sortBy:string=undefined, sortOrder:"ASC"|"DESC" = undefined) {
         try{
+        let searchText = requestFilter.searchText;
         let organisationId = requestFilter.organisationId;
         let affiliatedToOrgId = requestFilter.affiliatedToOrgId;
         let organisationTypeRefId = requestFilter.organisationTypeRefId;
@@ -31,8 +32,8 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
         let affiliateArray = [];
 
-        let result = await this.entityManager.query("call wsa_users.usp_affiliates_list(?,?,?,?,?,?,?,?)",
-            [organisationId, affiliatedToOrgId, organisationTypeRefId, statusRefId, limit, offset, sortBy, sortOrder]);
+        let result = await this.entityManager.query("call wsa_users.usp_affiliates_list(?,?,?,?,?,?,?,?,?)",
+            [organisationId, affiliatedToOrgId, organisationTypeRefId, statusRefId, limit, offset, sortBy, sortOrder, searchText]);
 
         if (result != null) {
             let totalCount = result[1].find(x=>x).totalCount;
