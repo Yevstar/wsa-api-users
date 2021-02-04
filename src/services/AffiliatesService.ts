@@ -10,6 +10,16 @@ export default class AffiliateService extends BaseService<Affiliate> {
         return Affiliate.name;
     }
 
+    public async affiliatesByOrgId(affiliatedToOrgId) {
+        try {
+            let query = this.entityManager.createQueryBuilder(Affiliate, 'affiliate')
+                .where("affiliate.affiliatedToOrgId = :affiliatedToOrgId", {affiliatedToOrgId});
+            return query.getMany();
+        } catch (err) {
+            console.log('err  :::: ', err);
+        }
+    }
+
     public async affiliatesList(requestFilter: any, sortBy:string=undefined, sortOrder:"ASC"|"DESC" = undefined) {
         try{
         let organisationId = requestFilter.organisationId;

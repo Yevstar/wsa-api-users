@@ -346,7 +346,8 @@ export default class UserService extends BaseService<User> {
         individualLinkedEntityRequired: boolean = false,
         basedOnAvailability: boolean = false,
         startTime: Date = undefined,
-        endTime: Date = undefined
+        endTime: Date = undefined,
+        basedOnLinkedEntities: boolean = true
     ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
@@ -366,7 +367,7 @@ export default class UserService extends BaseService<User> {
                 '\'name\', le.linkedEntityName, \'parentName\', ' +
                 'le.linkedParentName, \'competitionOrganisationId\', ' +
                 'team.competitionOrganisationId),\']\') as linkedEntity');
-        } else {
+        } else if (basedOnLinkedEntities) {
             query.addSelect('concat(\'[\', group_concat(distinct JSON_OBJECT(\'entityTypeId\', ' +
                 'le.linkedEntityTypeId, \'entityId\', le.linkedEntityId, \'name\', le.linkedEntityName, ' +
                 '\'parentName\', le.linkedParentName, \'competitionOrganisationId\', team.competitionOrganisationId)),\']\') ' +
@@ -374,9 +375,11 @@ export default class UserService extends BaseService<User> {
         }
 
         query.innerJoin(UserRoleEntity, 'ure', 'u.id = ure.userId')
-            .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId')
-            .innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId')
-            .leftJoin(Team, 'team', '(team.id = le.linkedEntityId and le.linkedEntityTypeId = :teamEntityId)', {teamEntityId: EntityType.TEAM});
+            .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId');
+        if (basedOnLinkedEntities) {
+            query.innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId')
+                .leftJoin(Team, 'team', '(team.id = le.linkedEntityId and le.linkedEntityTypeId = :teamEntityId)', {teamEntityId: EntityType.TEAM});
+        }
 
         if (isObjectNotNullAndUndefined(sec) &&
             isObjectNotNullAndUndefined(sec.functionId)) {
@@ -403,10 +406,14 @@ export default class UserService extends BaseService<User> {
               query.andWhere('bk.userId is null');
         }
 
-        if (isObjectNotNullAndUndefined(entityTypeId) &&
+        if (basedOnLinkedEntities &&
+            isObjectNotNullAndUndefined(entityTypeId) &&
             (isObjectNotNullAndUndefined(entityId) && entityId != 0)) {
             query.andWhere('le.inputEntityTypeId = :entityTypeId', {entityTypeId})
                 .andWhere('le.inputEntityId = :entityId', {entityId});
+        } else {
+            query.andWhere('ure.entityTypeId = :entityTypeId', {entityTypeId})
+               .andWhere('ure.entityId = :entityId', {entityId});
         }
 
         if (userName) {
@@ -845,7 +852,6 @@ export default class UserService extends BaseService<User> {
                 let arr = [];
                 if (isArrayPopulated(result[1])) {
                     for (let item of result[1]) {
-                        console.log(item.userRegUniqueKey);
                         let deRegisterStatusRefId = item.deRegisterStatusRefId;
                         let paymentStatus = deRegisterStatusRefId != null ? deRegisterStatusRefId : item.paymentStatus;
                         let alreadyDeRegistered = deRegisterStatusRefId != null ? 1 : 0;
@@ -1373,6 +1379,40 @@ export default class UserService extends BaseService<User> {
             .set(user)
             .andWhere('id = :id', { id })
             .execute();
+    }
+
+    public async replaceUserId(oldId: number, newId: number): Promise<any> {
+        await this.entityManager.query("call wsa_users.usp_update_user_id_in_all_scope(?,?)", [newId, oldId]);
+    }
+
+    public async replaceUserIdsInNews(oldId: number, newId: number): Promise<any> {
+        const newsRows = await this.entityManager.query(`
+            SELECT  id, toUserIds
+            FROM wsa.news
+            WHERE toUserIds IS NOT NULL AND toUserIds <> '' AND JSON_CONTAINS(toUserIds, '${oldId}', '$')`
+        );
+        newsRows.forEach(async(news: any)=>{
+            const toUserIds = JSON.parse(news.toUserIds);
+            const index = toUserIds.indexOf(oldId);
+            toUserIds[index] = newId;
+            const query = `UPDATE wsa.news set toUserIds='[${toUserIds.join(',')}]' where id=${news.id}`;
+            await this.entityManager.query(query);
+        });
+    }
+
+    public async replaceUserIdsInCommunication(oldId: number, newId: number): Promise<any> {
+        const communicationRows = await this.entityManager.query(`
+            SELECT  id, toUserIds
+            FROM wsa_common.communication
+            WHERE toUserIds IS NOT NULL AND toUserIds <> '' AND JSON_CONTAINS(CONCAT('[', toUserIds, ']'), '${oldId}', '$')`
+        );
+        communicationRows.forEach(async(communication: any)=>{
+            const toUserIds = JSON.parse(communication.toUserIds);
+            const index = toUserIds.indexOf(oldId);
+            toUserIds[index] = newId;
+            const query = `UPDATE wsa.news set toUserIds='${toUserIds.join(',')}' where id=${communication.id}`;
+            await this.entityManager.query(query);
+        });
     }
 
     public async deactivateUser(id: number, updatedBy: number = undefined, mergedUserId: number = undefined) {

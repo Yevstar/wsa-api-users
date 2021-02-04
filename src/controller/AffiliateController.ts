@@ -519,8 +519,12 @@ export class AffiliateController extends BaseController {
             if (userId) {
                 if (userId && userId == currentUser.id) {
                     if (requestFilter != null) {
+                        let affiliateList = [];
+                        if (requestFilter.affiliateListByParent && requestFilter.parentId) {
+                            affiliateList = await this.affiliateService.affiliatesByOrgId(requestFilter.parentId);
+                        }
                         const affiliateListRes = await this.affiliateService.affiliatesList(requestFilter, sortBy, sortOrder);
-                        return response.status(200).send(affiliateListRes);
+                        return response.status(200).send( affiliateList.length > 0 ? { ...affiliateListRes, affiliateList } : affiliateListRes );
                     }
                 }
             }

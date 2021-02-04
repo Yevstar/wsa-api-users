@@ -12,6 +12,8 @@ import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
 import { isNullOrUndefined } from "util";
 import {UserRoleEntity} from "../models/security/UserRoleEntity";
+import {Role} from "../models/security/Role";
+import {EntityType} from "../models/security/EntityType";
 let moment = require('moment');
 import twilio from 'twilio';
 import { LookForExistingUserBody } from './types';
@@ -542,10 +544,25 @@ export class UserDashboardController extends BaseController {
         try {
             if (requestBody != null) {
                 const Res = await this.userDashboardService.exportRegistrationQuestions(requestBody, currentUser.id);
+                // replace email with parents;
+                const users = Res.map((user: any)=>{
+                    if (user.Email) {
+                        const tempEmailArr = user.Email.split('@');
+                        if (tempEmailArr.length > 1) {
+                            const domainsArr = tempEmailArr[1].split('.');
+                            const parentEmail = `${tempEmailArr[0]}@${domainsArr[0]}.${domainsArr[1]}`;
+                            if (user.Email !== parentEmail && user.isInActive === 1) {
+                                user.Email = parentEmail;
+                            }
+                        }
+                    }
+                    delete user.isInActive;
+                    return user;
+                });
                 response.setHeader('Content-disposition', 'attachment; filename=teamFinal.csv');
                 response.setHeader('content-type', 'text/csv');
                 fastcsv
-                    .write(Res, { headers: true })
+                    .write(users, { headers: true })
                     .on("finish", function () {
                     })
                     .pipe(response);
@@ -568,16 +585,61 @@ export class UserDashboardController extends BaseController {
         try {
             if (requestBody != null) {
                 const Res = await this.userDashboardService.exportUserRegistrationData(requestBody);
+                const users = Res.map((user: any)=>{
+                    if (user.Email) {
+                        const tempEmailArr = user.Email.split('@');
+                        if (tempEmailArr.length > 1) {
+                            const domainsArr = tempEmailArr[1].split('.');
+                            const parentEmail = `${tempEmailArr[0]}@${domainsArr[0]}.${domainsArr[1]}`;
+                            if (user.Email !== parentEmail && user.isInActive === 1) {
+                                user.Email = parentEmail;
+                            }
+                        }
+                    }
+                    delete user.isInActive;
+                    return user;
+                });
                 response.setHeader('Content-disposition', 'attachment; filename=teamFinal.csv');
                 response.setHeader('content-type', 'text/csv');
                 fastcsv
-                    .write(Res, {headers: true})
+                    .write(users, {headers: true})
                     .on("finish", function () {
                     })
                     .pipe(response);
             }
         } catch (error) {
             logger.error('Error Occurred in dashboard textual' + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+
+    @Authorized()
+    @Get('/parents')
+    async getParents(
+        @HeaderParam("authorization") currentUser: User,
+        @QueryParam("userId") userId: number,
+        @Res() response: Response
+    ) {
+        try {
+            return await this.userService.getUsersBySecurity(
+                EntityType.USER,
+                userId,
+                null,
+                { roleIds: [Role.PARENT] },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                false,
+                undefined,
+                undefined,
+                false
+            );
+        } catch (error) {
+            logger.error(`Error Occurred in getParents `+ error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
