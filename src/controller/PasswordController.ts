@@ -66,7 +66,7 @@ export class PasswordController extends BaseController {
             await this.userService.createOrUpdate(user);
 
             // Generate a password reset url.
-            const url = `${process.env.SERVER_URL}/password/change?token=${user.reset}`;
+            const url = `${process.env.USERS_API_URL}/password/change?token=${user.reset}`;
             let cTrack = new CommunicationTrack();
             if (type === 'email') {
                 // Send out the email.
