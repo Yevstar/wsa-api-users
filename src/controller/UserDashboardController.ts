@@ -546,15 +546,9 @@ export class UserDashboardController extends BaseController {
                 const Res = await this.userDashboardService.exportRegistrationQuestions(requestBody, currentUser.id);
                 // replace email with parents;
                 const users = Res.map((user: any)=>{
-                    if (user.Email) {
-                        const tempEmailArr = user.Email.split('@');
-                        if (tempEmailArr.length > 1) {
-                            const domainsArr = tempEmailArr[1].split('.');
-                            const parentEmail = `${tempEmailArr[0]}@${domainsArr[0]}.${domainsArr[1]}`;
-                            if (user.Email !== parentEmail && user.isInActive === 1) {
-                                user.Email = parentEmail;
-                            }
-                        }
+                    if (user.Email && 1 == user.isInActive && user.email.lastIndexOf('.') > 0) {
+                        let parentEmailString = user.email.substr(0, user.email.lastIndexOf('.'));
+                        user.Email = parentEmailString.toLowerCase();
                     }
                     delete user.isInActive;
                     return user;
@@ -587,13 +581,9 @@ export class UserDashboardController extends BaseController {
                 const Res = await this.userDashboardService.exportUserRegistrationData(requestBody);
                 const users = Res.map((user: any)=>{
                     if (user.Email) {
-                        const tempEmailArr = user.Email.split('@');
-                        if (tempEmailArr.length > 1) {
-                            const domainsArr = tempEmailArr[1].split('.');
-                            const parentEmail = `${tempEmailArr[0]}@${domainsArr[0]}.${domainsArr[1]}`;
-                            if (user.Email !== parentEmail && user.isInActive === 1) {
-                                user.Email = parentEmail;
-                            }
+                        if (user.Email && 1 == user.isInActive && user.email.lastIndexOf('.') > 0) {
+                            let parentEmailString = user.email.substr(0, user.email.lastIndexOf('.'));
+                            user.Email = parentEmailString.toLowerCase();
                         }
                     }
                     delete user.isInActive;
