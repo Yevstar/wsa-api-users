@@ -546,8 +546,8 @@ export class UserDashboardController extends BaseController {
                 const Res = await this.userDashboardService.exportRegistrationQuestions(requestBody, currentUser.id);
                 // replace email with parents;
                 const users = Res.map((user: any)=>{
-                    if (user.Email && 1 == user.isInActive && user.email.lastIndexOf('.') > 0) {
-                        let parentEmailString = user.email.substr(0, user.email.lastIndexOf('.'));
+                    if (user.Email && 1 == user.isInActive && user.Email.lastIndexOf('.') > 0) {
+                        let parentEmailString = user.email.substr(0, user.Email.lastIndexOf('.'));
                         user.Email = parentEmailString.toLowerCase();
                     }
                     delete user.isInActive;
@@ -581,8 +581,8 @@ export class UserDashboardController extends BaseController {
                 const Res = await this.userDashboardService.exportUserRegistrationData(requestBody);
                 const users = Res.map((user: any)=>{
                     if (user.Email) {
-                        if (user.Email && 1 == user.isInActive && user.email.lastIndexOf('.') > 0) {
-                            let parentEmailString = user.email.substr(0, user.email.lastIndexOf('.'));
+                        if (user.Email && 1 == user.isInActive && user.Email.lastIndexOf('.') > 0) {
+                            let parentEmailString = user.email.substr(0, user.Email.lastIndexOf('.'));
                             user.Email = parentEmailString.toLowerCase();
                         }
                     }
