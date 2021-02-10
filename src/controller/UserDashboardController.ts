@@ -547,7 +547,7 @@ export class UserDashboardController extends BaseController {
                 // replace email with parents;
                 const users = Res.map((user: any)=>{
                     if (user.Email && 1 == user.isInActive && user.Email.lastIndexOf('.') > 0) {
-                        let parentEmailString = user.email.substr(0, user.Email.lastIndexOf('.'));
+                        let parentEmailString = user.Email.substr(0, user.Email.lastIndexOf('.'));
                         user.Email = parentEmailString.toLowerCase();
                     }
                     delete user.isInActive;
@@ -582,7 +582,7 @@ export class UserDashboardController extends BaseController {
                 const users = Res.map((user: any)=>{
                     if (user.Email) {
                         if (user.Email && 1 == user.isInActive && user.Email.lastIndexOf('.') > 0) {
-                            let parentEmailString = user.email.substr(0, user.Email.lastIndexOf('.'));
+                            let parentEmailString = user.Email.substr(0, user.Email.lastIndexOf('.'));
                             user.Email = parentEmailString.toLowerCase();
                         }
                     }
