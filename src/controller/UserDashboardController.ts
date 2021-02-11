@@ -244,7 +244,8 @@ export class UserDashboardController extends BaseController {
                         phone: "",
                         email: "",
                     });
-                }
+                } 
+                logger.debug(`number of matches ${users.length}` );
                 const emailRegexp = /^(.{1,2}).*@(.{1,2}).*(\..+)$/;
                 const responsingUsers = users.map((user) => {
                     const { email, mobileNumber, id } = user;

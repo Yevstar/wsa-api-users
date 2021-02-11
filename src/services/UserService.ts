@@ -1302,17 +1302,17 @@ export default class UserService extends BaseService<User> {
         FROM
           wsa_users.user 
         WHERE (
-          (firstName = ? AND lastName = ? AND mobileNumber = ?) OR
-          (firstName = ? AND lastName = ? AND dateOfBirth = ?) OR
-          (firstName = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
-          (lastName = ? AND mobileNumber = ? AND dateOfBirth = ?)
+          (lower(firstName) = ? AND lower(lastName) = ? AND mobileNumber = ?) OR
+          (lower(firstName) = ? AND lower(lastName) = ? AND dateOfBirth = ?) OR
+          (lower(firstName) = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
+          (lower(lastName) = ? AND mobileNumber = ? AND dateOfBirth = ?)
         )
         `,
         [
-          data.firstName, data.lastName, data.mobileNumber,
-          data.firstName, data.lastName, data.dateOfBirth,
-          data.firstName, data.mobileNumber, data.dateOfBirth,
-          data.lastName, data.mobileNumber, data.dateOfBirth,
+          data.firstName.toLowerCase(), data.lastName.toLowerCase(), data.mobileNumber,
+          data.firstName.toLowerCase(), data.lastName.toLowerCase(), data.dateOfBirth,
+          data.firstName.toLowerCase(), data.mobileNumber, data.dateOfBirth,
+          data.lastName.toLowerCase(), data.mobileNumber, data.dateOfBirth,
         ],
       );
     }
