@@ -1169,7 +1169,6 @@ export class UserController extends BaseController {
         @Res() response: Response,
     ) {
         try {
-
             const childUser = await this.userService.findById(childUserId);
             let isSameEmail = 0;
             logger.info(`${parentUser.email} parentUser email ${childUser.email} childUser email `)
@@ -1181,35 +1180,57 @@ export class UserController extends BaseController {
                 await this.switchParentChildAdmin(user, childUserId, parentUser, response);
             } else {
                 let userDb = await this.userService.findByEmail(parentUser.email);
-                if (userDb) {
-                    if (parentUser.firstName.toLowerCase().trim() == userDb.firstName.toLowerCase().trim() &&
-                        parentUser.lastName.toLowerCase().trim() == userDb.lastName.toLowerCase().trim()) {
-                        parentUser.id = userDb.id;
+
+                if (!userDb) {
+                    return response.status(404).send({
+                        errorCode: 7,
+                        message: 'A user with this email not found!'
+                    });
+                }
+
+                const isParentUserValid = parentUser.firstName && parentUser.lastName;
+                let validParentUser = parentUser;
+
+                if (!isParentUserValid) {
+                    validParentUser = await this.userService.findById(parentUser.id);
+                }
+
+                if (validParentUser.firstName.toLowerCase().trim() === userDb.firstName.toLowerCase().trim() &&
+                    validParentUser.lastName.toLowerCase().trim() === userDb.lastName.toLowerCase().trim()) {
+                    validParentUser.id = userDb.id;
+                    validParentUser.createdBy = user.id;
+                    validParentUser.password = md5(Math.random().toString(36).slice(-8));
+
+                    if (isParentUserValid) {
+                        await this.userService.createOrUpdate(validParentUser);
                     } else {
-                        return response.status(212).send({
-                            errorCode: 7,
-                            message: 'A user with this email already exists, but the details you have entered do not match'
-                        });
+                        await validParentUser.save()
                     }
+                    await this.updateFirebaseData(validParentUser, validParentUser.password);
+
+                    if (!parentUser.id || parentUser.id == 0) {
+                        parentUser.createdBy = user.id;
+                        parentUser.password = md5(Math.random().toString(36).slice(-8));
+                        await this.userService.createOrUpdate(parentUser);
+                        await this.updateFirebaseData(parentUser, parentUser.password);
+                        // TODO: send email
+                    }
+
+                    const ureData = new UserRoleEntity();
+                    ureData.entityId = childUser.id;
+                    ureData.entityTypeId = EntityType.USER;
+                    ureData.userId = parentUser.id;
+                    ureData.roleId = Role.PARENT;
+
+                    await this.ureService.createOrUpdate(ureData);
+
+                    return response.status(200).send({ userId: parentUser.id });
+                } else {
+                    return response.status(212).send({
+                        errorCode: 7,
+                        message: 'A user with this email already exists, but the details you have entered do not match'
+                    });
                 }
-
-                if (!parentUser.id || parentUser.id == 0) {
-                    parentUser.createdBy = user.id;
-                    parentUser.password = md5(Math.random().toString(36).slice(-8));
-                    await this.userService.createOrUpdate(parentUser);
-                    await this.updateFirebaseData(parentUser, parentUser.password);
-                    // TODO: send email
-                }
-
-                const ureData = new UserRoleEntity();
-                ureData.entityId = childUser.id;
-                ureData.entityTypeId = EntityType.USER;
-                ureData.userId = parentUser.id;
-                ureData.roleId = Role.PARENT;
-
-                await this.ureService.createOrUpdate(ureData);
-
-                return response.status(200).send({ userId: parentUser.id });
             }
         } catch (error) {
             logger.error(`Unable to create parent user`, error);
