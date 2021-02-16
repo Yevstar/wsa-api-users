@@ -708,6 +708,7 @@ export class UserDashboardController extends BaseController {
                 user.postalCode = requestBody.postalCode;
                 user.dateOfBirth = requestBody.dateOfBirth;
                 user.mobileNumber = requestBody.mobileNumber;
+                user.isInActive = requestBody.isInActive;
                 user.email = requestBody.email.toLowerCase();
                 if (user.id != 0 || user.id != null) {
                     user.updatedBy = currentUser.id;
