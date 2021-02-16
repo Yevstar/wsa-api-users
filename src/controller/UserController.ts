@@ -1172,6 +1172,7 @@ export class UserController extends BaseController {
 
             const childUser = await this.userService.findById(childUserId);
             let isSameEmail = 0;
+            logger.info(`${parentUser.email} parentUser email ${childUser.email} childUser email `)
             if (parentUser.email.toLowerCase() == childUser.email.toLowerCase()) {
                 isSameEmail = 1;
             }
@@ -1192,12 +1193,13 @@ export class UserController extends BaseController {
                     }
                 }
 
-                parentUser.createdBy = user.id;
-                parentUser.password = md5(Math.random().toString(36).slice(-8));
-                await this.userService.createOrUpdate(parentUser);
-                // TODO: send email
-
-                await this.updateFirebaseData(parentUser, parentUser.password);
+                if (!parentUser.id || parentUser.id == 0) {
+                    parentUser.createdBy = user.id;
+                    parentUser.password = md5(Math.random().toString(36).slice(-8));
+                    await this.userService.createOrUpdate(parentUser);
+                    await this.updateFirebaseData(parentUser, parentUser.password);
+                    // TODO: send email
+                }
 
                 const ureData = new UserRoleEntity();
                 ureData.entityId = childUser.id;
