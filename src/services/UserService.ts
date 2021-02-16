@@ -1496,7 +1496,7 @@ export default class UserService extends BaseService<User> {
             await client.messages.create({
                 body: `${body}`,
                 from: process.env.TWILIO_PHONE_NUMBER,
-                to: `+${toNumber}`,
+                to: `${toNumber}`,
             });
 
             cTrack.statusRefId = 1;
