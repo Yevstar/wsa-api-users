@@ -244,21 +244,26 @@ export class UserDashboardController extends BaseController {
 
             // FOUND
             const emailRegexp = /^(.{1,2}).*@(.{1,2}).*(\..+)$/;
-            const foundUsers = users.map((user) => {
+            const foundUsers = [];
+            users.forEach((user) => {
                 const {email, mobileNumber, id} = user;
-
+                if (email == null || mobileNumber == null || (!!email && email.indexOf("player") == 0 && email.indexOf("wsa.com") == email.length - 7)) {
+                    return;
+                }
                 const result = email.match(emailRegexp);
                 const maskedEmail = email && result ? `${result[1]}***@${result[2]}***${result[3]}` : "";
                 const maskedPhone = mobileNumber && mobileNumber !== "NULL" ? `${mobileNumber.substr(0, 2)}xx xxx x${mobileNumber.substr(-2)}` : "";
-                return {
+                foundUsers.push({
                     id,
                     phone: maskedPhone,
                     email: maskedEmail,
                     firstName: user.firstName,
                     lastName: user.lastName,
-                };
+                });
             });
-
+            if (!foundUsers.length) {
+                return response.status(200).json([]);
+            }
             return response.status(200).send({users: foundUsers});
 
         } catch (error) {
