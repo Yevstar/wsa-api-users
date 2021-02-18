@@ -247,8 +247,10 @@ export class UserDashboardController extends BaseController {
             const foundUsers = [];
             users.forEach((user) => {
                 const {email, mobileNumber, id} = user;
-                if (email == null || mobileNumber == null || (!!email && email.indexOf("player") == 0 && email.indexOf("wsa.com") == email.length - 7)) {
-                    return;
+                if ((!!email && email.indexOf("player") == 0 && email.indexOf("wsa.com") == email.length - 7) || email == null || email == undefined || email.length == 0) {
+                    if (mobileNumber == null || mobileNumber == undefined || mobileNumber.length == 0) {
+                        return;
+                    }
                 }
                 const result = email.match(emailRegexp);
                 const maskedEmail = email && result ? `${result[1]}***@${result[2]}***${result[3]}` : "";
