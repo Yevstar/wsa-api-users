@@ -1034,8 +1034,14 @@ export default class UserService extends BaseService<User> {
                         if(isArrayPopulated(item.feePaid)) {
                             let invoiceFailedStatus = (item.feePaid.find(x => x.invoiceStatus == "failed")) ? 1 : 0;
                             let transactionFailedStatus =  (item.feePaid.find(x => x.transactionStatus == 6)) ? 1 : 0;
+                            let competitionId = item.feePaid.find(x => x.competitionId != null);
+                            let divisionId = item.feePaid.find(x => x.divisionId != null);
+                            let registrationId = item.feePaid.find(x => x.registrationId != null);
                             item['invoiceFailedStatus'] = invoiceFailedStatus;
                             item['transactionFailedStatus'] = transactionFailedStatus;
+                            item['competitionId'] = competitionId ? competitionId.competitionId : null;
+                            item['divisionId'] = divisionId ? divisionId.divisionId : null;
+                            item['registrationId'] = registrationId ? registrationId.registrationId : null;
                             for(let fee of item.feePaid) {
                                 let total = 0;
                                 if (isArrayPopulated(fee)) {
@@ -1106,8 +1112,14 @@ export default class UserService extends BaseService<User> {
                         if(isArrayPopulated(item.feePaid)) {
                             let invoiceFailedStatus = (item.feePaid.find(x => x.invoiceStatus == "failed")) ? 1 : 0;
                             let transactionFailedStatus =  (item.feePaid.find(x => x.transactionStatus == 6)) ? 1 : 0;
+                            let competitionId = item.feePaid.find(x => x.competitionId != null);
+                            let divisionId = item.feePaid.find(x => x.divisionId != null);
+                            let registrationId = item.feePaid.find(x => x.registrationId != null);
                             item['invoiceFailedStatus'] = invoiceFailedStatus;
                             item['transactionFailedStatus'] = transactionFailedStatus;
+                            item['competitionId'] = competitionId ? competitionId.competitionId : null;
+                            item['divisionId'] = divisionId ? divisionId.divisionId : null;
+                            item['registrationId'] = registrationId ? registrationId.registrationId : null;
                             for(let fee of item.feePaid) {
                                 let total = 0;
                                 if (isArrayPopulated(fee)) {
