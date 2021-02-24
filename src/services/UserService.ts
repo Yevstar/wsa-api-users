@@ -1040,16 +1040,20 @@ export default class UserService extends BaseService<User> {
                                 let total = 0;
                                 if (isArrayPopulated(fee)) {
                                     for (let f of fee) {
-                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                            - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
-                                            - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
-                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                        if(f.transactionStatus == 2) {
+                                            total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                            totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                        }
                                     }
                                 } else {
-                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                        - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
-                                        - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
-                                    totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                    if(fee.transactionStatus == 2) {
+                                        total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                            - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                            - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                    }
                                 }
                             }
                         }
@@ -1108,16 +1112,20 @@ export default class UserService extends BaseService<User> {
                                 let total = 0;
                                 if (isArrayPopulated(fee)) {
                                     for (let f of fee) {
-                                        total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                            - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
-                                            - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
-                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                        if(f.transactionStatus == 2) {
+                                            total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
+                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                            totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                        }
                                     }
                                 } else {
-                                    total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                        - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
-                                        - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
-                                    totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                    if(fee.transactionStatus == 2) {
+                                        total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
+                                            - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                            - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                        totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
+                                    }
                                 }
                             }
                         }
