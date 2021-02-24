@@ -3,17 +3,16 @@ import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, G
 import { logger } from "../logger";
 import { User } from "../models/User";
 import { Response, response } from 'express';
-import e = require("express");
 import { validateReqFilter } from "../validation/Validation";
 import * as  fastcsv from 'fast-csv';
-import nodeMailer from 'nodemailer';
 import { UserRegistration } from "../models/UserRegistration";
-import { isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
+import { getParentEmail, isArrayPopulated, isNullOrEmpty } from "../utils/Utils";
 import AppConstants from '../constants/AppConstants';
 import { isNullOrUndefined } from "util";
-import {UserRoleEntity} from "../models/security/UserRoleEntity";
-import {Role} from "../models/security/Role";
-import {EntityType} from "../models/security/EntityType";
+import { UserRoleEntity } from "../models/security/UserRoleEntity";
+import { Role } from "../models/security/Role";
+import { EntityType } from "../models/security/EntityType";
+
 let moment = require('moment');
 import twilio from 'twilio';
 import { LookForExistingUserBody } from './types';
@@ -28,14 +27,15 @@ export class UserDashboardController extends BaseController {
         @Body() requestBody: any,
         @Res() response: Response,
         @QueryParam('sortBy') sortBy?: string,
-        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC") {
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC"
+    ) {
         try {
             if (requestBody != null) {
                 const affiliateListRes = await this.userDashboardService.userDashboardTextualList(requestBody, currentUser.id, sortBy, sortOrder);
                 return response.status(200).send(affiliateListRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in dashboard textual`+error);
+            logger.error(`Error Occurred in dashboard textual` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -48,17 +48,17 @@ export class UserDashboardController extends BaseController {
         @QueryParam('userId') userId: number,
         @QueryParam('organisationId') organisationUniqueKey: string,
         @HeaderParam("authorization") currentUser: User,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (userId) {
                 if (currentUser.id) {
                     const userPersonalDetailsRes = await this.userService.userPersonalDetails(userId, organisationUniqueKey);
                     return response.status(200).send(userPersonalDetailsRes);
-
                 }
             }
         } catch (error) {
-            logger.error(`Error Occurred in affilatelist ${userId}`+error);
+            logger.error(`Error Occurred in affilatelist ${userId}` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -70,14 +70,15 @@ export class UserDashboardController extends BaseController {
     async userPersonalDetailsByCompetition(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 const userCompRes = await this.userService.userPersonalDetailsByCompetition(requestBody);
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user Personal Details By Competition `+error);
+            logger.error(`Error Occurred in user Personal Details By Competition ` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -89,7 +90,8 @@ export class UserDashboardController extends BaseController {
     async userActivitiesPlayer(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 //let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
@@ -104,7 +106,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user activity player `+error);
+            logger.error(`Error Occurred in user activity player ` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -116,7 +118,8 @@ export class UserDashboardController extends BaseController {
     async userActivitiesParent(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
@@ -131,7 +134,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user activity parent `+error);
+            logger.error(`Error Occurred in user activity parent ` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -145,7 +148,8 @@ export class UserDashboardController extends BaseController {
         @QueryParam('roleId') roleId: number,
         @QueryParam('matchStatus') matchStatus: string,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
@@ -172,7 +176,8 @@ export class UserDashboardController extends BaseController {
     async userActivitiesManager(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
@@ -187,7 +192,7 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user activity manager `+error);
+            logger.error(`Error Occurred in user activity manager ` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -199,14 +204,15 @@ export class UserDashboardController extends BaseController {
     async userMedicalDetailsByCompetition(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 const userCompRes = await this.userRegistrationService.userMedicalDetailsByCompetition(requestBody);
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
+            logger.error(`Error Occurred in medical information of user ${requestBody.userId}` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -246,9 +252,11 @@ export class UserDashboardController extends BaseController {
             const emailRegexp = /^(.{1,2}).*@(.{1,2}).*(\..+)$/;
             const foundUsers = [];
             users.forEach((user) => {
-                const {email, mobileNumber, id} = user;
-                if (email == null || mobileNumber == null || (!!email && email.indexOf("player") == 0 && email.indexOf("wsa.com") == email.length - 7)) {
-                    return;
+                const { email, mobileNumber, id } = user;
+                if ((!!email && email.indexOf("player") == 0 && email.indexOf("wsa.com") == email.length - 7) || email == null || email == undefined || email.length == 0) {
+                    if (mobileNumber == null || mobileNumber == undefined || mobileNumber.length == 0) {
+                        return;
+                    }
                 }
                 const result = email.match(emailRegexp);
                 const maskedEmail = email && result ? `${result[1]}***@${result[2]}***${result[3]}` : "";
@@ -264,7 +272,7 @@ export class UserDashboardController extends BaseController {
             if (!foundUsers.length) {
                 return response.status(200).json([]);
             }
-            return response.status(200).send({users: foundUsers});
+            return response.status(200).send({ users: foundUsers });
 
         } catch (error) {
             logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ""}\n${JSON.stringify(error)}`);
@@ -299,9 +307,10 @@ export class UserDashboardController extends BaseController {
             }
             contactValue = contactValue.toLowerCase()
             const emailAndPhoneById = await this.userService.getEmailAndPhoneById(userId);
-            const [{ email, mobileNumber }] = emailAndPhoneById;
+            const [{ email, mobileNumber, isInActive }] = emailAndPhoneById;
 
             // ensure correct email and mobileNumber has been passed
+            // TODO: make sure contactValue is if the parent email or child email form.
             if ((type === 'email' && contactValue !== email.toLowerCase()) || (type === 'sms' && contactValue !== mobileNumber)) {
                 return response.status(400).send({
                     success: false,
@@ -316,11 +325,11 @@ export class UserDashboardController extends BaseController {
             await this.userService.createOrUpdate(user);
 
             if (type === 'email') {
-                await this.userService.sendAndLogEmail(`${email}`, userId, "NetballConnect Verification",  `Your Netball Verification Code is:<b>${digitCode}</b>`, "", 3, userId, userId);
+                await this.userService.sendAndLogEmail(`${parseInt(isInActive, 10) === 1 ? getParentEmail(email) : email}`, userId, "NetballConnect Verification", `Your Netball Verification Code is:<b>${digitCode}</b>`, "", 3, userId, userId);
             } else { // type === 'sms'
                 await this.userService.sendAndLogSMS(`${mobileNumber}`, userId, `Your Netball Verification Code is:<b>${digitCode}</b>`, 3, userId, userId);
             }
-            return response.status(200).json({success: true});
+            return response.status(200).json({ success: true });
         } catch (error) {
             logger.error(`Error @ requestDigitCodeToEmailOrSms: ${requestBody.userId || ""}\n${JSON.stringify(error)}`);
             return response.status(500).send({
@@ -328,7 +337,6 @@ export class UserDashboardController extends BaseController {
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
             });
         }
-
     }
 
     @Post('/user/check-existing-digit-code')
@@ -375,7 +383,8 @@ export class UserDashboardController extends BaseController {
     async userRegistrationDetails(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
@@ -386,34 +395,35 @@ export class UserDashboardController extends BaseController {
 
                 // todo: refactor below and remove redundant promises?
 
-                const userRegRes = new Promise(async(resolve,reject) => {
-                        responseObj["myRegistrations"] = await this.userService.userRegistrationDetails(requestBody);
-                        resolve(responseObj["myRegistrations"]);
+                const userRegRes = new Promise(async (resolve, reject) => {
+                    responseObj["myRegistrations"] = await this.userService.userRegistrationDetails(requestBody);
+                    resolve(responseObj["myRegistrations"]);
+                });
+
+                const otherRegRes = new Promise(async (resolve, reject) => {
+                    responseObj["otherRegistrations"] = await this.userService.otherRegistrationDetails(requestBody);
+                    resolve(responseObj["otherRegistrations"]);
+                });
+
+                const childRegRes = new Promise(async (resolve, reject) => {
+                    responseObj["childRegistrations"] = await this.userService.childRegistrationDetails(requestBody);
+                    resolve(responseObj["childRegistrations"]);
+                });
+
+                const teamRegRes = new Promise(async (resolve, reject) => {
+                    responseObj["teamRegistrations"] = await this.userService.teamRegistrationDetails(requestBody);
+                    resolve(responseObj["teamRegistrations"]);
+                });
+
+                await Promise.all([userRegRes, otherRegRes, childRegRes, teamRegRes])
+                    .then(results => {
+                        console.log(`${JSON.stringify(results)}`);
                     });
-
-
-                const otherRegRes = new Promise(async(resolve,reject) => {
-                        responseObj["otherRegistrations"] = await this.userService.otherRegistrationDetails(requestBody);
-                        resolve(responseObj["otherRegistrations"]);
-                    });
-
-                const childRegRes = new Promise(async(resolve,reject) => {
-                        responseObj["childRegistrations"] = await this.userService.childRegistrationDetails(requestBody);
-                        resolve(responseObj["childRegistrations"]);
-                    });
-
-                const teamRegRes = new Promise(async(resolve,reject) => {
-                        responseObj["teamRegistrations"] = await this.userService.teamRegistrationDetails(requestBody);
-                        resolve(responseObj["teamRegistrations"]);
-                    });
-
-                await Promise.all([userRegRes,otherRegRes,childRegRes,teamRegRes])
-                            .then(results => {console.log(`${JSON.stringify(results)}`);});
 
                 return response.status(200).send(responseObj);
             }
         } catch (error) {
-            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
+            logger.error(`Error Occurred in medical information of user ${requestBody.userId}` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -425,15 +435,16 @@ export class UserDashboardController extends BaseController {
     async registrationFormDetails(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
-            if(requestBody != null) {
+            if (requestBody != null) {
                 const responseJSON = await this.userService.getRegistrationFormDetails(requestBody);
 
                 return response.status(200).send(responseJSON);
             }
         } catch (error) {
-            logger.error(`Error Occurred information of user ${requestBody.userId}`+error);
+            logger.error(`Error Occurred information of user ${requestBody.userId}` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -447,7 +458,8 @@ export class UserDashboardController extends BaseController {
         @Body() requestBody: any,
         @Res() response: Response,
         @QueryParam('sortBy') sortBy?: string,
-        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC") {
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC"
+    ) {
         try {
             if (requestBody != null) {
                 // let validateComp = validateReqFilter(requestBody.competitionUniqueKey, 'competitionUniqueKey');
@@ -455,36 +467,35 @@ export class UserDashboardController extends BaseController {
                 //     return response.status(212).send(validateComp);
                 // }
 
-
-                const responseObj = await this.userService.getNetSetGoRegistration(requestBody,sortBy,sortOrder);
-
+                const responseObj = await this.userService.getNetSetGoRegistration(requestBody, sortBy, sortOrder);
 
                 return response.status(200).send(responseObj);
             }
         } catch (error) {
-            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
+            logger.error(`Error Occurred in medical information of user ${requestBody.userId}` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
+
     @Authorized()
     @Post('/user/registration/team')
     async userRegistrationTeamMemberDetails(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
-            try{
-                if(requestBody) {
-                    let teamMembers = await this.userService.getTeamMembers(requestBody);
-                    return response.status(200).send(teamMembers);
-                }
+        @Res() response: Response
+    ) {
+        try {
+            if (requestBody) {
+                let teamMembers = await this.userService.getTeamMembers(requestBody);
+                return response.status(200).send(teamMembers);
             }
-            catch (error) {
-                logger.error(`Error Occurred in team information of user ${requestBody.userId}`+error);
-                return response.status(500).send({
-                    message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
-                });
+        } catch (error) {
+            logger.error(`Error Occurred in team information of user ${requestBody.userId}` + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
         }
     }
 
@@ -500,27 +511,29 @@ export class UserDashboardController extends BaseController {
                 // if (validateComp != null) {
                 //     return response.status(212).send(validateComp);
                 // }
-                //const userRegRes = await this.userService.sendTeamRegisterPlayerInviteMail(requestBody);
-               // return response.status(200).send(userRegRes);
+                // const userRegRes = await this.userService.sendTeamRegisterPlayerInviteMail(requestBody);
+                // return response.status(200).send(userRegRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in medical information of user ${requestBody.userId}`+error);
+            logger.error(`Error Occurred in medical information of user ${requestBody.userId}` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
-    @Authorized() 
+
+    @Authorized()
     @Post('/export/registration/questions')
     async exportRegistrationQuestions(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 const Res = await this.userDashboardService.exportRegistrationQuestions(requestBody, currentUser.id);
                 // replace email with parents;
-                const users = Res.map((user: any)=>{
+                const users = Res.map((user: any) => {
                     if (user.Email && 1 == user.isInActive && user.Email.lastIndexOf('.') > 0) {
                         let parentEmailString = user.Email.substr(0, user.Email.lastIndexOf('.'));
                         user.Email = parentEmailString.toLowerCase();
@@ -537,12 +550,11 @@ export class UserDashboardController extends BaseController {
                     .pipe(response);
             }
         } catch (error) {
-            logger.error(`Error Occurred in dashboard textual`+error);
+            logger.error(`Error Occurred in dashboard textual` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
-
     }
 
     @Authorized()
@@ -550,11 +562,12 @@ export class UserDashboardController extends BaseController {
     async exportUserRegistrationData(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 const Res = await this.userDashboardService.exportUserRegistrationData(requestBody);
-                const users = Res.map((user: any)=>{
+                const users = Res.map((user: any) => {
                     if (user.Email) {
                         if (user.Email && 1 == user.isInActive && user.Email.lastIndexOf('.') > 0) {
                             let parentEmailString = user.Email.substr(0, user.Email.lastIndexOf('.'));
@@ -567,7 +580,7 @@ export class UserDashboardController extends BaseController {
                 response.setHeader('Content-disposition', 'attachment; filename=teamFinal.csv');
                 response.setHeader('content-type', 'text/csv');
                 fastcsv
-                    .write(users, {headers: true})
+                    .write(users, { headers: true })
                     .on("finish", function () {
                     })
                     .pipe(response);
@@ -604,7 +617,7 @@ export class UserDashboardController extends BaseController {
                 false
             );
         } catch (error) {
-            logger.error(`Error Occurred in getParents `+ error);
+            logger.error(`Error Occurred in getParents ` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -618,18 +631,18 @@ export class UserDashboardController extends BaseController {
         @QueryParam("section") section: string,
         @QueryParam("organisationId") organisationId: string,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
-
             let user = new User();
             let userReg = new UserRegistration();
             let ureData = new UserRoleEntity();
-            let organisationName = null ;
-            if(!(isNullOrUndefined(organisationId))){
-               let organisation = await this.organisationService.findOrgByUniquekey(organisationId)
-               organisationName = organisation.name;
+            let organisationName = null;
+            if (!(isNullOrUndefined(organisationId))) {
+                let organisation = await this.organisationService.findOrgByUniquekey(organisationId)
+                organisationName = organisation.name;
             }
-            if(section == 'address') {
+            if (section == 'address') {
                 // does the email exist in the database, and compare with current user in db
                 let userFromDb = await this.userService.findById(requestBody.userId);
                 logger.info(`changing address for user: ${requestBody.userId} Email from web:${requestBody.email} firstName: ${requestBody.firstName} `);
@@ -641,8 +654,7 @@ export class UserDashboardController extends BaseController {
                     if (requestBody.email.toLowerCase().trim() != userFromDb.email.toLowerCase()) {
                         let pseudoEmail = `${requestBody.email.toLowerCase().trim()}.${requestBody.firstName.toLowerCase().trim()}`;
                         logger.info(`checking details for : ${pseudoEmail}`);
-                        if ( pseudoEmail !=  userFromDb.email.toLowerCase()) { // also check child user format
-
+                        if (pseudoEmail != userFromDb.email.toLowerCase()) { // also check child user format
                             // email was changed
                             let userDb2 = await this.userService.findByEmail(requestBody.email)
                             if (userDb2 != undefined) { // if email exists in DB
@@ -654,7 +666,6 @@ export class UserDashboardController extends BaseController {
                                 emailChanged = true;
                                 logger.info(`changing email to : ${requestBody.email}`);
                                 user.email = requestBody.email.toLowerCase();
-
                             }
                         }
                     }
@@ -674,29 +685,25 @@ export class UserDashboardController extends BaseController {
 
                 let userData = await this.userService.createOrUpdate(user);
 
-                if(emailChanged == true) {
+                if (emailChanged == true) {
+                    await this.updateFirebaseData(userData, userFromDb.password);
+                    let mailObjOld = await this.communicationTemplateService.findById(12);
+                    await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld, currentUser, organisationName);
 
-                        await this.updateFirebaseData(userData, userFromDb.password);
-                        let mailObjOld = await this.communicationTemplateService.findById(12);
-                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
-
-                        let mailObjNew = await this.communicationTemplateService.findById(13);
-                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-
+                    let mailObjNew = await this.communicationTemplateService.findById(13);
+                    await this.userService.sentMailForEmailUpdate(userData, mailObjNew, currentUser, organisationName)
                 }
 
-                return response.status(200).send({message: "Successfully updated"})
-            }
-            else if(section == 'primary' || section == 'child'){
-                if(section == 'primary'){
+                return response.status(200).send({ message: "Successfully updated" })
+            } else if (section == 'primary' || section == 'child') {
+                if (section == 'primary') {
                     user.id = requestBody.parentUserId;
-                }
-                else if(section == 'child'){
+                } else if (section == 'child') {
                     user.id = requestBody.childUserId;
                 }
                 let userFromDb = await this.userService.findById(user.id);
                 let userDb2 = await this.userService.findByEmail(requestBody.email)
-                if(userDb2 != undefined){
+                if (userDb2 != undefined) {
                     if (userFromDb && userFromDb.email.toLowerCase().trim() != requestBody.email.toLowerCase().trim()) {
                         return response.status(212).send({
                             errorCode: 7,
@@ -718,21 +725,18 @@ export class UserDashboardController extends BaseController {
                 if (user.id != 0 || user.id != null) {
                     user.updatedBy = currentUser.id;
                     user.updatedOn = new Date();
-                }
-                else {
+                } else {
                     user.createdBy = currentUser.id;
                 }
-                let userData =  await this.userService.createOrUpdate(user);
-
+                let userData = await this.userService.createOrUpdate(user);
 
                 let getData;
-                if(section == 'child') {
-                    getData = await this.ureService.findExisting(requestBody.userId,userData.id,4,9);
+                if (section == 'child') {
+                    getData = await this.ureService.findExisting(requestBody.userId, userData.id, 4, 9);
                     ureData.userId = requestBody.userId;
                     ureData.entityId = userData.id;
-                }
-                else {
-                    getData = await this.ureService.findExisting(userData.id,requestBody.userId,4,9);
+                } else {
+                    getData = await this.ureService.findExisting(userData.id, requestBody.userId, 4, 9);
                     ureData.userId = userData.id;
                     ureData.entityId = requestBody.userId;
                 }
@@ -741,8 +745,7 @@ export class UserDashboardController extends BaseController {
                     ureData.id = getData.id;
                     ureData.updatedBy = currentUser.id;
                     ureData.updatedAt = new Date();
-                }
-                else {
+                } else {
                     ureData.id = 0;
                     ureData.createdBy = currentUser.id;
                 }
@@ -750,51 +753,45 @@ export class UserDashboardController extends BaseController {
                 ureData.entityTypeId = 4;
                 await this.ureService.createOrUpdate(ureData);
 
-                if(userFromDb != undefined){
-                    if(userFromDb.email !== user.email){
+                if (userFromDb != undefined) {
+                    if (userFromDb.email !== user.email) {
                         await this.updateFirebaseData(userData, userFromDb.password);
                         let mailObjOld = await this.communicationTemplateService.findById(12);
-                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld ,currentUser, organisationName);
+                        await this.userService.sentMailForEmailUpdate(userFromDb, mailObjOld, currentUser, organisationName);
 
                         let mailObjNew = await this.communicationTemplateService.findById(13);
-                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew ,currentUser, organisationName)
-
+                        await this.userService.sentMailForEmailUpdate(userData, mailObjNew, currentUser, organisationName)
                     }
                 }
-                return response.status(200).send({message: "Successfully updated"})
-            }
-            else if(section == 'unlink' || section == 'link') {
+                return response.status(200).send({ message: "Successfully updated" })
+            } else if (section == 'unlink' || section == 'link') {
                 let existingRoleId;
                 let roleId;
-                if(section == 'unlink'){
+                if (section == 'unlink') {
                     existingRoleId = AppConstants.PARENT_LINKED;
                     roleId = AppConstants.PARENT_UNLINKED;
-                }
-                else{
+                } else {
                     existingRoleId = AppConstants.PARENT_UNLINKED;
                     roleId = AppConstants.PARENT_LINKED;
                 }
 
-                let getData = await this.ureService.findExisting(requestBody.parentUserId, requestBody.childUserId,4, existingRoleId);
-                if(getData) {
+                let getData = await this.ureService.findExisting(requestBody.parentUserId, requestBody.childUserId, 4, existingRoleId);
+                if (getData) {
                     ureData.id = getData.id;
                     ureData.roleId = roleId;
                     ureData.updatedBy = requestBody.userId;
                     ureData.updatedAt = new Date();
                     await this.ureService.createOrUpdate(ureData);
-                    return response.status(200).send({message: "Successfully Deleted"});
+                    return response.status(200).send({ message: "Successfully Deleted" });
                 }
-            }
-
-            else if(section == 'emergency'){
+            } else if (section == 'emergency') {
                 user.id = requestBody.userId;
                 user.emergencyFirstName = requestBody.emergencyFirstName;
-                user.emergencyLastName= requestBody.emergencyLastName;
+                user.emergencyLastName = requestBody.emergencyLastName;
                 user.emergencyContactNumber = requestBody.emergencyContactNumber;
                 await this.userService.createOrUpdate(user);
-                return response.status(200).send({message: "Successfully updated"})
-            }
-            else if(section == 'other'){
+                return response.status(200).send({ message: "Successfully updated" })
+            } else if (section == 'other') {
                 userReg.id = requestBody.userRegistrationId;
 
                 userReg.countryRefId = requestBody.countryRefId;
@@ -810,40 +807,36 @@ export class UserDashboardController extends BaseController {
                 user.accreditationCoachExpiryDate = requestBody.accreditationCoachExpiryDate;
                 await this.userService.createOrUpdate(user);
 
-                if(!isNullOrEmpty(requestBody.childrenCheckExpiryDate)){
-                    console.log("####################" + requestBody.childrenCheckExpiryDate);
-                    this.actionsService.clearActionChildrenCheckNumber(user.id,currentUser.id);
+                if (!isNullOrEmpty(requestBody.childrenCheckExpiryDate)) {
+                    this.actionsService.clearActionChildrenCheckNumber(user.id, currentUser.id);
                     let actions = [];
                     let masterId = 0;
 
-                    if(moment(user.childrenCheckExpiryDate).isAfter(moment())){
+                    if (moment(user.childrenCheckExpiryDate).isAfter(moment())) {
                         actions = await this.actionsService.getActionDataForChildrenCheck13(user.id);
                         masterId = 13;
-                        console.log("$$$$$$$$$13" + JSON.stringify(actions));
                     }
-                    if(moment(user.childrenCheckExpiryDate).isBefore(moment())){
+                    if (moment(user.childrenCheckExpiryDate).isBefore(moment())) {
                         actions = await this.actionsService.getActionDataForChildrenCheck14(user.id);
                         masterId = 14;
-                        console.log("$$$$$$$$$14" + JSON.stringify(actions));
                     }
 
-                    if(isArrayPopulated(actions)){
+                    if (isArrayPopulated(actions)) {
                         let arr = [];
-                        for(let item of actions){
+                        for (let item of actions) {
                             let action = await this.actionsService.createAction13_14(item.organisationId,
                                 item.competitionOrgId, item.userId, masterId);
                             arr.push(action);
                         }
-                        if(isArrayPopulated(arr)){
+                        if (isArrayPopulated(arr)) {
                             console.log("Arr::" + JSON.stringify(arr));
                             await this.actionsService.batchCreateOrUpdate(arr);
                         }
                     }
                 }
 
-                return response.status(200).send({message: "Successfully updated"})
-            }
-            else if(section == 'medical'){
+                return response.status(200).send({ message: "Successfully updated" })
+            } else if (section == 'medical') {
                 userReg.id = requestBody.userRegistrationId;
                 userReg.existingMedicalCondition = requestBody.existingMedicalCondition;
                 userReg.regularMedication = requestBody.regularMedication;
@@ -851,17 +844,14 @@ export class UserDashboardController extends BaseController {
                 userReg.disabilityCareNumber = requestBody.disabilityCareNumber;
                 userReg.disabilityTypeRefId = requestBody.disabilityTypeRefId;
                 await this.userRegistrationService.createOrUpdate(userReg);
-                return response.status(200).send({message: "Successfully updated"})
+                return response.status(200).send({ message: "Successfully updated" })
             }
-
-
         } catch (error) {
-            logger.error(`Error Occurred in userProfileUpdate `+error);
+            logger.error(`Error Occurred in userProfileUpdate ` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
-
     }
 
     @Authorized()
@@ -869,7 +859,8 @@ export class UserDashboardController extends BaseController {
     async userHistory(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 let validateUserId = validateReqFilter(requestBody.userId, 'userId');
@@ -880,20 +871,20 @@ export class UserDashboardController extends BaseController {
                 return response.status(200).send(userCompRes);
             }
         } catch (error) {
-            logger.error(`Error Occurred in user history `+error);
+            logger.error(`Error Occurred in user history ` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
         }
     }
 
-
     @Authorized()
     @Post('/user/delete')
     async userDelete(
         @HeaderParam("authorization") currentUser: User,
         @Body() requestBody: any,
-        @Res() response: Response) {
+        @Res() response: Response
+    ) {
         try {
             if (requestBody != null) {
                 let validateUserId = validateReqFilter(requestBody.userId, 'userId');
@@ -901,12 +892,12 @@ export class UserDashboardController extends BaseController {
                     return response.status(212).send(validateUserId);
                 }
 
-                if(isArrayPopulated(requestBody.organisations)){
-                    for(let organisation of  requestBody.organisations){
-                   //     let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
+                if (isArrayPopulated(requestBody.organisations)) {
+                    for (let organisation of requestBody.organisations) {
+                        // let organisationId = await this.organisationService.findByUniquekey(requestBody.organisationId);
 
-                        let ureRes = await this.userService.userDelete(requestBody.userId,organisation.linkedEntityId);
-                        if(ureRes != undefined){
+                        let ureRes = await this.userService.userDelete(requestBody.userId, organisation.linkedEntityId);
+                        if (ureRes != undefined) {
                             ureRes.isDeleted = 1;
                             ureRes.updatedBy = currentUser.id;
                             ureRes.updatedAt = new Date();
@@ -915,11 +906,10 @@ export class UserDashboardController extends BaseController {
                     }
                 }
 
-
-                return response.status(200).send({message: 'Successfully deleted user'});
+                return response.status(200).send({ message: 'Successfully deleted user' });
             }
         } catch (error) {
-            logger.error(`Error Occurred in user delete `+error);
+            logger.error(`Error Occurred in user delete ` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
@@ -935,7 +925,8 @@ export class UserDashboardController extends BaseController {
             if (incidentRequest !== null) {
                 return await this.userService.getPlayerIncident(
                     incidentRequest.userId, incidentRequest.competitionId,
-                    incidentRequest.yearId, incidentRequest.offset, incidentRequest.limit);
+                    incidentRequest.yearId, incidentRequest.offset, incidentRequest.limit
+                );
             }
         } catch (error) {
             logger.error(`Error Occurred in user activity incident ` + error);

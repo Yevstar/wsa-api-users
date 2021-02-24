@@ -20,15 +20,16 @@ import { Team } from "../models/Team";
 import { User } from "../models/User";
 import { LinkedEntities } from "../models/views/LinkedEntities";
 import {
-    feeIsNull, isArrayPopulated,
+    feeIsNull,
+    getParentEmail,
+    isArrayPopulated,
     isNotNullAndUndefined,
-    isObjectNotNullAndUndefined, paginationData,
+    isObjectNotNullAndUndefined,
+    paginationData,
     stringTONumber
 } from "../utils/Utils";
 import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
-
-
 
 @Service()
 export default class UserService extends BaseService<User> {
@@ -68,15 +69,19 @@ export default class UserService extends BaseService<User> {
 
     public async findByCredentials(email: string, password: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .andWhere('LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
-                { email: email.toLowerCase(), password: password })
+            .andWhere(
+                'LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
+                { email: email.toLowerCase(), password: password }
+            )
             .getOne();
     }
 
     public async findByCredentialsForTFA(email: string, password: string): Promise<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
-            .andWhere('LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
-                { email: email.toLowerCase(), password: password })
+            .andWhere(
+                'LOWER(user.email) = :email and user.password = :password and isDeleted = 0',
+                { email: email.toLowerCase(), password: password }
+            )
             .addSelect("user.tfaEnabled")
             .addSelect("user.tfaSecret")
             .addSelect("user.tfaSecretUrl")
@@ -87,8 +92,10 @@ export default class UserService extends BaseService<User> {
         return this.entityManager.createQueryBuilder(User, 'user')
             .innerJoin(UserRoleEntity, 'ure', 'user.id = ure.userId and ure.entityType = 2 and ure.isDeleted = 0')
             .innerJoin(Role, 'role', 'role.id = ure.roleId and role.applicableToWeb = 1 and role.isDeleted = 0')
-            .andWhere('LOWER(user.email) = :email and user.password = :password and user.isDeleted = 0',
-                { email: email.toLowerCase(), password: password })
+            .andWhere(
+                'LOWER(user.email) = :email and user.password = :password and user.isDeleted = 0',
+                { email: email.toLowerCase(), password: password }
+            )
             .getOne();
     }
 
@@ -122,14 +129,16 @@ export default class UserService extends BaseService<User> {
             'u.dateOfBirth as dateOfBirth, u.firebaseUID as firebaseUID,\n' +
             'u.statusRefId as statusRefId\n' +
             'from wsa_users.user u \n' +
-            'where u.id in (?);'
-            , [ids]);
+            'where u.id in (?);',
+            [ids]
+        );
     }
 
     public async findUserFullDetailsById(id: number): Promise<User> {
         return await this.entityManager.query(
-            'select * from wsa_users.user user where user.id = ?;'
-            , [id]);
+            'select * from wsa_users.user user where user.id = ?;',
+            [id]
+        );
     }
 
     public async userExist(email: string): Promise<number> {
@@ -211,8 +220,9 @@ export default class UserService extends BaseService<User> {
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["referFriends"] = result[1];
                 return responseObject;
-            } else
-                return [];
+            }
+
+            return [];
         } catch (error) {
             throw error
         }
@@ -229,8 +239,9 @@ export default class UserService extends BaseService<User> {
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["spectator"] = result[1];
                 return responseObject;
-            } else
-                return [];
+            }
+
+            return [];
         } catch (error) {
             throw error
         }
@@ -247,8 +258,9 @@ export default class UserService extends BaseService<User> {
             '         inner join functionRole rf on ure.roleId = rf.roleId\n' +
             '         inner join role r on rf.roleId = r.id\n' +
             '         inner join `function` f on rf.functionId = f.id\n' +
-            'where ure.userId = ? group by id, name, functions;'
-            , [userId])
+            'where ure.userId = ? group by id, name, functions;',
+            [userId]
+        )
     }
 
     public async getRoles(): Promise<any[]> {
@@ -350,7 +362,8 @@ export default class UserService extends BaseService<User> {
         basedOnLinkedEntities: boolean = true
     ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
-            .select(['u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
+            .select([
+                'u.id as id', 'LOWER(u.email) as email', 'u.firstName as firstName', 'u.lastName as lastName',
                 'u.mobileNumber as mobileNumber', 'u.genderRefId as genderRefId',
                 'u.marketingOptIn as marketingOptIn', 'u.photoUrl as photoUrl',
                 'u.firebaseUID as firebaseUID', 'u.statusRefId as statusRefId',
@@ -359,7 +372,8 @@ export default class UserService extends BaseService<User> {
                 'u.associationLevelInfo as associationLevelInfo',
                 'u.accreditationLevelCoachRefId as accreditationLevelCoachRefId',
                 'u.isPrerequestTrainingComplete as isPrerequestTrainingComplete',
-                'u.accreditationCoachExpiryDate as accreditationCoachExpiryDate']);
+                'u.accreditationCoachExpiryDate as accreditationCoachExpiryDate'
+            ]);
 
         if (individualLinkedEntityRequired) {
             query.addSelect('concat(\'[\',JSON_OBJECT(\'entityTypeId\', ' +
@@ -378,14 +392,13 @@ export default class UserService extends BaseService<User> {
             .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId');
         if (basedOnLinkedEntities) {
             query.innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId')
-                .leftJoin(Team, 'team', '(team.id = le.linkedEntityId and le.linkedEntityTypeId = :teamEntityId)', {teamEntityId: EntityType.TEAM});
+                .leftJoin(Team, 'team', '(team.id = le.linkedEntityId and le.linkedEntityTypeId = :teamEntityId)', { teamEntityId: EntityType.TEAM });
         }
 
-        if (isObjectNotNullAndUndefined(sec) &&
-            isObjectNotNullAndUndefined(sec.functionId)) {
-                let id = sec.functionId;
-                query.innerJoin(Function, 'f', 'f.id = fr.functionId')
-                    .andWhere('f.id = :id', { id });
+        if (isObjectNotNullAndUndefined(sec) && isObjectNotNullAndUndefined(sec.functionId)) {
+            let id = sec.functionId;
+            query.innerJoin(Function, 'f', 'f.id = fr.functionId')
+                .andWhere('f.id = :id', { id });
         }
 
         if (isArrayPopulated(sec.roleIds)) {
@@ -394,26 +407,24 @@ export default class UserService extends BaseService<User> {
                 .andWhere('r.id in (:ids)', { ids });
         }
 
-        if (basedOnAvailability &&
-            isObjectNotNullAndUndefined(startTime) &&
-            isObjectNotNullAndUndefined(endTime)) {
-              query.leftJoin(Booking, 'bk', 'bk.userId = u.id and ((bk.startTime ' +
+        if (basedOnAvailability && isObjectNotNullAndUndefined(startTime) && isObjectNotNullAndUndefined(endTime)) {
+            query.leftJoin(Booking, 'bk', 'bk.userId = u.id and ((bk.startTime ' +
                 '<= :startTime and bk.endTime > :startTime) or (bk.startTime ' +
                 '>= :startTime and bk.startTime < :endTime))', {
-                  startTime: startTime,
-                  endTime: endTime
-              });
-              query.andWhere('bk.userId is null');
+                startTime: startTime,
+                endTime: endTime
+            });
+            query.andWhere('bk.userId is null');
         }
 
         if (basedOnLinkedEntities &&
             isObjectNotNullAndUndefined(entityTypeId) &&
             (isObjectNotNullAndUndefined(entityId) && entityId != 0)) {
-            query.andWhere('le.inputEntityTypeId = :entityTypeId', {entityTypeId})
-                .andWhere('le.inputEntityId = :entityId', {entityId});
+            query.andWhere('le.inputEntityTypeId = :entityTypeId', { entityTypeId })
+                .andWhere('le.inputEntityId = :entityId', { entityId });
         } else {
-            query.andWhere('ure.entityTypeId = :entityTypeId', {entityTypeId})
-               .andWhere('ure.entityId = :entityId', {entityId});
+            query.andWhere('ure.entityTypeId = :entityTypeId', { entityTypeId })
+                .andWhere('ure.entityId = :entityId', { entityId });
         }
 
         if (userName) {
@@ -475,21 +486,22 @@ export default class UserService extends BaseService<User> {
         let url = process.env.liveScoresWebHost;
         logger.info(`sendMail : url ${url}`);
         console.log("*****Template---:" + templateObj + "--" + JSON.stringify(templateObj))
-        //  let html = ``;
+        // let html = ``;
         let subject = templateObj.emailSubject;
 
         templateObj.emailBody = templateObj.emailBody.replace('${user.firstName}', receiverData.firstName);
         templateObj.emailBody = templateObj.emailBody.replace('${Organisation}', OrganisationName);
-        templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
+        templateObj.emailBody = templateObj.emailBody.replace(AppConstants.appName, process.env.APP_NAME);
         templateObj.emailBody = templateObj.emailBody.replace('${user.lastName}', receiverData.lastName);
         templateObj.emailBody = templateObj.emailBody.replace('${userName}', receiverData.email.toLowerCase());
         templateObj.emailBody = templateObj.emailBody.replace('${password}', password);
         templateObj.emailBody = templateObj.emailBody.replace('${process.env.liveScoresWebHost}', url);
         templateObj.emailBody = templateObj.emailBody.replace('${Organisation}', OrganisationName);
 
+        const targetEmail = `${parseInt(receiverData.isInActive, 10) === 1 ? getParentEmail(receiverData.email) : receiverData.email}`;
 
         try {
-            await this.sendAndLogEmail(receiverData.email, receiverData.id, subject, templateObj.emailBody, password, 3, entityId, userId);
+            await this.sendAndLogEmail(targetEmail, receiverData.id, subject, templateObj.emailBody, password, 3, entityId, userId);
         } catch (error) {
             //cTrack.statusRefId = 2;
         }
@@ -510,53 +522,52 @@ export default class UserService extends BaseService<User> {
                 templateObj.emailBody = templateObj.emailBody.replace(AppConstants.affiliateName, organisationName);
             }
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.email, contact.email);
-            templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
-            templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
-            templateObj.emailBody = templateObj.emailBody.replace( AppConstants.appName, process.env.APP_NAME);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.appName, process.env.APP_NAME);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.appName, process.env.APP_NAME);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.appName, process.env.APP_NAME);
 
+            const targetEmail = `${parseInt(contact.isInActive, 10) === 1 ? getParentEmail(contact.email) : contact.email}`;
             try {
-                await this.sendAndLogEmail(contact.email, contact.id, subject, templateObj.emailBody, "", 8, contact.id, adminUser.id);
+                await this.sendAndLogEmail(targetEmail, contact.id, subject, templateObj.emailBody, "", 8, contact.id, adminUser.id);
             } catch (error) {
-                //cTrack.statusRefId = 2;
+                // cTrack.statusRefId = 2;
             }
         } catch (error) {
             logger.error(` ERROR occurred in individual mail ` + error)
             throw error;
         }
     }
-    public async sendTeamRegisterPlayerInviteMail(resBody, playerBody,templateObj, userId, password,registrationId, roleArray) {
+
+    public async sendTeamRegisterPlayerInviteMail(resBody, playerBody, templateObj, userId, password, registrationId, roleArray) {
 
         try {
-            let subject = templateObj.emailSubject ;
+            let subject = templateObj.emailSubject;
             subject = subject.replace(AppConstants.teamName, resBody.teamName);
             let url = process.env.TEAM_REGISTRATION_URL;
-            //  let html = ``;
-            url = url.replace(AppConstants.userRegUniquekey,playerBody.userRegUniqueKey)
-            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.name, playerBody.firstName+" "+playerBody.lastName);
-            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerPersonName, resBody.firstName+" "+resBody.lastName);
+            // let html = ``;
+            url = url.replace(AppConstants.userRegUniquekey, playerBody.userRegUniqueKey)
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.name, playerBody.firstName + " " + playerBody.lastName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerPersonName, resBody.firstName + " " + resBody.lastName);
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.teamName, resBody.teamName);
             let divisionName = ''
-            if(!isArrayPopulated(roleArray)){
+            if (!isArrayPopulated(roleArray)) {
                 templateObj.emailBody = templateObj.emailBody.replace(AppConstants.inDivision, "");
-            }
-            else{
+            } else {
                 divisionName = roleArray[0];
             }
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.division, divisionName);
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.competionName, resBody.competitionName);
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.startDate, resBody.startDate);
-            // if(playerBody.membershipProductFeesTypeRefId == 1){
-            // templateObj.emailBody = templateObj.emailBody.replace(AppConstants.url, url);
-            // }
-            // else{
-            //     if(playerBody.transactionId == null){
+            // if (playerBody.membershipProductFeesTypeRefId == 1) {
+            //     templateObj.emailBody = templateObj.emailBody.replace(AppConstants.url, url);
+            // } else {
+            //     if (playerBody.transactionId == null) {
             //         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.url, url);
-            //     }
-            //     else{
+            //     } else {
             //         templateObj.emailBody = templateObj.emailBody.replace(AppConstants.clickHereToRegister, "");
             //     }
             // }
-            if(playerBody.notPaid == null) {
+            if (playerBody.notPaid == null) {
                 templateObj.emailBody = templateObj.emailBody.replace(AppConstants.completeYouRegistration, AppConstants.updateYourProfile);
                 templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerBoforeCloseDate, '');
             }
@@ -567,12 +578,14 @@ export default class UserService extends BaseService<User> {
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.competionName, resBody.competitionName);
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.regCloseDate, resBody.registrationCloseDate);
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.startDate, resBody.startDate);
-            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerPersonName, resBody.firstName+" "+resBody.lastName);
+            templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerPersonName, resBody.firstName + " " + resBody.lastName);
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.registerPersonNumber, resBody.mobileNumber);
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.AffiliateName, resBody.organisationName);
             templateObj.emailBody = templateObj.emailBody.replace(AppConstants.AffiliateName, resBody.organisationName);
 
-            await this.sendAndLogEmail(playerBody.email, playerBody.userId, subject, templateObj.emailBody, "", 0, registrationId , userId);
+            const targetEmail = `${parseInt(playerBody.isInActive, 10) === 1 ? getParentEmail(playerBody.email) : playerBody.email}`;
+
+            await this.sendAndLogEmail(targetEmail, playerBody.userId, subject, templateObj.emailBody, "", 0, registrationId, userId);
         } catch (error) {
             //cTrack.statusRefId = 2;
         }
@@ -580,8 +593,7 @@ export default class UserService extends BaseService<User> {
 
     public async userPersonalDetails(userId: number, organisationUniqueKey: any) {
         try {
-            let result = await this.entityManager.query("call wsa_users.usp_user_personal_details(?,?)",
-                [userId, organisationUniqueKey]);
+            let result = await this.entityManager.query("call wsa_users.usp_user_personal_details(?,?)", [userId, organisationUniqueKey]);
 
             let competitionMap = new Map();
             let teamMap = new Map();
@@ -593,7 +605,7 @@ export default class UserService extends BaseService<User> {
                     for (let item of result[0]) {
                         let userTemp = userMap.get(item.userId);
                         let competitionTemp = competitionMap.get(item.competitionId);
-                        let teamTemp = (item.teamUniqueKey == null)?teamMap.get(item.teamId):teamMap.get(item.teamUniqueKey);
+                        let teamTemp = (item.teamUniqueKey == null) ? teamMap.get(item.teamId) : teamMap.get(item.teamUniqueKey);
                         let divTemp = divisionMap.get(item.divisionId);
                         let competitionObj = {
                             competitionId: item.competitionId,
@@ -617,7 +629,7 @@ export default class UserService extends BaseService<User> {
 
                         let parentEmailId = item.email.split('.');
                         let parentEmailString = parentEmailId[0];
-                        for(let n = 1; n < (parentEmailId.length - 1); n++) {
+                        for (let n = 1; n < (parentEmailId.length - 1); n++) {
                             parentEmailString = parentEmailString + '.' + parentEmailId[n];
                         }
 
@@ -705,27 +717,24 @@ export default class UserService extends BaseService<User> {
         try {
             let userId = requestBody.userId;
             let competitionUniqueKey = requestBody.competitionUniqueKey;
-            let result = await this.entityManager.query("call wsa_users.usp_user_personal_details_by_competition(?,?)",
-                [userId, competitionUniqueKey]);
-            // if(isArrayPopulated(result[0]))
-            // {
-            //     for(let item of result[0])
-            //     {
+            let result = await this.entityManager.query("call wsa_users.usp_user_personal_details_by_competition(?,?)", [userId, competitionUniqueKey]);
+            // if (isArrayPopulated(result[0])) {
+            //     for (let item of result[0]) {
             //         item.friends = JSON.parse(item.friends);
             //         item.referFriends = JSON.parse(item.referFriends);
             //     }
             // }
 
-            if(isArrayPopulated(result[0])) {
-                for(let item of result[0]) {
-                    if(item.isInActive == 1) {
-                        let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
+            if (isArrayPopulated(result[0])) {
+                for (let item of result[0]) {
+                    if (item.isInActive == 1) {
+                        let parentEmailString = item.email.substr(0, item.email.lastIndexOf('.'));
                         item.email = parentEmailString.toLowerCase();
                     }
-                    if(isArrayPopulated(item.childContacts)) {
-                        for(let child of item.childContacts) {
-                            if(child.isInActive == 1) {
-                                let parentEmailString = child.email.substr(0,child.email.lastIndexOf('.'));
+                    if (isArrayPopulated(item.childContacts)) {
+                        for (let child of item.childContacts) {
+                            if (child.isInActive == 1) {
+                                let parentEmailString = child.email.substr(0, child.email.lastIndexOf('.'));
                                 child.email = parentEmailString.toLowerCase();
                             }
                         }
@@ -746,8 +755,10 @@ export default class UserService extends BaseService<User> {
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let yearRefId = requestBody.yearRefId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_player(?,?,?,?,?)",
-                [userId, competitionId, yearRefId, limit, offset]);
+            let result = await this.entityManager.query(
+                "call wsa_users.usp_user_activity_player(?,?,?,?,?)",
+                [userId, competitionId, yearRefId, limit, offset]
+            );
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -766,8 +777,10 @@ export default class UserService extends BaseService<User> {
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let yearRefId = requestBody.yearRefId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_parent(?,?,?,?,?,?)",
-                [userId, competitionId, yearRefId, limit, offset, requestBody.organisationId]);
+            let result = await this.entityManager.query(
+                "call wsa_users.usp_user_activity_parent(?,?,?,?,?,?)",
+                [userId, competitionId, yearRefId, limit, offset, requestBody.organisationId]
+            );
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -786,8 +799,10 @@ export default class UserService extends BaseService<User> {
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let yearRefId = requestBody.yearRefId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_roster(?,?,?,?,?,?,?)",
-                [userId, competitionId, yearRefId, roleId, matchStatus, limit, offset]);
+            let result = await this.entityManager.query(
+                "call wsa_users.usp_user_activity_roster(?,?,?,?,?,?,?)",
+                [userId, competitionId, yearRefId, roleId, matchStatus, limit, offset]
+            );
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -806,8 +821,10 @@ export default class UserService extends BaseService<User> {
             let userId = requestBody.userId;
             let competitionId = requestBody.competitionId;
             let yearRefId = requestBody.yearRefId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_activity_manager(?,?,?,?,?)",
-                [userId, competitionId, yearRefId, limit, offset]);
+            let result = await this.entityManager.query(
+                "call wsa_users.usp_user_activity_manager(?,?,?,?,?)",
+                [userId, competitionId, yearRefId, limit, offset]
+            );
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -818,14 +835,17 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
-    public async getNetSetGoRegistration(requestBody: any,sortBy: string = undefined, sortOrder: 'ASC' | 'DESC' = undefined) {
+
+    public async getNetSetGoRegistration(requestBody: any, sortBy: string = undefined, sortOrder: 'ASC' | 'DESC' = undefined) {
         try {
             let limit = requestBody.paging.limit;
             let offset = requestBody.paging.offset;
             let organisationId = requestBody.organisationId;
             let yearRefId = requestBody.yearRefId;
-            let result = await this.entityManager.query("call wsa_users.usp_get_netsetgo(?,?,?,?,?,?)",
-                [organisationId, yearRefId, limit, offset,sortBy,sortOrder]);
+            let result = await this.entityManager.query(
+                "call wsa_users.usp_get_netsetgo(?,?,?,?,?,?)",
+                [organisationId, yearRefId, limit, offset, sortBy, sortOrder]
+            );
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -836,6 +856,7 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
+
     public async userRegistrationDetails(requestBody: any): Promise<any> {
         try {
             let limit = requestBody.myRegPaging.limit;
@@ -844,8 +865,10 @@ export default class UserService extends BaseService<User> {
             let competitionId = requestBody.competitionId;
             let organisationId = requestBody.organisationId;
             let yearRefId = requestBody.yearRefId;
-            let result = await this.entityManager.query("call wsa_users.usp_user_registration_details(?,?,?,?,?,?)",
-                [limit, offset, userId, yearRefId, competitionId, organisationId]);
+            let result = await this.entityManager.query(
+                "call wsa_users.usp_user_registration_details(?,?,?,?,?,?)",
+                [limit, offset, userId, yearRefId, competitionId, organisationId]
+            );
             if (result != null) {
                 let totalCount = result[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
@@ -854,7 +877,7 @@ export default class UserService extends BaseService<User> {
                     for (let item of result[1]) {
                         let deRegisterStatus = null;
                         let deRegisterId = null;
-                        if(item.deRegisterStatusRefId) {
+                        if (item.deRegisterStatusRefId) {
                             item.deRegisterStatusRefId = JSON.parse(item.deRegisterStatusRefId);
                             deRegisterStatus = item.deRegisterStatusRefId.find(x => x).deRegisterStatus;
                             deRegisterId = item.deRegisterStatusRefId.find(x => x).deRegisterId;
@@ -864,17 +887,17 @@ export default class UserService extends BaseService<User> {
                         let alreadyDeRegistered = deRegisterStatus != null ? 1 : 0;
                         let userMap = new Map();
                         let paidByUsers = [];
-                        let transactions = item.paidByUsers!= null ? JSON.parse(item.paidByUsers) : [];
-                        (transactions || []).map((t, index) =>{
-                          let key = t.paidByUserId + "#" + t.paidBy;
-                          if(userMap.get(key) == undefined){
-                            let obj = {
-                              paidBy: t.paidBy,
-                              paidByUserId: t.paidByUserId
+                        let transactions = item.paidByUsers != null ? JSON.parse(item.paidByUsers) : [];
+                        (transactions || []).map((t, index) => {
+                            let key = t.paidByUserId + "#" + t.paidBy;
+                            if (userMap.get(key) == undefined) {
+                                let obj = {
+                                    paidBy: t.paidBy,
+                                    paidByUserId: t.paidByUserId
+                                }
+                                paidByUsers.push(obj);
+                                userMap.set(key, obj);
                             }
-                            paidByUsers.push(obj);
-                            userMap.set(key, obj);
-                          }
                         });
                         let obj = {
                             key: item.key,
@@ -895,10 +918,10 @@ export default class UserService extends BaseService<User> {
                             // feesPaid: item.feesPaid,
                             // vouchers: item.vouchers,
                             //shopPurchases: item.shopPurchases,
-                            deRegisterId : deRegisterId,
+                            deRegisterId: deRegisterId,
                             paymentStatus: paymentStatus,
                             paymentStatusFlag: item.paymentStatusFlag,
-                            expiryDate: item.expiryDate ,
+                            expiryDate: item.expiryDate,
                             compFeesPaid: item.compFeesPaid,
                             competitionEndDate: item.competitionEndDate,
                             //paymentType: item.paymentType,
@@ -943,12 +966,10 @@ export default class UserService extends BaseService<User> {
                                             ((item.positionId1 != null && item.positionId2 != null) ? ', ' : '') +
                                             (item.positionId2 != null ? item.positionId2 : '');
                                         obj.registrationForm.push(regObj);
-                                    }
-                                        // else if(i.registrationSettingsRefId == 7){
+                                        // } else if (i.registrationSettingsRefId == 7) {
                                         //     regObj.contentValue = item.lastCaptainName;
                                         //     obj.registrationForm.push(regObj);
-                                    // }
-                                    else if (i.registrationSettingsRefId == 8) {
+                                    } else if (i.registrationSettingsRefId == 8) {
                                         if (isArrayPopulated(result[3])) {
                                             let filteredFriend = result[3].filter(x => x.playerId == item.playerId && x.friendRelationshipTypeRefId == 1);
                                             if (isArrayPopulated(filteredFriend)) {
@@ -989,9 +1010,6 @@ export default class UserService extends BaseService<User> {
                         arr.push(obj);
                     }
                 }
-                // console.log('R-'.repeat(20));
-                // console.log(JSON.stringify(arr));
-                // console.log('R-'.repeat(20));
                 responseObject["registrationDetails"] = arr;
                 return responseObject;
             }
@@ -1005,14 +1023,13 @@ export default class UserService extends BaseService<User> {
             let limit = requestBody.otherRegPaging.limit;
             let offset = requestBody.otherRegPaging.offset;
             let userId = requestBody.userId;
-            let query = await this.entityManager.query("call wsa_users.usp_registration_your_details(?,?,?)",
-                        [limit, offset, userId]);
+            let query = await this.entityManager.query("call wsa_users.usp_registration_your_details(?,?,?)", [limit, offset, userId]);
 
-            if(query != null) {
+            if (query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-                if(isArrayPopulated(query[1])) {
-                    for(let item of query[1]) {
+                if (isArrayPopulated(query[1])) {
+                    for (let item of query[1]) {
                         let totalPaidFee = 0;
                         if(isArrayPopulated(item.feePaid)) {
                             let invoiceFailedStatus = (item.feePaid.find(x => x.invoiceStatus == "failed")) ? 1 : 0;
@@ -1021,25 +1038,24 @@ export default class UserService extends BaseService<User> {
                             item['transactionFailedStatus'] = transactionFailedStatus;
                             for(let fee of item.feePaid) {
                                 let total = 0;
-                                if(isArrayPopulated(fee)) {
-                                    for(let f of fee) {
+                                if (isArrayPopulated(fee)) {
+                                    for (let f of fee) {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
-                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                            - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                            - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
                                         totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                     }
-                                }
-                                else {
+                                } else {
                                     total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                                - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
-                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                        - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                        - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                 }
                             }
                         }
                         item.feePaid = feeIsNull(totalPaidFee);
-                        if(item.isInActive == 1) {
-                            let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
+                        if (item.isInActive == 1) {
+                            let parentEmailString = item.email.substr(0, item.email.lastIndexOf('.'));
                             item.email = parentEmailString.toLowerCase();
                         }
                     }
@@ -1047,8 +1063,7 @@ export default class UserService extends BaseService<User> {
                 responseObject["registrationYourDetails"] = query[1];
                 return responseObject;
             }
-        }
-        catch(err) {
+        } catch (err) {
             throw err;
         }
     }
@@ -1058,34 +1073,31 @@ export default class UserService extends BaseService<User> {
             let limit = requestBody.teamRegPaging.limit;
             let offset = requestBody.teamRegPaging.offset;
             let userId = requestBody.userId;
-            let query = await this.entityManager.query("call wsa_users.usp_registration_team_details(?,?,?)",
-                        [limit, offset, userId]);
+            let query = await this.entityManager.query("call wsa_users.usp_registration_team_details(?,?,?)", [limit, offset, userId]);
 
-            if(query != null) {
+            if (query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
                 responseObject["registrationTeamDetails"] = query[1];
                 return responseObject;
             }
-        }
-        catch(err) {
+        } catch (err) {
             throw err;
         }
     }
 
     public async childRegistrationDetails(requestBody: any): Promise<any> {
-        try{
+        try {
             let limit = requestBody.childRegPaging.limit;
             let offset = requestBody.childRegPaging.offset;
             let userId = requestBody.userId;
-            let query = await this.entityManager.query("call wsa_users.usp_registration_child_details(?,?,?)",
-                        [limit, offset, userId]);
+            let query = await this.entityManager.query("call wsa_users.usp_registration_child_details(?,?,?)", [limit, offset, userId]);
 
-            if(query != null) {
+            if (query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-                if(isArrayPopulated(query[1])) {
-                    for(let item of query[1]) {
+                if (isArrayPopulated(query[1])) {
+                    for (let item of query[1]) {
                         let totalPaidFee = 0;
                         if(isArrayPopulated(item.feePaid)) {
                             let invoiceFailedStatus = (item.feePaid.find(x => x.invoiceStatus == "failed")) ? 1 : 0;
@@ -1094,25 +1106,24 @@ export default class UserService extends BaseService<User> {
                             item['transactionFailedStatus'] = transactionFailedStatus;
                             for(let fee of item.feePaid) {
                                 let total = 0;
-                                if(isArrayPopulated(fee)) {
-                                    for(let f of fee) {
+                                if (isArrayPopulated(fee)) {
+                                    for (let f of fee) {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
-                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                            - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                            - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
                                         totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                     }
-                                }
-                                else {
+                                } else {
                                     total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                                - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
-                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                        - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                        - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                 }
                             }
                         }
                         item.feePaid = feeIsNull(totalPaidFee);
-                        if(item.isInActive == 1) {
-                            let parentEmailString = item.email.substr(0,item.email.lastIndexOf('.'));
+                        if (item.isInActive == 1) {
+                            let parentEmailString = item.email.substr(0, item.email.lastIndexOf('.'));
                             item.email = parentEmailString.toLowerCase();
                         }
                     }
@@ -1120,67 +1131,66 @@ export default class UserService extends BaseService<User> {
                 responseObject["childRegistrationDetails"] = query[1];
                 return responseObject;
             }
-        }
-        catch(error) {
+        } catch (error) {
             throw error;
         }
     }
 
     public async getTeamMembers(teamBody) {
-        try{
+        try {
             let teamId = teamBody.teamId;
             let userId = teamBody.userId;
             let limit = teamBody.teamMemberPaging.limit;
             let offset = teamBody.teamMemberPaging.offset;
             let divisionId = teamBody.competitionMembershipProductDivisionId;
 
-            let query = await this.entityManager.query(`call wsa_users.usp_registration_team_member_details(?,?,?,?,?)`,
-                        [limit,offset,userId,teamId,divisionId]);
+            let query = await this.entityManager.query(
+                `call wsa_users.usp_registration_team_member_details(?,?,?,?,?)`,
+                [limit, offset, userId, teamId, divisionId]
+            );
 
-            if(query != null) {
+            if (query != null) {
                 let totalCount = query[0].find(x => x).totalCount;
                 let responseObject = paginationData(stringTONumber(totalCount), limit, offset);
-                if(isArrayPopulated(query[1])) {
-                    for(let item of query[1]) {
+                if (isArrayPopulated(query[1])) {
+                    for (let item of query[1]) {
                         let totalPaidFee = 0;
                         let totalPendingFee = 0;
-                        //item.organisationId = item.organisationUniqueKey;
-                        if(isArrayPopulated(item.paidFee)) {
-                            for(let fee of item.paidFee) {
+                        // item.organisationId = item.organisationUniqueKey;
+                        if (isArrayPopulated(item.paidFee)) {
+                            for (let fee of item.paidFee) {
                                 let total = 0;
-                                if(isArrayPopulated(fee)) {
-                                    for(let f of fee) {
+                                if (isArrayPopulated(fee)) {
+                                    for (let f of fee) {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                                - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
-                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                            - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                            - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
                                         totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                     }
-                                }
-                                else {
+                                } else {
                                     total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount)
-                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                        - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                        - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPaidFee = feeIsNull(totalPaidFee) + feeIsNull(total);
                                 }
                             }
                         }
                         item.paidFee = round(totalPaidFee, 2);
 
-                        if(isArrayPopulated(item.pendingFee)) {
-                            for(let fee of item.pendingFee) {
+                        if (isArrayPopulated(item.pendingFee)) {
+                            for (let fee of item.pendingFee) {
                                 let total = 0;
-                                if(isArrayPopulated(fee)) {
-                                    for(let f of fee) {
+                                if (isArrayPopulated(fee)) {
+                                    for (let f of fee) {
                                         total = feeIsNull(f.feeAmount) + feeIsNull(f.gstAmount)
-                                                -feeIsNull(f.discountAmount)-feeIsNull(f.familyDiscountAmount)
-                                                - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
+                                            - feeIsNull(f.discountAmount) - feeIsNull(f.familyDiscountAmount)
+                                            - (feeIsNull(f.governmentVoucherAmount) ? feeIsNull(f.governmentVoucherAmount) : 0);
                                         totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);
                                     }
-                                }
-                                else {
+                                } else {
                                     total = feeIsNull(fee.feeAmount) + feeIsNull(fee.gstAmount)
-                                                -feeIsNull(fee.discountAmount)-feeIsNull(fee.familyDiscountAmount)
-                                                - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
+                                        - feeIsNull(fee.discountAmount) - feeIsNull(fee.familyDiscountAmount)
+                                        - (feeIsNull(fee.governmentVoucherAmount) ? feeIsNull(fee.governmentVoucherAmount) : 0);
                                     totalPendingFee = feeIsNull(totalPendingFee) + feeIsNull(total);
                                 }
                             }
@@ -1191,8 +1201,7 @@ export default class UserService extends BaseService<User> {
                 responseObject["teamMembers"] = query[1];
                 return responseObject;
             }
-        }
-        catch(error) {
+        } catch (error) {
             throw error;
         }
     }
@@ -1286,8 +1295,10 @@ export default class UserService extends BaseService<User> {
     }
 
     public async insertIntoCommunicationTrack(ctrack: CommunicationTrack) {
-        await this.entityManager.query(`insert into wsa_common.communicationTrack(id, emailId,content,subject,contactNumber,userId,entityId,communicationType,statusRefId,deliveryChannelRefId,createdBy) values(?,?,?,?,?,?,?,?,?,?,?)`,
-            [ctrack.id, ctrack.emailId, ctrack.content, ctrack.subject, ctrack.contactNumber, ctrack.userId, ctrack.entityId, ctrack.communicationType, ctrack.statusRefId, ctrack.deliveryChannelRefId, ctrack.createdBy]);
+        await this.entityManager.query(
+            `insert into wsa_common.communicationTrack(id, emailId,content,subject,contactNumber,userId,entityId,communicationType,statusRefId,deliveryChannelRefId,createdBy) values(?,?,?,?,?,?,?,?,?,?,?)`,
+            [ctrack.id, ctrack.emailId, ctrack.content, ctrack.subject, ctrack.contactNumber, ctrack.userId, ctrack.entityId, ctrack.communicationType, ctrack.statusRefId, ctrack.deliveryChannelRefId, ctrack.createdBy]
+        );
     }
 
     public async getPlayerIncident(userId: number, competitionId: string, yearId: number, offset: number, limit: number) {
@@ -1302,60 +1313,61 @@ export default class UserService extends BaseService<User> {
     public async resetTFA(userId: number) {
         return this.entityManager.createQueryBuilder(User, 'user')
             .update()
-            .set({ tfaEnabled: null , tfaSecret: null , tfaSecretUrl: null })
+            .set({ tfaEnabled: null, tfaSecret: null, tfaSecretUrl: null })
             .where('id = :userId', { userId })
             .execute();
     }
 
     public findExistingUser(data: LookForExistingUserBody) {
-      return this.entityManager.query(`
-        SELECT
-          id,
-          mobileNumber,
-          email,
-          firstName,
-          lastName
-        FROM
-          wsa_users.user 
-        WHERE (
-          (lower(firstName) = ? AND lower(lastName) = ? AND mobileNumber = ?) OR
-          (lower(firstName) = ? AND lower(lastName) = ? AND dateOfBirth = ?) OR
-          (lower(firstName) = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
-          (lower(lastName) = ? AND mobileNumber = ? AND dateOfBirth = ?)
-        )
+        return this.entityManager.query(`
+            SELECT
+              id,
+              mobileNumber,
+              email,
+              firstName,
+              lastName
+            FROM
+              wsa_users.user 
+            WHERE (
+              (lower(firstName) = ? AND lower(lastName) = ? AND mobileNumber = ?) OR
+              (lower(firstName) = ? AND lower(lastName) = ? AND dateOfBirth = ?) OR
+              (lower(firstName) = ? AND mobileNumber = ? AND dateOfBirth = ?) OR
+              (lower(lastName) = ? AND mobileNumber = ? AND dateOfBirth = ?)
+            )
         `,
-        [
-          data.firstName.toLowerCase(), data.lastName.toLowerCase(), data.mobileNumber,
-          data.firstName.toLowerCase(), data.lastName.toLowerCase(), data.dateOfBirth,
-          data.firstName.toLowerCase(), data.mobileNumber, data.dateOfBirth,
-          data.lastName.toLowerCase(), data.mobileNumber, data.dateOfBirth,
-        ],
-      );
+            [
+                data.firstName.toLowerCase(), data.lastName.toLowerCase(), data.mobileNumber,
+                data.firstName.toLowerCase(), data.lastName.toLowerCase(), data.dateOfBirth,
+                data.firstName.toLowerCase(), data.mobileNumber, data.dateOfBirth,
+                data.lastName.toLowerCase(), data.mobileNumber, data.dateOfBirth,
+            ],
+        );
     }
+
     public async getEmailAndPhoneById(userId: number) {
-      return await this.entityManager.query(`
-      SELECT email,mobileNumber
-          FROM wsa_users.user
-          WHERE id = ?
-          LIMIT 1
-          `, [userId]
-      )
+        return await this.entityManager.query(`
+            SELECT email,mobileNumber, isInActive
+                FROM wsa_users.user
+                WHERE id = ?
+                LIMIT 1
+        `, [userId])
     }
+
     public async getDigitCodeById(userId: number) {
-      return await this.entityManager.query(`
-      SELECT digit_code
-          FROM wsa_users.user
-          WHERE id = ?
-          LIMIT 1
-          `, [userId]
-      )
+        return await this.entityManager.query(`
+            SELECT digit_code
+                FROM wsa_users.user
+                WHERE id = ?
+                LIMIT 1
+        `, [userId])
     }
 
     public async findMatchesForMerging(userId: number) {
         const users = await this.entityManager.query(`
-        SELECT id, firstName, lastName, mobileNumber, email, dateOfBirth
+            SELECT id, firstName, lastName, mobileNumber, email, dateOfBirth
             FROM wsa_users.user
-            WHERE id = ?`, [userId]
+            WHERE id = ?`,
+            [userId]
         )
         const user = users[0];
 
@@ -1407,7 +1419,7 @@ export default class UserService extends BaseService<User> {
             FROM wsa.news
             WHERE toUserIds IS NOT NULL AND toUserIds <> '' AND JSON_CONTAINS(toUserIds, '${oldId}', '$')`
         );
-        newsRows.forEach(async(news: any)=>{
+        newsRows.forEach(async (news: any) => {
             const toUserIds = JSON.parse(news.toUserIds);
             const index = toUserIds.indexOf(oldId);
             toUserIds[index] = newId;
@@ -1422,7 +1434,7 @@ export default class UserService extends BaseService<User> {
             FROM wsa_common.communication
             WHERE toUserIds IS NOT NULL AND toUserIds <> '' AND JSON_CONTAINS(CONCAT('[', toUserIds, ']'), '${oldId}', '$')`
         );
-        communicationRows.forEach(async(communication: any)=>{
+        communicationRows.forEach(async (communication: any) => {
             const toUserIds = JSON.parse(communication.toUserIds);
             const index = toUserIds.indexOf(oldId);
             toUserIds[index] = newId;
@@ -1479,17 +1491,15 @@ export default class UserService extends BaseService<User> {
                 userId: parentUserId,
                 entityId: childUserId,
                 entityTypeId: 4,
-                roleId: In([9,23])
+                roleId: In([9, 23])
             }
         });
 
         return parentRoles.length > 0;
     }
 
-    public async sendAndLogSMS(toNumber: string, toUserId: number, body: string, communicationType: number,
-        entityId: number, creatorId:number) {
-            try {
-
+    public async sendAndLogSMS(toNumber: string, toUserId: number, body: string, communicationType: number, entityId: number, creatorId: number) {
+        try {
             let cTrack = new CommunicationTrack();
             cTrack.id = 0;
             cTrack.communicationType = communicationType;
@@ -1533,10 +1543,12 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    public async sendAndLogEmail(toEmail: string, toUserId: number, subject: string, htmlBody: string, password: string, communicationType: number,
-        entityId: number, creatorId:number) {
-          try {
-              console.log("~~~~sendAndLogEmail");
+    public async sendAndLogEmail(
+        toEmail: string, toUserId: number, subject: string, htmlBody: string,
+        password: string, communicationType: number, entityId: number, creatorId: number
+    ) {
+        try {
+            console.log("~~~~sendAndLogEmail");
             const transporter = nodeMailer.createTransport({
                 host: "smtp.gmail.com",
                 port: 587,
@@ -1604,10 +1616,10 @@ export default class UserService extends BaseService<User> {
         }
     }
 
-    private composeEmail(title: string, content: string, toUser: User, password: string) : string {
+    private composeEmail(title: string, content: string, toUser: User, password: string): string {
 
-        let html =
-        `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        let html = `
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml">
             <head>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -1748,66 +1760,67 @@ export default class UserService extends BaseService<User> {
                                 <tr>
                                     <td align="center" valign="top">
                                         <![endif]-->
-                                            <table cellpadding="0" cellspacing="0" border="0" align="center" class="container">`;
+                                        <table cellpadding="0" cellspacing="0" border="0" align="center" class="container">`;
 
-            if (isNotNullAndUndefined(title) && title.length > 0) {
-                let headerHtml = `<tr>
-                                    <td align="center" valign="top" class="d-container-a">
-                                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        if (isNotNullAndUndefined(title) && title.length > 0) {
+            let headerHtml = `
                                             <tr>
-                                                <td align="left" valign="top" class="d-title l-padding">
-                                                    $(title)
+                                                <td align="center" valign="top" class="d-container-a">
+                                                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td align="left" valign="top" class="d-title l-padding">
+                                                                $(title)
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>`;
+            html += headerHtml.replace('$(title)', title);
+        }
+
+        let passwordHtml = '';
+        if (isNotNullAndUndefined(password) && password.length > 0) {
+            let parentsLogin = (toUser.isInActive == 1) ? AppConstants.parentsLogin : '';
+            passwordHtml = `
+                                            <tr>
+                                                <td align="center" valign="top" class="d-b-padding-4">
+                                                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td align="left" valign="middle" class="d-usr-title">USERNAME ${parentsLogin}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="left" valign="top" class="d-usr-value m-txt">
+                                                                <strong>$(username)</strong>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="left" valign="middle" class="d-usr-title">PASSWORD</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="left" valign="top" class="d-usr-value m-txt">
+                                                                <strong>$(password)</strong>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>`;
+            passwordHtml = passwordHtml.replace('$(username)', toUser.email);
+            passwordHtml = passwordHtml.replace('$(password)', password);
+        }
+
+
+        html += ` 
+                                            <tr>
+                                                <td class="d-hello d-container-b l-padding t-padding">
+                                                    Hi $(addressee)
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="left" valign="top" class="d-container-c l-padding b-padding">
+                                                $(content)
                                                 </td>
                                             </tr>
                                         </table>
-                                    </td>
-                                </tr>`;
-                html += headerHtml.replace('$(title)', title);
-            }
-
-            let passwordHtml = '';
-            if (isNotNullAndUndefined(password) && password.length > 0) {
-                let parentsLogin = (toUser.isInActive == 1) ? AppConstants.parentsLogin : '';
-                passwordHtml =  `
-                                                    <tr>
-                                                        <td align="center" valign="top" class="d-b-padding-4">
-                                                            <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                                                                <tr>
-                                                                    <td align="left" valign="middle" class="d-usr-title">USERNAME ${parentsLogin}</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td align="left" valign="top" class="d-usr-value m-txt">
-                                                                        <strong>$(username)</strong>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td align="left" valign="middle" class="d-usr-title">PASSWORD</td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td align="left" valign="top" class="d-usr-value m-txt">
-                                                                        <strong>$(password)</strong>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                        </td>
-                                                    </tr>`;
-                passwordHtml = passwordHtml.replace('$(username)', toUser.email);
-                passwordHtml = passwordHtml.replace('$(password)', password);
-            }
-
-
-            html += ` 
-                                                    <tr>
-                                                    <td class="d-hello d-container-b l-padding t-padding">
-                                                        Hi $(addressee)
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td align="left" valign="top" class="d-container-c l-padding b-padding">
-                                                    $(content)
-                                                    </td>
-                                                </tr>
-                                            </table>
                                         <!--[if (gte mso 9)|(IE)]>
                                     </td>
                                 </tr>
@@ -1824,6 +1837,5 @@ export default class UserService extends BaseService<User> {
         html = html.replace(EmailConstants.credentials, passwordHtml);
 
         return html;
-
     }
 }

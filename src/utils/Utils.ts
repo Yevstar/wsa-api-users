@@ -90,13 +90,13 @@ export function stringTOFloatNumberReg(checkString: string | number): number {
 }
 
 export function feeIsNull(fee: string | number): number {
-    return ((fee === null||fee===undefined) ? 0 : (stringTOFloatNumberReg(fee)));
+    return ((fee === null || fee === undefined) ? 0 : (stringTOFloatNumberReg(fee)));
 }
-
 
 export function stringTONumber(checkString: string | number): number {
     return typeof checkString === 'string' ? parseInt(checkString) : checkString;
 }
+
 export function paginationData(totalCount: number, LIMIT: number, OFFSET: number) {
     let totalPages = Math.ceil(totalCount / LIMIT);
     let currentPage = Math.floor(OFFSET / LIMIT);
@@ -112,6 +112,7 @@ export function paginationData(totalCount: number, LIMIT: number, OFFSET: number
         }
     }
 }
+
 export function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -131,4 +132,13 @@ export function decrypt(data) {
     var dec = decipher.update(data, 'hex', 'utf8')
     dec += decipher.final('utf8');
     return dec;
+}
+
+export function getParentEmail(email: string): string {
+    let parentEmail = email.split(".");
+    let parentEmailString = parentEmail[0];
+    for (let n = 1; n < parentEmail.length - 1; n++) {
+        parentEmailString = parentEmailString + "." + parentEmail[n];
+    }
+    return parentEmailString;
 }

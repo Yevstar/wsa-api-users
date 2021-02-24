@@ -11,16 +11,16 @@ import {
     Res,
     UseBefore
 } from 'routing-controllers';
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import * as bodyParser from 'body-parser';
 import uuid from 'uuid/v1';
 import nodeMailer from 'nodemailer';
 import twilio from 'twilio';
 
-import {logger} from '../logger';
-import {md5} from '../utils/Utils';
-import {BaseController} from './BaseController';
-import {User} from "../models/User";
+import { logger } from '../logger';
+import { getParentEmail, md5 } from '../utils/Utils';
+import { BaseController } from './BaseController';
+import { User } from "../models/User";
 import AppConstants from "../constants/AppConstants";
 import { CommunicationTrack } from '../models/CommunicationTrack';
 
@@ -86,25 +86,25 @@ export class PasswordController extends BaseController {
 
                 const mailOptions = {
                     from: {
-                        name: process.env.MAIL_FROM_NAME ,
+                        name: process.env.MAIL_FROM_NAME,
                         address: process.env.MAIL_FROM_ADDRESS
                     },
-                    to: user.email.toLowerCase(),
+                    to: (user.isInActive === 1 ? getParentEmail(user.email) : user.email).toLowerCase(),
                     replyTo: "donotreply@worldsportaction.com",
                     subject: 'Reset your password.',
                     html: `Click here to reset your password: <a href="${url}">${url}</a>`
                 };
-                if(Number(process.env.SOURCE_MAIL) == 1){
-                    mailOptions.html = ' To: '+mailOptions.to + '<br><br>'+ mailOptions.html
+                if (Number(process.env.SOURCE_MAIL) == 1) {
+                    mailOptions.html = ' To: ' + mailOptions.to + '<br><br>' + mailOptions.html
                     mailOptions.to = process.env.TEMP_DEV_EMAIL
                 }
                 // Send the mail via nodeMailer
 
-                try{
-                    cTrack.id= 0;
+                try {
+                    cTrack.id = 0;
 
                     cTrack.communicationType = 6;
-                   // cTrack.contactNumber = user.mobileNumber
+                    // cTrack.contactNumber = user.mobileNumber
                     cTrack.entityId = user.id;
                     cTrack.deliveryChannelRefId = 1;
                     cTrack.emailId = user.email;
@@ -112,17 +112,16 @@ export class PasswordController extends BaseController {
                     cTrack.subject = mailOptions.subject;
 
                     cTrack.createdBy = user.id;
-                await transporter.sendMail(mailOptions, (err, info) => {
-                    logger.info(`Password - forgot : info ${info} Error ${err}`);
-                    return Promise.resolve();
-                });
-                cTrack.content = mailOptions.html;
-            }
-            catch(error){
-                cTrack.statusRefId = 2;
-            }
-            //insert to
-            await this.communicationTrackService.createOrUpdate(cTrack);
+                    await transporter.sendMail(mailOptions, (err, info) => {
+                        logger.info(`Password - forgot : info ${info} Error ${err}`);
+                        return Promise.resolve();
+                    });
+                    cTrack.content = mailOptions.html;
+                } catch (error) {
+                    cTrack.statusRefId = 2;
+                }
+                //insert to
+                await this.communicationTrackService.createOrUpdate(cTrack);
             } else {
                 // Send sms
                 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -157,11 +156,11 @@ export class PasswordController extends BaseController {
     @Get('/change')
     @Render('password/change.ejs')
     async change(@QueryParam('token') token: string) {
-        return {token};
+        return { token };
     }
 
     @Post('/change')
-    @UseBefore(bodyParser.urlencoded({extended: true}))
+    @UseBefore(bodyParser.urlencoded({ extended: true }))
     async postChange(
         @BodyParam('token') token: string,
         @BodyParam('password') password: string,
@@ -182,7 +181,7 @@ export class PasswordController extends BaseController {
         }
 
         if (!password || password === '') {
-            return response.render('password/change.ejs', {token, error: 'Please enter a new password.'});
+            return response.render('password/change.ejs', { token, error: 'Please enter a new password.' });
         }
 
         if (password.length < 8) {
