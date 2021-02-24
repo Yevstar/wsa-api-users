@@ -1015,6 +1015,10 @@ export default class UserService extends BaseService<User> {
                     for(let item of query[1]) {
                         let totalPaidFee = 0;
                         if(isArrayPopulated(item.feePaid)) {
+                            let invoiceFailedStatus = (item.feePaid.find(x => x.invoiceStatus == "failed")) ? 1 : 0;
+                            let transactionFailedStatus =  (item.feePaid.find(x => x.transactionStatus == 6)) ? 1 : 0;
+                            item['invoiceFailedStatus'] = invoiceFailedStatus;
+                            item['transactionFailedStatus'] = transactionFailedStatus;
                             for(let fee of item.feePaid) {
                                 let total = 0;
                                 if(isArrayPopulated(fee)) {
@@ -1084,6 +1088,10 @@ export default class UserService extends BaseService<User> {
                     for(let item of query[1]) {
                         let totalPaidFee = 0;
                         if(isArrayPopulated(item.feePaid)) {
+                            let invoiceFailedStatus = (item.feePaid.find(x => x.invoiceStatus == "failed")) ? 1 : 0;
+                            let transactionFailedStatus =  (item.feePaid.find(x => x.transactionStatus == 6)) ? 1 : 0;
+                            item['invoiceFailedStatus'] = invoiceFailedStatus;
+                            item['transactionFailedStatus'] = transactionFailedStatus;
                             for(let fee of item.feePaid) {
                                 let total = 0;
                                 if(isArrayPopulated(fee)) {
