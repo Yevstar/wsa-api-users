@@ -765,6 +765,49 @@ export class UserController extends BaseController {
     }
 
     @Authorized()
+    @Post('/export/referFriends')
+    async exportUserReferFriend(
+        @Body() requestBody: any,
+        @HeaderParam("authorization") user: User,
+        @Res() response: Response,
+        @QueryParam('sortBy') sortBy?: string,
+        @QueryParam('sortOrder') sortOrder?: "ASC" | "DESC"
+    ) {
+        const res = await this.userService.referFriendExportData(requestBody, sortBy, sortOrder);
+        let friends = [];
+        if (isArrayPopulated(res)) {
+            friends = res.map(e => ({
+                "User Id": e.userId,
+                "Friend Name": e.name,
+                "Friend Email": e.email,
+                "Friend Phone": e.mobileNumber,
+                "Friend Status": e.friendStatus,
+                "Affiliate Name": e.affiliateName,
+                "Competition Name": e.competitionName,
+                "Division Name": e.divisionName,
+            }));
+        } else {
+            friends.push({
+                "User Id": "",
+                "Friend Name": "",
+                "Friend Email": "",
+                "Friend Phone": "",
+                "Friend Status": "",
+                "Affiliate Name": "",
+                "Competition Name": "",
+                "Division Name": "",
+            });
+        }
+
+        response.setHeader('Content-disposition', 'attachment; filename=friend-list.csv');
+        response.setHeader('content-type', 'text/csv');
+        fastcsv.write(friends, {headers: true})
+            .on("finish", function () {
+            })
+            .pipe(response);
+    }
+
+    @Authorized()
     @Post('/dashboard/referfriend')
     async referFriendDashboard(
         @Body() requestBody: any,
