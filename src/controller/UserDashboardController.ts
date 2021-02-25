@@ -43,6 +43,26 @@ export class UserDashboardController extends BaseController {
     }
 
     @Authorized()
+    @Post('/user/dashboard/textual/spectatorCount')
+    async userDashboardTextualSpectatorCount(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() requestBody: any,
+        @Res() response: Response) {
+        try {
+            if (requestBody != null) {
+                const spectatorCount = await this.userDashboardService.userDashboardTextualSpectatorCount(requestBody, currentUser.id);
+                console.info(spectatorCount);
+                return response.status(200).send(spectatorCount);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in dashboard textual`+error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+
+    @Authorized()
     @Get('/user/personaldetails')
     async userPersonalDetails(
         @QueryParam('userId') userId: number,

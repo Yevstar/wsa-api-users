@@ -145,14 +145,29 @@ export default class UserDashboardService extends BaseService<User> {
                     let userCount1 = result[5].find(x => x.moduleId == 2);
                     let totalUserCount = (userCount != null ? Number(userCount.counts) : 0) + (userCount1 != null ? Number(userCount1.counts) : 0)
                     responseObject["counts"]["noOfUsers"] = totalCount;
-                   // responseObject["counts"]["noOfRegisteredUsers"] = result[6][0].regCount;
-                     responseObject["counts"]["noOfRegisteredUsers"] = (userCount1!= null ? Number(userCount1.counts) : 0);
+                    // responseObject["counts"]["noOfRegisteredUsers"] = result[6][0].regCount;
+                    responseObject["counts"]["noOfRegisteredUsers"] = (userCount1!= null ? Number(userCount1.counts) : 0);
                 }
 
                 return responseObject;
             } else {
                 return [];
             }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public async userDashboardTextualSpectatorCount(requestBody: any, userId: any) {
+        try {
+            const organisationId = requestBody.organisationId;
+            const result = await this.entityManager.query("call wsa_users.usp_user_dashboard_spectator_count(?)", [organisationId])
+            if (!!result) {
+                return {
+                    spectatorCount: result[0][0].spectatorCount
+                };
+            }
+            return [];
         } catch (error) {
             throw error;
         }
