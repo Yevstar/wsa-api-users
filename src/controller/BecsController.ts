@@ -2,7 +2,7 @@ import {Authorized, Body, Delete, Get, HeaderParam, JsonController, Param, Post,
 import {BaseController} from "./BaseController";
 import Stripe from 'stripe';
 import { User } from '../models/User';
-import { Organisation } from 'src/models/Organisation';
+import { Organisation } from '../models/Organisation';
 
 
 @JsonController('/becs')
