@@ -664,6 +664,7 @@ export default class UserService extends BaseService<User> {
                                 emergencyFirstName: item.emergencyFirstName,
                                 emergencyLastName: item.emergencyLastName,
                                 emergencyContactNumber: item.emergencyContactNumber,
+                                emergencyContactRelationshipId: item.emergencyContactRelationshipId,
                                 languages: item.languages,
                                 nationalityRefId: item.nationalityRefId,
                                 nationalityName: item.nationalityName,
@@ -890,16 +891,9 @@ export default class UserService extends BaseService<User> {
                 let arr = [];
                 if (isArrayPopulated(result[1])) {
                     for (let item of result[1]) {
-                        let deRegisterStatus = null;
-                        let deRegisterId = null;
-                        if (item.deRegisterStatusRefId) {
-                            item.deRegisterStatusRefId = JSON.parse(item.deRegisterStatusRefId);
-                            deRegisterStatus = item.deRegisterStatusRefId.find(x => x).deRegisterStatus;
-                            deRegisterId = item.deRegisterStatusRefId.find(x => x).deRegisterId;
-                        }
-                        console.log(`!!!!!${deRegisterStatus}&&&&&&&${deRegisterId}`);
-                        let paymentStatus = deRegisterStatus != null ? deRegisterStatus : item.paymentStatus;
-                        let alreadyDeRegistered = deRegisterStatus != null ? 1 : 0;
+                        let deRegisterStatusRefId = item.deRegisterStatusRefId;
+                        let paymentStatus = deRegisterStatusRefId != null ? deRegisterStatusRefId : item.paymentStatus;
+                        let alreadyDeRegistered = deRegisterStatusRefId != null ? 1 : 0;
                         let userMap = new Map();
                         let paidByUsers = [];
                         let transactions = item.paidByUsers != null ? JSON.parse(item.paidByUsers) : [];

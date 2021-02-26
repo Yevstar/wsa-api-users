@@ -809,6 +809,7 @@ export class UserDashboardController extends BaseController {
                 user.emergencyFirstName = requestBody.emergencyFirstName;
                 user.emergencyLastName = requestBody.emergencyLastName;
                 user.emergencyContactNumber = requestBody.emergencyContactNumber;
+                user.emergencyContactRelationshipId = requestBody.emergencyContactRelationshipId;
                 await this.userService.createOrUpdate(user);
                 return response.status(200).send({ message: "Successfully updated" })
             } else if (section == 'other') {

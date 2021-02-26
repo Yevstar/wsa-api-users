@@ -93,6 +93,10 @@ export class User extends BaseEntity {
     @Column()
     emergencyContactNumber: string;
 
+    @IsNumber()
+    @Column()
+    emergencyContactRelationshipId: number;
+
     @IsString()
     @Column()
     postalCode: string;
