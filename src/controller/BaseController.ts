@@ -21,6 +21,10 @@ import CharityService from '../services/CharityService';
 import CommunicationTrackService from '../services/CommunicationTrackService';
 import CommunicationService from "../services/CommunicationService";
 import {TermsAndConditionsService} from "../services/TermsAndConditionsService";
+import NonPlayerService from '../services/NonPlayerService';
+import CompetitionOrganisationService from '../services/CompetitionOrganisationService';
+import CompetitionService from '../services/CompetitionService';
+import CompetitionLSService from '../services/CompetitionLsService';
 
 export class BaseController {
 
@@ -77,6 +81,18 @@ export class BaseController {
 
     @Inject()
     protected communicationService: CommunicationService;
+
+    @Inject()
+    protected nonPlayerService: NonPlayerService;
+
+    @Inject()
+    protected competitionOrganisationService: CompetitionOrganisationService;
+
+    @Inject()
+    protected competitionService: CompetitionService;
+
+    @Inject()
+    protected competitionLSService: CompetitionLSService;
 
     protected async updateFirebaseData(user: User, password: string) {
         user.password = password;
