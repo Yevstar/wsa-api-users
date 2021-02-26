@@ -24,7 +24,7 @@ import {TermsAndConditionsService} from "../services/TermsAndConditionsService";
 import NonPlayerService from '../services/NonPlayerService';
 import CompetitionOrganisationService from '../services/CompetitionOrganisationService';
 import CompetitionService from '../services/CompetitionService';
-import CompetitionLSService from '../services/CompetitionLsService';
+import CompetitionLSService from '../services/CompetitionLSService';
 
 export class BaseController {
 
