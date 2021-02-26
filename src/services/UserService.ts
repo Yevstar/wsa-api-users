@@ -31,9 +31,9 @@ import {
 } from "../utils/Utils";
 import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
-import { CompetitionOrganisation } from 'src/models/CompetitionOrganisation';
-import { CompetitionLS } from 'src/models/CompetitionLS';
-import { Competition } from 'src/models/Competition';
+import { CompetitionOrganisation } from '../models/CompetitionOrganisation';
+import { CompetitionLS } from '../models/CompetitionLS';
+import { Competition } from '../models/Competition';
 
 @Service()
 export default class UserService extends BaseService<User> {
