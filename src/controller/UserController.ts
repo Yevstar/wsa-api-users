@@ -778,7 +778,7 @@ export class UserController extends BaseController {
         if (isArrayPopulated(res)) {
             friends = res.map(e => ({
                 "User Id": e.userId,
-                "Friend Name": e.name,
+                "Friend Name": e.friendName,
                 "Friend Email": e.email,
                 "Friend Phone": e.mobileNumber,
                 "Friend Status": e.friendStatus,
