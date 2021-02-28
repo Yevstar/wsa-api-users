@@ -424,7 +424,7 @@ export default class UserService extends BaseService<User> {
             let ids = sec.roleIds;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
                  .leftJoin(UserRoleEntity, 'ure1','ure1.userId = u.id and ure.roleId = r.id and ure.entityTypeId = :compOrgEntityType',{compOrgEntityType: EntityType.COMPETITION_ORGANISATION} )
-                 .leftJoin(CompetitionOrganisation,'co', 'co.id = ure1.entityId and deleted_at is null')
+                 .leftJoin(CompetitionOrganisation,'co', 'co.id = ure1.entityId and co.deleted_at is null')
                  .leftJoin(CompetitionLS,'cl', 'cl.id = co.competitionId and cl.deleted_at is null')
                  .leftJoin(Competition,'c','c.competitionUniqueKey = cl.uniqueKey and c.isDeleted = 0')
                  .leftJoin(NonPlayer,'np', 'np.competitionId = c.id and np.userId = u.id and np.isDeleted = 0')
