@@ -70,43 +70,7 @@ async function connect(): Promise<Connection[]> {
         // logger: "file"
     });
 
-    const competitionDatabase = Object.assign({
-        name: process.env.MYSQL_DATABASE_COMP,
-        type: "mysql",  
-        database: process.env.MYSQL_DATABASE_COMP,
-        host: process.env.MYSQL_HOST,
-        port: process.env.MYSQL_PORT,
-        username: process.env.MYSQL_USER,
-        password: process.env.MYSQL_PASSWORD,
-        entities: [
-            __dirname + "/models/registrations/*",
-            __dirname + "/models/*",
-            __dirname + "/models/security/*",
-            __dirname + "/models/views/*"
-        ],
-        namingStrategy: new NamingStrategy(),
-        // logger: "file"
-    });
-
-    const wsaDatabase = Object.assign({
-        type: "mysql",  
-        name: process.env.MYSQL_DATABASE_WSA,
-        database: process.env.MYSQL_DATABASE_WSA,
-        host: process.env.MYSQL_HOST,
-        port: process.env.MYSQL_PORT,
-        username: process.env.MYSQL_USER,
-        password: process.env.MYSQL_PASSWORD,
-        entities: [
-            __dirname + "/models/*",
-            __dirname + "/models/livescores/*",
-            __dirname + "/models/security/*",
-            __dirname + "/models/views/*"
-        ],
-        namingStrategy: new NamingStrategy(),
-        // logger: "file"
-    });
-
-    const ALL_DATABASES = [usersDatabase, registrationDatabase, commonDatabse, competitionDatabase, wsaDatabase];
+    const ALL_DATABASES = [usersDatabase, registrationDatabase, commonDatabse];
 
     useContainer(Container)
     connection = await createConnections(ALL_DATABASES);

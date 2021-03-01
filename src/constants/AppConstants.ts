@@ -36,8 +36,7 @@ const AppConstants = {
     PARENT_UNLINKED: 23,
     PARENT_LINKED: 9,
     parentsLogin: '(Parent`s login)',
-    appName: '{{appName}}',
-    deregisterStatus: 3
+    appName: '{{appName}}'
 };
 
 export default AppConstants;

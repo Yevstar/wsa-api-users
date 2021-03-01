@@ -2,7 +2,6 @@ import { round } from 'lodash';
 import nodeMailer from "nodemailer";
 import QRcode from "qrcode";
 import speakeasy from "speakeasy";
-import { NonPlayer } from '../models/NonPlayer';
 import twilio from 'twilio';
 import { Inject, Service } from "typedi";
 import { Brackets, In } from "typeorm-plus";
@@ -31,10 +30,6 @@ import {
 } from "../utils/Utils";
 import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
-import { CompetitionOrganisation } from '../models/CompetitionOrganisation';
-import { CompetitionLS } from '../models/CompetitionLS';
-import { Competition } from '../models/Competition';
-
 @Service()
 export default class UserService extends BaseService<User> {
 
@@ -423,13 +418,7 @@ export default class UserService extends BaseService<User> {
         if (isArrayPopulated(sec.roleIds)) {
             let ids = sec.roleIds;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
-                 .leftJoin(UserRoleEntity, 'ure1','ure1.userId = u.id and ure.roleId = r.id and ure.entityTypeId = :compOrgEntityType',{compOrgEntityType: EntityType.COMPETITION_ORGANISATION} )
-                 .leftJoin(CompetitionOrganisation,'co', 'co.id = ure1.entityId and co.deleted_at is null')
-                 .leftJoin(CompetitionLS,'cl', 'cl.id = co.competitionId and cl.deleted_at is null')
-                 .leftJoin(Competition,'c','c.competitionUniqueKey = cl.uniqueKey and c.isDeleted = 0')
-                 .leftJoin(NonPlayer,'np', 'np.competitionId = c.id and np.userId = u.id and np.isDeleted = 0')
-                .andWhere('r.id in (:ids)', { ids })
-                .andWhere('case when np.id is not null then np.statusRefId != :deregisterStatus else 1 end',{deregisterStatus: AppConstants.deregisterStatus});
+                 .andWhere('r.id in (:ids)', { ids });
                 
         }
 
