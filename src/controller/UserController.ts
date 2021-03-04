@@ -1239,12 +1239,14 @@ export class UserController extends BaseController {
                 if (newUser) {
                     // does user in db with same email address
                     let userDb = await this.userService.findByEmail(parentUser.email);
-                    if (userDb && (validParentUser.firstName.toLowerCase().trim() !== userDb.firstName.toLowerCase().trim() ||
+                    if (!!userDb && (validParentUser.firstName.toLowerCase().trim() !== userDb.firstName.toLowerCase().trim() ||
                         validParentUser.lastName.toLowerCase().trim() !== userDb.lastName.toLowerCase().trim())) {
                         return response.status(404).send({ 
                             errorCode: 7,
                             message: 'A user with this email already exists. Please select the matching user.'
                         });
+                    } else if (!!userDb) {
+                        validParentUser.id = userDb.id;
                     } else {
                         // create new user
                         validParentUser.createdBy = user.id;
