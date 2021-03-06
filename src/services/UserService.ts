@@ -443,10 +443,8 @@ export default class UserService extends BaseService<User> {
         }
 
         if (userName) {
-            query.andWhere(new Brackets(qb => {
-                qb.andWhere('LOWER(u.firstName) like :query', { query: `${userName.toLowerCase()}%` })
-                    .orWhere('LOWER(u.lastName) like :query', { query: `${userName.toLowerCase()}%` });
-            }));
+            query.andWhere('LOWER(u.firstName) like :query', { query: `${userName.toLowerCase()}%` })
+                .orWhere('LOWER(u.lastName) like :query', { query: `${userName.toLowerCase()}%` });
         }
 
         if (sortBy) {
