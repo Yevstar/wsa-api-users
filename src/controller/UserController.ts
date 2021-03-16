@@ -353,7 +353,9 @@ export class UserController extends BaseController {
         @QueryParam('sortOrder', { required: false }) sortOrder?: "ASC" | "DESC",
         @QueryParam('offset') offset?: string,
         @QueryParam('limit') limit?: string,
-        @QueryParam('needUREs') needUREs: boolean = false
+        @QueryParam('needUREs') needUREs: boolean = false,
+        @QueryParam('organisationId') organisationId: number = null,
+        @QueryParam('competitionId') competitionId: number = null,
     ) {
         if (!isObjectNotNullAndUndefined(roleId) ||
             !isObjectNotNullAndUndefined(entityTypeId) ||
@@ -375,7 +377,10 @@ export class UserController extends BaseController {
             sortOrder,
             offset,
             limit,
-            needUREs
+            needUREs,
+            false,
+            organisationId,
+            competitionId,
         );
     }
 
@@ -392,7 +397,9 @@ export class UserController extends BaseController {
         @QueryParam('offset') offset?: string,
         @QueryParam('limit') limit?: string,
         @QueryParam('needUREs') needUREs: boolean = false,
-        @QueryParam('individualLinkedEntityRequired') individualLinkedEntityRequired: boolean = false
+        @QueryParam('individualLinkedEntityRequired') individualLinkedEntityRequired: boolean = false,
+        @QueryParam('organisationId') organisationId: number = null,
+        @QueryParam('competitionId') competitionId: number = null,
     ) {
         if (!isArrayPopulated(roleIds) ||
             !isObjectNotNullAndUndefined(entityTypeId) ||

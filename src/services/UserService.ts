@@ -30,11 +30,15 @@ import {
 } from "../utils/Utils";
 import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
+import HelperService from "./HelperService";
 @Service()
 export default class UserService extends BaseService<User> {
 
     @Inject()
     userRoleEntityService: UserRoleEntityService;
+
+    @Inject()
+    helperService: HelperService;
 
     modelName(): string {
         return User.name;
@@ -373,7 +377,9 @@ export default class UserService extends BaseService<User> {
         basedOnAvailability: boolean = false,
         startTime: Date = undefined,
         endTime: Date = undefined,
-        basedOnLinkedEntities: boolean = true
+        basedOnLinkedEntities: boolean = true,
+        competitionId: number = null,
+        organisationId: number = null,
     ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select([
@@ -406,7 +412,24 @@ export default class UserService extends BaseService<User> {
             .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId');
         if (basedOnLinkedEntities) {
             query.innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId')
-                .leftJoin(Team, 'team', '(team.id = le.linkedEntityId and le.linkedEntityTypeId = :teamEntityId)', { teamEntityId: EntityType.TEAM });
+                .leftJoin(Team, 'team', '(team.id = le.linkedEntityId and le.linkedEntityTypeId = :teamEntityId)', { teamEntityId: EntityType.TEAM })
+
+            let isCompetitionOrganiser = true;
+            if (competitionId && organisationId) {
+                isCompetitionOrganiser = await this.helperService.isCompetitionOrganiser(organisationId, competitionId);
+            }
+
+            if (isCompetitionOrganiser)
+                query
+                .leftJoin(
+                    'wsa.competitionOrganisation',
+                    'compOrg',
+                    '(compOrg.competitionId = :competitionId and compOrg.orgId = :organisationId and compOrg.deleted_at is null)',
+                    {competitionId, organisationId}
+                )
+                .leftJoin(UserRoleEntity, 'team_ure', '(team_ure.entityId = team.id and team_ure.entityTypeId = :compOrgEntityTypeId)', { compOrgEntityTypeId: EntityType.COMPETITION_ORGANISATION })
+
+        .where('compOrg.id is not null');
         }
 
         if (isObjectNotNullAndUndefined(sec) && isObjectNotNullAndUndefined(sec.functionId)) {
