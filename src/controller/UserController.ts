@@ -366,7 +366,6 @@ export class UserController extends BaseController {
                 message: `Required parameters not filled`
             });
         }
-
         return await this.loadUserByRoles(
             [roleId],
             entityTypeId,
@@ -420,9 +419,14 @@ export class UserController extends BaseController {
             sortOrder,
             offset,
             limit,
-            individualLinkedEntityRequired
+            individualLinkedEntityRequired,
+            false,
+            undefined,
+            undefined,
+            true,
+            competitionId,
+            organisationId,
         );
-
         return await this.getUsersByRoles(
             result,
             roleIds,

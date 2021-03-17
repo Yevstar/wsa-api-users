@@ -31,6 +31,7 @@ import {
 import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
 import HelperService from "./HelperService";
+import {CompetitionOrganisation} from "../models/CompetitionOrganisation";
 @Service()
 export default class UserService extends BaseService<User> {
 
@@ -412,24 +413,7 @@ export default class UserService extends BaseService<User> {
             .innerJoin(RoleFunction, 'fr', 'fr.roleId = ure.roleId');
         if (basedOnLinkedEntities) {
             query.innerJoin(LinkedEntities, 'le', 'le.linkedEntityTypeId = ure.entityTypeId AND le.linkedEntityId = ure.entityId')
-                .leftJoin(Team, 'team', '(team.id = le.linkedEntityId and le.linkedEntityTypeId = :teamEntityId)', { teamEntityId: EntityType.TEAM })
-
-            let isCompetitionOrganiser = true;
-            if (competitionId && organisationId) {
-                isCompetitionOrganiser = await this.helperService.isCompetitionOrganiser(organisationId, competitionId);
-            }
-
-            if (isCompetitionOrganiser)
-                query
-                .leftJoin(
-                    'wsa.competitionOrganisation',
-                    'compOrg',
-                    '(compOrg.competitionId = :competitionId and compOrg.orgId = :organisationId and compOrg.deleted_at is null)',
-                    {competitionId, organisationId}
-                )
-                .leftJoin(UserRoleEntity, 'team_ure', '(team_ure.entityId = team.id and team_ure.entityTypeId = :compOrgEntityTypeId)', { compOrgEntityTypeId: EntityType.COMPETITION_ORGANISATION })
-
-        .where('compOrg.id is not null');
+                .leftJoin(Team, 'team', '(team.id = le.linkedEntityId and le.linkedEntityTypeId = :teamEntityId)', { teamEntityId: EntityType.TEAM });
         }
 
         if (isObjectNotNullAndUndefined(sec) && isObjectNotNullAndUndefined(sec.functionId)) {
@@ -508,16 +492,48 @@ export default class UserService extends BaseService<User> {
         const OFFSET = stringTONumber(offset);
         const LIMIT = stringTONumber(limit);
 
+        let isCompetitionOrganiser = true;
+        if (competitionId && organisationId) {
+            isCompetitionOrganiser = await this.helperService.isCompetitionOrganiser(organisationId, competitionId);
+        }
+        const compOrg = await this.entityManager.createQueryBuilder(CompetitionOrganisation, 'compOrg')
+            .where(
+                'compOrg.competitionId = :competitionId and compOrg.orgId = :organisationId',
+                {competitionId, organisationId},
+            )
+            .getOne();
+        const compOrgId = compOrg ? compOrg.id : null;
+
+
         if (offset && limit) {
-            const userData = await query.offset(OFFSET).limit(LIMIT).getRawMany();
+            const userData = await query.offset(OFFSET).limit(LIMIT).getRawMany() as RawUserByRole[];
             const userCount = await query.getCount();
+            userData.forEach(user => {
+                user.linkedEntity = this.filterLinkedEntityByOrganisationRole(user.linkedEntity, isCompetitionOrganiser, compOrgId);
+            });
             return { userCount, userData }
         } else {
             const userCount = null;
-            const userData = await query.getRawMany();
+            const userData = await query.getRawMany() as RawUserByRole[];
+            userData.forEach(user => {
+                user.linkedEntity = this.filterLinkedEntityByOrganisationRole(user.linkedEntity, isCompetitionOrganiser, compOrgId);
+            });
             return { userCount, userData }
         }
 
+    }
+
+    protected filterLinkedEntityByOrganisationRole(stringifiedLinkedEntity: string, isCompetitionOrganiser: boolean, compOrgId: number = null) {
+        if (isCompetitionOrganiser) {
+            return stringifiedLinkedEntity;
+        }
+
+        let linkedEntity = JSON.parse(stringifiedLinkedEntity);
+        if (!Array.isArray(linkedEntity)) {
+            linkedEntity = linkedEntity ? [linkedEntity] : [];
+        }
+
+        return JSON.stringify(linkedEntity.filter(entity => entity.competitionOrganisationId === compOrgId));
     }
 
     public async sentMail(templateObj, OrganisationName, receiverData, password, entityId, userId) {
@@ -1898,3 +1914,8 @@ export default class UserService extends BaseService<User> {
         return html;
     }
 }
+
+interface RawUserByRole {
+    linkedEntity: string;
+}
+
