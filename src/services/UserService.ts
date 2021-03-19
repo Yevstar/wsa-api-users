@@ -32,6 +32,8 @@ import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
 import aws from 'aws-sdk';
 
+import HelperService from "./HelperService";
+import {CompetitionOrganisation} from "../models/CompetitionOrganisation";
 @Service()
 export default class UserService extends BaseService<User> {
     s3: aws.S3;
@@ -47,6 +49,9 @@ export default class UserService extends BaseService<User> {
 
     @Inject()
     userRoleEntityService: UserRoleEntityService;
+
+    @Inject()
+    helperService: HelperService;
 
     modelName(): string {
         return User.name;
@@ -385,7 +390,9 @@ export default class UserService extends BaseService<User> {
         basedOnAvailability: boolean = false,
         startTime: Date = undefined,
         endTime: Date = undefined,
-        basedOnLinkedEntities: boolean = true
+        basedOnLinkedEntities: boolean = true,
+        competitionId: number = null,
+        organisationId: number = null,
     ): Promise<any> {
         let query = this.entityManager.createQueryBuilder(User, 'u')
             .select([
@@ -455,10 +462,7 @@ export default class UserService extends BaseService<User> {
         }
 
         if (userName) {
-            query.andWhere(new Brackets(qb => {
-                qb.andWhere('LOWER(u.firstName) like :query', { query: `${userName.toLowerCase()}%` })
-                    .orWhere('LOWER(u.lastName) like :query', { query: `${userName.toLowerCase()}%` });
-            }));
+            query.andWhere('LOWER(CONCAT(u.firstName, " ", u.lastName)) like :query', { query: `%${userName.toLowerCase()}%` });
         }
 
         if (sortBy) {
@@ -497,16 +501,48 @@ export default class UserService extends BaseService<User> {
         const OFFSET = stringTONumber(offset);
         const LIMIT = stringTONumber(limit);
 
+        let isCompetitionOrganiser = true;
+        if (competitionId && organisationId) {
+            isCompetitionOrganiser = await this.helperService.isCompetitionOrganiser(organisationId, competitionId);
+        }
+        const compOrg = await this.entityManager.createQueryBuilder(CompetitionOrganisation, 'compOrg')
+            .where(
+                'compOrg.competitionId = :competitionId and compOrg.orgId = :organisationId',
+                {competitionId, organisationId},
+            )
+            .getOne();
+        const compOrgId = compOrg ? compOrg.id : null;
+
+
         if (offset && limit) {
-            const userData = await query.offset(OFFSET).limit(LIMIT).getRawMany();
+            const userData = await query.offset(OFFSET).limit(LIMIT).getRawMany() as RawUserByRole[];
             const userCount = await query.getCount();
+            userData.forEach(user => {
+                user.linkedEntity = this.filterLinkedEntityByOrganisationRole(user.linkedEntity, isCompetitionOrganiser, compOrgId);
+            });
             return { userCount, userData }
         } else {
             const userCount = null;
-            const userData = await query.getRawMany();
+            const userData = await query.getRawMany() as RawUserByRole[];
+            userData.forEach(user => {
+                user.linkedEntity = this.filterLinkedEntityByOrganisationRole(user.linkedEntity, isCompetitionOrganiser, compOrgId);
+            });
             return { userCount, userData }
         }
 
+    }
+
+    protected filterLinkedEntityByOrganisationRole(stringifiedLinkedEntity: string, isCompetitionOrganiser: boolean, compOrgId: number = null) {
+        if (isCompetitionOrganiser) {
+            return stringifiedLinkedEntity;
+        }
+
+        let linkedEntity = JSON.parse(stringifiedLinkedEntity);
+        if (!Array.isArray(linkedEntity)) {
+            linkedEntity = linkedEntity ? [linkedEntity] : [];
+        }
+
+        return JSON.stringify(linkedEntity.filter(entity => entity.competitionOrganisationId === compOrgId));
     }
 
     public async sentMail(templateObj, OrganisationName, receiverData, password, entityId, userId) {
@@ -1950,3 +1986,8 @@ export default class UserService extends BaseService<User> {
         return html;
     }
 }
+
+interface RawUserByRole {
+    linkedEntity: string;
+}
+
