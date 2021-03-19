@@ -30,8 +30,20 @@ import {
 } from "../utils/Utils";
 import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
+import aws from 'aws-sdk';
+
 @Service()
 export default class UserService extends BaseService<User> {
+    s3: aws.S3;
+
+    constructor() {
+        super();
+        aws.config.update({
+            accessKeyId: process.env.AWS_ACCESS_KEY,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+        })
+        this.s3 = new aws.S3();
+    }
 
     @Inject()
     userRoleEntityService: UserRoleEntityService;
@@ -724,6 +736,69 @@ export default class UserService extends BaseService<User> {
             }
 
             return userObj;
+        } catch (error) {
+            throw error;
+        }
+    }
+    
+    public async uploadDocument(file: any) {
+        return new Promise( (resolve, reject) => {
+            const params = {
+                Bucket: process.env.S3_DOCUMENTS_UPLOAD_BUCKET,
+                Key: file.originalname,
+                Body: file.buffer
+            }
+            this.s3.upload(params, (err: any, data: any) => {
+                if (err) {
+                  console.log("Upload Error: ", err);
+                  resolve({status: 'error'});
+                }
+                if (data) {
+                  console.log("Upload Success: ", data.Location);
+                  resolve({status: 'done', url: data.Location});
+                }
+            });
+        });
+    }
+
+    public async addDocument(data: any) {
+        let { userId, organisationUniqueKey, dateUploaded, docType, docUrl, documentId, docTypeDescription } = data;
+        try {
+            if (!!documentId) {
+                let [document] = await this.entityManager.query(`select * from wsa_users.documents where id=?`, [documentId]);
+                if (document) {
+                    dateUploaded = document.docUrl == docUrl ? document.dateUploaded : dateUploaded;
+                    await this.entityManager.query(`update wsa_users.documents set docType=?, docTypeDescription=?, docUrl=?, dateUploaded=? where id=?`,
+                        [docType, docTypeDescription, docUrl, dateUploaded, documentId]  
+                    );
+                    return documentId;
+                }
+            }
+            
+            let {insertId} = await this.entityManager.query(`insert into wsa_users.documents(userId, organisationUniqueKey, dateUploaded, docType, docTypeDescription, docUrl) values(?,?,?,?,?,?)`,
+                [userId, organisationUniqueKey, dateUploaded, docType, docTypeDescription, docUrl]
+            );
+            return insertId;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public async removeDocument(id: number) {
+        try {
+            await this.entityManager.query(`delete from wsa_users.documents where id = ?`,
+                [id]
+            );
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public async userDocuments(userId: number, organisationUniqueKey: any) {
+        try {
+            let result = await this.entityManager.query("select * from wsa_users.documents doc where doc.userId = ? and doc.organisationUniqueKey = ?", [userId, organisationUniqueKey]);
+            return result;
         } catch (error) {
             throw error;
         }

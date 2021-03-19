@@ -1,5 +1,5 @@
 import { BaseController } from "./BaseController";
-import { Post, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Get } from "routing-controllers";
+import { Post, Delete, JsonController, HeaderParam, QueryParam, Body, Res, Authorized, Get, UploadedFile } from "routing-controllers";
 import { logger } from "../logger";
 import { User } from "../models/User";
 import { Response, response } from 'express';
@@ -79,6 +79,92 @@ export class UserDashboardController extends BaseController {
             }
         } catch (error) {
             logger.error(`Error Occurred in affilatelist ${userId}` + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+    
+    @Authorized()
+    @Get('/user/documents')
+    async userDocuments(
+        @QueryParam('userId') userId: number,
+        @QueryParam('organisationId') organisationUniqueKey: string,
+        @HeaderParam("authorization") currentUser: User,
+        @Res() response: Response
+    ) {
+        try {
+            if (userId) {
+                if (currentUser.id) {
+                    const userDocumentsRes = await this.userService.userDocuments(userId, organisationUniqueKey);
+                    return response.status(200).send(userDocumentsRes);
+                }
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in userDocuments ${userId}` + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+
+    @Authorized()
+    @Post('/user/document')
+    async addDocument(
+        @HeaderParam("authorization") currentUser: User,
+        @Body() data: any,
+        @Res() response: Response
+    ) {
+        let { userId, organisationUniqueKey } = data;
+        try {
+            if (userId && organisationUniqueKey) {
+                if (currentUser.id) {
+                    const userDocumentsRes = await this.userService.addDocument(data);
+                    return response.status(200).send({documentId: userDocumentsRes});
+                }
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in addDocument ${userId}` + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+
+    @Authorized()
+    @Delete('/user/document')
+    async removeDocument(
+        @HeaderParam("authorization") currentUser: User,
+        @QueryParam('id') id: number,
+        @Res() response: Response
+    ) {
+        try {
+            if (currentUser.id) {
+                const userDocumentsRes = await this.userService.removeDocument(id);
+                return response.status(200).send({status: !!userDocumentsRes});
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in removeDocument ${id}` + error);
+            return response.status(500).send({
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
+            });
+        }
+    }
+    
+    @Authorized()
+    @Post('/user/uploadDocument')
+    async uploadDocument(
+        @HeaderParam("authorization") currentUser: User,
+        @UploadedFile('file') file: any,
+        @Res() response: Response
+    ) {
+        try {
+            if (currentUser.id) {
+                const res = await this.userService.uploadDocument(file);
+                return response.status(200).send(res);
+            }
+        } catch (error) {
+            logger.error(`Error Occurred in uploadDocument` + error);
             return response.status(500).send({
                 message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage
             });
