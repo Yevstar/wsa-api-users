@@ -34,6 +34,8 @@ import aws from 'aws-sdk';
 
 import HelperService from "./HelperService";
 import {CompetitionOrganisation} from "../models/CompetitionOrganisation";
+import {Roster} from "../models/security/Roster";
+import {Match} from "../models/Match";
 @Service()
 export default class UserService extends BaseService<User> {
     s3: aws.S3;
@@ -448,7 +450,20 @@ export default class UserService extends BaseService<User> {
                 startTime: startTime,
                 endTime: endTime
             });
+            query.leftJoin(Roster, 'ros', 'ros.userId = u.id');
+            query.leftJoin(subQuery => {
+                const query =  subQuery
+                    .select(['id', 'startTime', 'matchDuration', '(startTime + matchDuration) AS approxEndTime'])
+                    .from(Match, 'm')
+                return query;
+            }, 'match', 'match.id = ros.matchId and ((match.startTime ' +
+                '<= :startTime and match.approxEndTime > :startTime) or (match.startTime ' +
+                '>= :startTime and match.startTime < :endTime))', {
+                startTime: startTime,
+                endTime: endTime
+            });
             query.andWhere('bk.userId is null');
+            query.andWhere('match.id is null');
         }
 
         if (basedOnLinkedEntities &&
