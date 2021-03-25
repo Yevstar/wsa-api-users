@@ -1042,6 +1042,31 @@ export class UserDashboardController extends BaseController {
             });
         }
     }
+
+    @Post('/user/checkEmailDuplicated')
+    async lookForEmailDuplicated(
+        @Body() requestBody: any,
+        @Res() response: Response
+    ) {
+        try {
+            // check body data
+            const email = requestBody.email || requestBody.parentOrGuardian[0].email;
+            if (!email) {
+                return response.status(400).send({
+                    info: "MISSING_DATA",
+                    requestBody,
+                });
+            }
+            const existingUserCount = await this.userService.userExist(email);
+            return response.status(200).send({ isEmailDuplicated: !!existingUserCount });
+        } catch (error) {
+            logger.error(`Error @ lookForExistingUser: ${requestBody.userId || ""}\n${JSON.stringify(error)}`);
+            return response.status(500).send({
+                users: [],
+                message: process.env.NODE_ENV == AppConstants.development ? AppConstants.errMessage + error : AppConstants.errMessage,
+            });
+        }
+    }
 }
 
 export interface playerIncidentRequest {
