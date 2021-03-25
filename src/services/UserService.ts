@@ -453,7 +453,7 @@ export default class UserService extends BaseService<User> {
             query.leftJoin(Roster, 'ros', 'ros.userId = u.id');
             query.leftJoin(subQuery => {
                 const query =  subQuery
-                    .select(['id', 'startTime', 'matchDuration', '(startTime + matchDuration) AS approxEndTime'])
+                    .select(['id', 'startTime', 'matchDuration', 'DATE_ADD(startTime, INTERVAL matchDuration MINUTE) AS approxEndTime'])
                     .from(Match, 'm')
                 return query;
             }, 'match', 'match.id = ros.matchId and ((match.startTime ' +
