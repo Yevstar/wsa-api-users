@@ -26,7 +26,7 @@ import {
     isNotNullAndUndefined,
     isObjectNotNullAndUndefined,
     paginationData,
-    stringTONumber
+    stringTONumber, timestamp
 } from "../utils/Utils";
 import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
@@ -1605,9 +1605,17 @@ export default class UserService extends BaseService<User> {
         });
     }
 
-    public async deactivateUser(id: number, updatedBy: number = undefined, mergedUserId: number = undefined) {
+    public async deactivateUser(otherUserId: number, updatedBy: number = undefined, masterUserId: number = undefined) {
+        const userToDeactivate = await this.entityManager.findOne(User, {
+            where: {
+                id: otherUserId,
+            }
+        })
+        const diactivatedEmail = userToDeactivate.email + '_' + timestamp()
+
         return this.entityManager.query(`UPDATE user SET statusRefId = 2, 
-            isDeleted = 1, updatedBy = ?, mergedUserId = ? WHERE id = ?`, [updatedBy, id, mergedUserId]);
+            isDeleted = 1, email = ?, updatedBy = ?, mergedUserId = ? WHERE id = ?`,
+            [diactivatedEmail, updatedBy, masterUserId, otherUserId]);
     }
 
     public async getAffiliates(uids: number[]) {
