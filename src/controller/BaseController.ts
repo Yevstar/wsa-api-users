@@ -21,6 +21,7 @@ import CharityService from '../services/CharityService';
 import CommunicationTrackService from '../services/CommunicationTrackService';
 import CommunicationService from "../services/CommunicationService";
 import {TermsAndConditionsService} from "../services/TermsAndConditionsService";
+import OrganisationHierarchyService from "../services/OrganisationHierarchyService"
 
 export class BaseController {
 
@@ -59,6 +60,9 @@ export class BaseController {
 
     @Inject()
     protected organisationSettingsService: OrganisationSettingsService;
+
+    @Inject()
+    protected organisationHierarchyService: OrganisationHierarchyService;
 
     @Inject()
     protected userDashboardService: UserDashboardService;
