@@ -17,7 +17,7 @@ export class Charity extends BaseEntity {
     name: string;
 
     @IsString()
-    @Column()
+    @Column('text')
     description: string;
 
     @IsNumber()

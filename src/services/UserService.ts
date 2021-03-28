@@ -26,7 +26,7 @@ import {
     isNotNullAndUndefined,
     isObjectNotNullAndUndefined,
     paginationData,
-    stringTONumber
+    stringTONumber, timestamp
 } from "../utils/Utils";
 import BaseService from "./BaseService";
 import UserRoleEntityService from "./UserRoleEntityService";
@@ -1591,9 +1591,17 @@ export default class UserService extends BaseService<User> {
         });
     }
 
-    public async deactivateUser(id: number, updatedBy: number = undefined, mergedUserId: number = undefined) {
+    public async deactivateUser(otherUserId: number, updatedBy: number = undefined, masterUserId: number = undefined) {
+        const userToDeactivate = await this.entityManager.findOne(User, {
+            where: {
+                id: otherUserId,
+            }
+        })
+        const diactivatedEmail = userToDeactivate.email + '_' + timestamp()
+
         return this.entityManager.query(`UPDATE user SET statusRefId = 2, 
-            isDeleted = 1, updatedBy = ?, mergedUserId = ? WHERE id = ?`, [updatedBy, id, mergedUserId]);
+            isDeleted = 1, email = ?, updatedBy = ?, mergedUserId = ? WHERE id = ?`,
+            [diactivatedEmail, updatedBy, masterUserId, otherUserId]);
     }
 
     public async getAffiliates(uids: number[]) {
@@ -1985,6 +1993,44 @@ export default class UserService extends BaseService<User> {
         html = html.replace(EmailConstants.credentials, passwordHtml);
 
         return html;
+    }
+
+    public async getOrganisationsHierarchy() {
+        return this.entityManager.query(`
+            SELECT
+            o1.name                  AS o1Name,
+            o1.id                    AS o1Id,
+            o1.organisationTypeRefId AS o1organisationTypeRefId,
+            o2.name                  AS o2Name,
+            o2.id                    AS o2Id,
+            o2.organisationTypeRefId AS o2organisationTypeRefId,
+            o3.name                  AS o3Name,
+            o3.id                    AS o3Id,
+            o3.organisationTypeRefId AS o3organisationTypeRefId,
+            o4.name                  AS o4Name,
+            o4.id                    AS o4Id,
+            o4.organisationTypeRefId AS o4organisationTypeRefId
+            FROM ((((((organisation o1
+                JOIN affiliate a1
+                ON ((a1.affiliatedToOrgId = o1.id)))
+                JOIN organisation o2
+                ON ((a1.affiliateOrgId = o2.id)))
+                JOIN affiliate a2
+                ON ((a2.affiliatedToOrgId = o2.id)))
+                JOIN organisation o3
+                ON ((a2.affiliateOrgId = o3.id)))
+                JOIN affiliate a3
+                ON ((a3.affiliatedToOrgId = o3.id)))
+                JOIN organisation o4
+                ON ((a3.affiliateOrgId = o4.id)))
+            WHERE ((a1.isDeleted = 0)
+                AND (a2.isDeleted = 0)
+                AND (a3.isDeleted = 0)
+                AND (o1.isDeleted = 0)
+                AND (o2.isDeleted = 0)
+                AND (o3.isDeleted = 0)
+                AND (o4.isDeleted = 0))
+        `)
     }
 }
 

@@ -68,7 +68,7 @@ export class UserRoleEntityController extends BaseController {
     axios.post(`${liveScoreEndpoint}/players/merge`, {
       oldUserId: payload.otherUserId,
       newUserId: payload.masterUserId
-    }).then(_ => { })
+    }).then(_ => {})
 
     await Promise.all([
       this.userService.replaceUserId(payload.otherUserId, payload.masterUserId),
