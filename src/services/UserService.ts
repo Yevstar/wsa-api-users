@@ -782,7 +782,8 @@ export default class UserService extends BaseService<User> {
             const params = {
                 Bucket: process.env.S3_DOCUMENTS_UPLOAD_BUCKET,
                 Key: file.originalname,
-                Body: file.buffer
+                Body: file.buffer,
+                ServerSideEncryption: "aws:kms",
             }
             this.s3.upload(params, (err: any, data: any) => {
                 if (err) {
