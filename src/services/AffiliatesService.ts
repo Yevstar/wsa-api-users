@@ -142,6 +142,10 @@ export default class AffiliateService extends BaseService<Affiliate> {
                         termsAndConditions: aff.termsAndConditions,
                         termsAndConditionsLink: aff.termsAndConditionsRefId == 1 ? aff.termsAndConditions : null,
                         termsAndConditionsFile: aff.termsAndConditionsRefId == 2 ? aff.termsAndConditions : null,
+                        stateTermsAndConditionsRefId: aff.stateTermsAndConditionsRefId,
+                        stateTermsAndConditions: aff.stateTermsAndConditions,
+                        stateTermsAndConditionsLink: aff.stateTermsAndConditionsRefId == 1 ? aff.stateTermsAndConditions : null,
+                        stateTermsAndConditionsFile: aff.stateTermsAndConditionsRefId == 2 ? aff.stateTermsAndConditions : null,
                         contacts:[],
                         charityRoundUp: [],
                         charity: []

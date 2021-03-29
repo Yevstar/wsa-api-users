@@ -449,7 +449,7 @@ export class AffiliateController extends BaseController {
     @Post("/termsandcondition/update")
     async updateTermsAndCondition(
         @HeaderParam("authorization") currentUser: User,
-        @UploadedFile("termsAndCondition") termsAndConditionFile: Express.Multer.File,
+        @UploadedFiles("termsAndCondition[]") termsAndConditionFile: Express.Multer.File[],
         @Body() requestBody: any,
         @Res() response: Response
     ){
@@ -461,16 +461,29 @@ export class AffiliateController extends BaseController {
                     organisation.id = organisationId;
                     organisation.termsAndConditionsRefId = requestBody.termsAndConditionsRefId;
                     organisation.termsAndConditions = requestBody.termsAndConditions;
+                    organisation.stateTermsAndConditionsRefId = requestBody.stateTermsAndConditionsRefId;
+                    organisation.stateTermsAndConditions = requestBody.stateTermsAndConditions;
                     organisation.updatedBy = currentUser.id;
                     organisation.updatedOn = new Date();
 
-                    if(termsAndConditionFile!= null){
-                        if (isPdf(termsAndConditionFile.mimetype)) {
-                            let filename = `/organisation/termsAndCondition_org_${requestBody.organisationId}_${timestamp()}.${fileExt(termsAndConditionFile.originalname)}`;
-                            let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile);
+                    if(termsAndConditionFile[0]!= null){
+                        if (isPdf(termsAndConditionFile[0].mimetype)) {
+                            let filename = `/organisation/termsAndCondition_org_${requestBody.organisationId}_${timestamp()}.${fileExt(termsAndConditionFile[0].originalname)}`;
+                            let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile[0]);
 
                             if (fileUploaded) {
                                 organisation.termsAndConditions = fileUploaded['url'];
+                            }
+                        }
+                    }
+
+                    if(termsAndConditionFile[1]!= null){
+                        if (isPdf(termsAndConditionFile[1].mimetype)) {
+                            let filename = `/organisation/termsAndCondition_org_${requestBody.organisationId}_${timestamp()}.${fileExt(termsAndConditionFile[1].originalname)}`;
+                            let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile[1]);
+
+                            if (fileUploaded) {
+                                organisation.stateTermsAndConditions = fileUploaded['url'];
                             }
                         }
                     }
