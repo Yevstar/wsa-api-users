@@ -159,16 +159,7 @@ export class AffiliateController extends BaseController {
                         }
 
                         let affiliateRes = await this.affiliateService.createOrUpdate(affiliate);
-
-                        let organisationsHierarchyRes = await this.userService.getOrganisationsHierarchy();
-                        const linkedOrganisation = organisationsHierarchyRes.filter(item => item.o4Id === affiliateRes.affiliateOrgId)[0];
-                        let newOrganisationHierarchy = new OrganisationHierarchy();
-                        newOrganisationHierarchy.inputOrganisationId = affiliateRes.affiliateOrgId;
-                        newOrganisationHierarchy.inputOrganisationTypeRefId = affiliateRes.organisationTypeRefId;
-                        newOrganisationHierarchy.linkedOrganisationId = linkedOrganisation.o4Id;
-                        newOrganisationHierarchy.linkedOrganisationName = linkedOrganisation.o4Name;
-                        newOrganisationHierarchy.linkedOrganisationTypeRefId = parseInt(linkedOrganisation.o4organisationTypeRefId);
-                        let organisationHierarchyRes = await this.organisationHierarchyService.createOrUpdate(newOrganisationHierarchy);
+                        await this.insertOrganisationHierarchy(affiliateRes);
 
                         if(requestBody.affiliateId == 0){
                             if (requestBody.organisationTypeRefId == 4) {
@@ -893,4 +884,9 @@ export class AffiliateController extends BaseController {
         }
     }
 
+    private async insertOrganisationHierarchy(affiliate) {
+        const organisationsHierarchyRes = await this.userService.getLinkedOrganisations();
+        const linkedOrganisations = organisationsHierarchyRes.filter(item => item.linkedOrganisationId === affiliate.affiliateOrgId);
+        await this.userService.insertOrganisationHierarchy(linkedOrganisations);
+    }
 }
