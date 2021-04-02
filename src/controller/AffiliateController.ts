@@ -18,7 +18,6 @@ import AppConstants from '../constants/AppConstants';
 import { CommunicationTrack } from "../models/CommunicationTrack";
 import { isNullOrUndefined } from "util";
 import { OrganisationHierarchy } from "../models/OrganisationHierarchy";
-import { info } from "winston";
 
 @JsonController("/api")
 export class AffiliateController extends BaseController {
