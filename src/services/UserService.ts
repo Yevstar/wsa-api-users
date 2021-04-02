@@ -1565,7 +1565,7 @@ export default class UserService extends BaseService<User> {
         const newsRows = await this.entityManager.query(`
             SELECT  id, toUserIds
             FROM wsa.news
-            WHERE toUserIds IS NOT NULL AND toUserIds <> '' AND JSON_CONTAINS(toUserIds, '${oldId}', '$')`
+            WHERE toUserIds IS NOT NULL AND toUserIds <> '' AND JSON_CONTAINS(CONCAT('[', toUserIds, ']'), '${oldId}', '$')`
         );
         newsRows.forEach(async (news: any) => {
             const toUserIds = JSON.parse(news.toUserIds);
