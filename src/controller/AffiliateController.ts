@@ -18,6 +18,7 @@ import AppConstants from '../constants/AppConstants';
 import { CommunicationTrack } from "../models/CommunicationTrack";
 import { isNullOrUndefined } from "util";
 import { OrganisationHierarchy } from "../models/OrganisationHierarchy";
+import { info } from "winston";
 
 @JsonController("/api")
 export class AffiliateController extends BaseController {
@@ -457,24 +458,15 @@ export class AffiliateController extends BaseController {
                     organisation.updatedBy = currentUser.id;
                     organisation.updatedOn = new Date();
 
-                    if(termsAndConditionFile[0]!= null){
-                        if (isPdf(termsAndConditionFile[0].mimetype)) {
-                            let filename = `/organisation/termsAndCondition_org_${requestBody.organisationId}_${timestamp()}.${fileExt(termsAndConditionFile[0].originalname)}`;
-                            let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile[0]);
+                    let pdfStatus = requestBody.pdfStatus;
+                    for (let i = 0; i < termsAndConditionFile.length; i++) {
+                        if (isPdf(termsAndConditionFile[i].mimetype)) {
+                            let filename = `/organisation/termsAndCondition_org_${requestBody.organisationId}_${timestamp()}.${fileExt(termsAndConditionFile[i].originalname)}`;
+                            let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile[i]);
 
                             if (fileUploaded) {
-                                organisation.termsAndConditions = fileUploaded['url'];
-                            }
-                        }
-                    }
-
-                    if(termsAndConditionFile[1]!= null){
-                        if (isPdf(termsAndConditionFile[1].mimetype)) {
-                            let filename = `/organisation/termsAndCondition_org_${requestBody.organisationId}_${timestamp()}.${fileExt(termsAndConditionFile[1].originalname)}`;
-                            let fileUploaded = await this.firebaseService.upload(filename, termsAndConditionFile[1]);
-
-                            if (fileUploaded) {
-                                organisation.stateTermsAndConditions = fileUploaded['url'];
+                                if (pdfStatus == 1 || (pdfStatus === 3 && i === 0)) organisation.termsAndConditions = fileUploaded['url'];
+                                if (pdfStatus == 2 || (pdfStatus === 3 && i === 1)) organisation.stateTermsAndConditions = fileUploaded['url'];
                             }
                         }
                     }
