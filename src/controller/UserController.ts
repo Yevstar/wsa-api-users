@@ -927,14 +927,14 @@ export class UserController extends BaseController {
     @Authorized()
     @Get('/byRole/export/org')
     async exportUserByRoleOrgs(
-        @QueryParam('roleId', {required: true}) roleId: number,
+        @QueryParam('roleIds', { required: true }) roleIds: number[],
         @QueryParam('entityTypeId', {required: true}) entityTypeId: number,
         @QueryParam('entityId', {required: true}) entityId: number,
         @QueryParam('userName') userName: string,
         @Res() response: Response
     ) {
-        let userData: any = await this.loadUserByRole(
-            roleId,
+        let userData: any = await this.loadUserByRoles(
+            roleIds,
             entityTypeId,
             entityId,
             userName,
