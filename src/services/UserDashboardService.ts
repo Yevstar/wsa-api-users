@@ -317,6 +317,7 @@ export default class UserDashboardService extends BaseService<User> {
                     "Emergency First Name": "",
                     "Emergency Last Name": "",
                     "Emergency Contact Number": "",
+                    "Emergency Contact Relationship": "",
                     "Marketing Opt In": "",
                     "Merged User Id": "",
                     "Existing Medical Condition": "",
