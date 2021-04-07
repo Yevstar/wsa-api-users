@@ -853,17 +853,25 @@ export default class UserService extends BaseService<User> {
             //     }
             // }
 
+            const {getStripeCustomerID = false} = requestBody;
+
             if (isArrayPopulated(result[0])) {
                 for (let item of result[0]) {
                     if (item.isInActive == 1) {
                         let parentEmailString = item.email.substr(0, item.email.lastIndexOf('.'));
                         item.email = parentEmailString.toLowerCase();
                     }
+                    if (false === getStripeCustomerID && !!item.stripeCustomerAccountId) {
+                        delete item.stripeCustomerAccountId;
+                    }
                     if (isArrayPopulated(item.childContacts)) {
                         for (let child of item.childContacts) {
                             if (child.isInActive == 1) {
                                 let parentEmailString = child.email.substr(0, child.email.lastIndexOf('.'));
                                 child.email = parentEmailString.toLowerCase();
+                            }
+                            if (false === getStripeCustomerID && !!item.stripeCustomerAccountId) {
+                                delete item.stripeCustomerAccountId;
                             }
                         }
                     }
