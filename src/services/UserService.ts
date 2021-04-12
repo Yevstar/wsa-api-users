@@ -438,7 +438,7 @@ export default class UserService extends BaseService<User> {
             let ids = sec.roleIds;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
                  .andWhere('r.id in (:ids)', { ids });
-                
+
         }
 
         if (basedOnAvailability && isObjectNotNullAndUndefined(startTime) && isObjectNotNullAndUndefined(endTime)) {
@@ -776,7 +776,7 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
-    
+
     public async uploadDocument(file: any) {
         return new Promise( (resolve, reject) => {
             const params = {
@@ -806,12 +806,12 @@ export default class UserService extends BaseService<User> {
                 if (document) {
                     dateUploaded = document.docUrl == docUrl ? document.dateUploaded : dateUploaded;
                     await this.entityManager.query(`update wsa_users.documents set docType=?, docTypeDescription=?, docUrl=?, dateUploaded=? where id=?`,
-                        [docType, docTypeDescription, docUrl, dateUploaded, documentId]  
+                        [docType, docTypeDescription, docUrl, dateUploaded, documentId]
                     );
                     return documentId;
                 }
             }
-            
+
             let {insertId} = await this.entityManager.query(`insert into wsa_users.documents(userId, organisationUniqueKey, dateUploaded, docType, docTypeDescription, docUrl) values(?,?,?,?,?,?)`,
                 [userId, organisationUniqueKey, dateUploaded, docType, docTypeDescription, docUrl]
             );
@@ -1052,6 +1052,7 @@ export default class UserService extends BaseService<User> {
                             expiryDate: item.expiryDate,
                             compFeesPaid: item.compFeesPaid,
                             competitionEndDate: item.competitionEndDate,
+                            isManager: item.isManager,
                             //paymentType: item.paymentType,
                             registrationForm: [],
                             alreadyDeRegistered: alreadyDeRegistered,
