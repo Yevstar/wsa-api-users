@@ -1052,7 +1052,7 @@ export default class UserService extends BaseService<User> {
                             expiryDate: item.expiryDate,
                             compFeesPaid: item.compFeesPaid,
                             competitionEndDate: item.competitionEndDate,
-                            isManager: item.isManager,
+                            isRegisterer: item.isRegisterer,
                             //paymentType: item.paymentType,
                             registrationForm: [],
                             alreadyDeRegistered: alreadyDeRegistered,
