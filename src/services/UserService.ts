@@ -34,6 +34,8 @@ import aws from 'aws-sdk';
 
 import HelperService from "./HelperService";
 import {CompetitionOrganisation} from "../models/CompetitionOrganisation";
+import {Roster} from "../models/security/Roster";
+import {Match} from "../models/Match";
 @Service()
 export default class UserService extends BaseService<User> {
     s3: aws.S3;
@@ -438,7 +440,7 @@ export default class UserService extends BaseService<User> {
             let ids = sec.roleIds;
             query.innerJoin(Role, 'r', 'r.id = fr.roleId')
                  .andWhere('r.id in (:ids)', { ids });
-
+                
         }
 
         if (basedOnAvailability && isObjectNotNullAndUndefined(startTime) && isObjectNotNullAndUndefined(endTime)) {
@@ -448,7 +450,20 @@ export default class UserService extends BaseService<User> {
                 startTime: startTime,
                 endTime: endTime
             });
+            query.leftJoin(Roster, 'ros', 'ros.userId = u.id');
+            query.leftJoin(subQuery => {
+                const query =  subQuery
+                    .select(['id', 'startTime', 'matchDuration', 'DATE_ADD(startTime, INTERVAL matchDuration MINUTE) AS approxEndTime'])
+                    .from(Match, 'm')
+                return query;
+            }, 'match', 'match.id = ros.matchId and ((match.startTime ' +
+                '<= :startTime and match.approxEndTime > :startTime) or (match.startTime ' +
+                '>= :startTime and match.startTime < :endTime))', {
+                startTime: startTime,
+                endTime: endTime
+            });
             query.andWhere('bk.userId is null');
+            query.andWhere('match.id is null');
         }
 
         if (basedOnLinkedEntities &&
@@ -776,7 +791,7 @@ export default class UserService extends BaseService<User> {
             throw error;
         }
     }
-
+    
     public async uploadDocument(file: any) {
         return new Promise( (resolve, reject) => {
             const params = {
@@ -806,12 +821,12 @@ export default class UserService extends BaseService<User> {
                 if (document) {
                     dateUploaded = document.docUrl == docUrl ? document.dateUploaded : dateUploaded;
                     await this.entityManager.query(`update wsa_users.documents set docType=?, docTypeDescription=?, docUrl=?, dateUploaded=? where id=?`,
-                        [docType, docTypeDescription, docUrl, dateUploaded, documentId]
+                        [docType, docTypeDescription, docUrl, dateUploaded, documentId]  
                     );
                     return documentId;
                 }
             }
-
+            
             let {insertId} = await this.entityManager.query(`insert into wsa_users.documents(userId, organisationUniqueKey, dateUploaded, docType, docTypeDescription, docUrl) values(?,?,?,?,?,?)`,
                 [userId, organisationUniqueKey, dateUploaded, docType, docTypeDescription, docUrl]
             );
