@@ -5,4 +5,4 @@ export interface LookForExistingUserBody {
   lastName?: string;
   mobileNumber?: string;
   userId?: number | string;
-};
+}

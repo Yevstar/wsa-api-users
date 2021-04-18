@@ -1,3 +1,3 @@
 export class UserTcBatchAcknowledgeDto {
-    tcIds: number[]
+  tcIds: number[];
 }

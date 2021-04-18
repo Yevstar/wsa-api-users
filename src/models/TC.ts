@@ -1,35 +1,43 @@
-import {BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm-plus";
-import {Organisation} from "./Organisation";
-import {TCTypeEnum} from "./enum/TCTypeEnum";
-import {TCUserAcknowledgement} from "./TCUserAcknowledgement";
-import {Exclude} from "class-transformer";
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm-plus';
+import { Organisation } from './Organisation';
+import { TCTypeEnum } from './enum/TCTypeEnum';
+import { TCUserAcknowledgement } from './TCUserAcknowledgement';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class TC extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    organisationId!: number;
+  @Column()
+  organisationId!: number;
 
-    @ManyToOne(type => Organisation)
-    @JoinColumn()
-    organisation: Organisation;
+  @ManyToOne(type => Organisation)
+  @JoinColumn()
+  organisation: Organisation;
 
-    @Column({
-        type: "enum",
-        enum: TCTypeEnum,
-    })
-    type: TCTypeEnum;
+  @Column({
+    type: 'enum',
+    enum: TCTypeEnum,
+  })
+  type: TCTypeEnum;
 
-    @OneToMany(type => TCUserAcknowledgement, tca => tca.tc)
-    acknowledgements: TCUserAcknowledgement[];
+  @OneToMany(type => TCUserAcknowledgement, tca => tca.tc)
+  acknowledgements: TCUserAcknowledgement[];
 
-    @Column({
-        type: "text",
-    })
-    content: string;
+  @Column({
+    type: 'text',
+  })
+  content: string;
 
-    @Exclude()
-    isAcknowledged: boolean;
+  @Exclude()
+  isAcknowledged: boolean;
 }

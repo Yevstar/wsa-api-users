@@ -6,85 +6,81 @@ import {
   JsonController,
   Param,
   Post,
-  HeaderParam
-} from "routing-controllers";
-import { BaseController } from "./BaseController";
-import { User } from "../models/User";
+  HeaderParam,
+} from 'routing-controllers';
+import { BaseController } from './BaseController';
+import { User } from '../models/User';
 import axios from 'axios';
 
-@JsonController("/userMerge")
+@JsonController('/userMerge')
 export class UserRoleEntityController extends BaseController {
   @Authorized()
-  @Get("/matches/:userId")
-  async getMatches(
-    @Param("userId") userId: number
-  ): Promise<unknown> {
+  @Get('/matches/:userId')
+  async getMatches(@Param('userId') userId: number): Promise<unknown> {
     const users = await this.userService.findMatchesForMerging(userId);
-    if (!users.length)
-      return [];
+    if (!users.length) return [];
 
-    const affiliates = await this.userService.getAffiliates(users.map(u => u.id))
+    const affiliates = await this.userService.getAffiliates(users.map(u => u.id));
     return users.map(u => {
-      u.affiliates = (
-        affiliates.filter(af => af.affiliate && af.id === u.id) // Get affilates for current user
-      ).map(u => u.affiliate) // Return only affiliate key from affilate object
+      u.affiliates = affiliates
+        .filter(af => af.affiliate && af.id === u.id) // Get affilates for current user
+        .map(u => u.affiliate); // Return only affiliate key from affilate object
 
       // Remove duplicates
-      u.affiliates = Array.from(new Set(u.affiliates))
-      return u
+      u.affiliates = Array.from(new Set(u.affiliates));
+      return u;
     });
   }
 
-  @Post("/find")
-  async findByUser(
-    @Body()user: User
-  ): Promise<unknown> {
+  @Post('/find')
+  async findByUser(@Body() user: User): Promise<unknown> {
     const users = await this.userService.findMatchesForLinking(user);
-    if (!users.length)
-      return [];
+    if (!users.length) return [];
 
-    const affiliates = await this.userService.getAffiliates(users.map(u => u.id))
+    const affiliates = await this.userService.getAffiliates(users.map(u => u.id));
     return users.map(u => {
-      u.affiliates = (
-        affiliates.filter(af => af.affiliate && af.id === u.id) // Get affilates for current user
-      ).map(u => u.affiliate) // Return only affiliate key from affilate object
+      u.affiliates = affiliates
+        .filter(af => af.affiliate && af.id === u.id) // Get affilates for current user
+        .map(u => u.affiliate); // Return only affiliate key from affilate object
 
       // Remove duplicates
-      u.affiliates = Array.from(new Set(u.affiliates))
-      return u
+      u.affiliates = Array.from(new Set(u.affiliates));
+      return u;
     });
   }
 
   @Authorized()
-  @Post("/merge")
+  @Post('/merge')
   async mergeUsers(
-    @HeaderParam("authorization") currentUser: User,
+    @HeaderParam('authorization') currentUser: User,
     @Body() payload: any,
   ): Promise<unknown> {
-    const liveScoreEndpoint = process.env.liveScoresWebHost
-    let user = new User()
-    Object.keys(payload.payload).forEach(key => user[key] = payload.payload[key])
+    const liveScoreEndpoint = process.env.liveScoresWebHost;
+    let user = new User();
+    Object.keys(payload.payload).forEach(key => (user[key] = payload.payload[key]));
 
-    axios.post(`${liveScoreEndpoint}/players/merge`, {
-      oldUserId: payload.otherUserId,
-      newUserId: payload.masterUserId
-    }).then(_ => {})
+    axios
+      .post(`${liveScoreEndpoint}/players/merge`, {
+        oldUserId: payload.otherUserId,
+        newUserId: payload.masterUserId,
+      })
+      .then(_ => {});
 
     await Promise.all([
       this.userService.replaceUserId(payload.otherUserId, payload.masterUserId),
       this.userService.replaceUserIdsInNews(payload.otherUserId, payload.masterUserId),
       this.userService.replaceUserIdsInCommunication(payload.otherUserId, payload.masterUserId),
       this.ureService.replaceUserId(payload.otherUserId, payload.masterUserId),
-      this.userService.deactivateUser(payload.otherUserId, currentUser.id, payload.masterUserId)
-    ])
+      this.userService.deactivateUser(payload.otherUserId, currentUser.id, payload.masterUserId),
+    ]);
 
     if (Object.keys(payload.payload).length) {
-      await this.userService.updateById(payload.masterUserId, user)
+      await this.userService.updateById(payload.masterUserId, user);
     }
 
     let updatedUser = await this.userService.findById(payload.masterUserId);
     await this.updateFirebaseData(updatedUser, updatedUser.password);
 
-    return "User merged successfully";
+    return 'User merged successfully';
   }
 }

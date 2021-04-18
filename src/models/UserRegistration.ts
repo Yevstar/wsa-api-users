@@ -1,142 +1,141 @@
-import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm-plus";
-import {IsDate, IsNumber, IsString} from "class-validator";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm-plus';
+import { IsDate, IsNumber, IsString } from 'class-validator';
 
-@Entity('userRegistration',{ database: process.env.MYSQL_DATABASE_REG })
+@Entity('userRegistration', { database: process.env.MYSQL_DATABASE_REG })
 export class UserRegistration extends BaseEntity {
+  @IsNumber()
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @IsNumber()
-    @PrimaryGeneratedColumn()
-    id: number;
+  @IsNumber()
+  @Column()
+  userId: number;
 
-    @IsNumber()
-    @Column()
-    userId: number;
-    
-    @IsNumber()
-    @Column()
-    teamId: number;
+  @IsNumber()
+  @Column()
+  teamId: number;
 
-    @IsNumber()
-    @Column()
-    competitionMembershipProductTypeId: number;
-    
-    @IsString()
-    @Column()
-    userRegUniqueKey: string;
+  @IsNumber()
+  @Column()
+  competitionMembershipProductTypeId: number;
 
-    @IsString()
-    @Column()
-    existingMedicalCondition: string;
+  @IsString()
+  @Column()
+  userRegUniqueKey: string;
 
-    @IsString()
-    @Column()
-    regularMedication: string;
+  @IsString()
+  @Column()
+  existingMedicalCondition: string;
 
-    @IsNumber()
-    @Column()
-    userRegDraftId: number;
+  @IsString()
+  @Column()
+  regularMedication: string;
 
-    @IsNumber()
-    @Column()
-    heardByRefId: number;
+  @IsNumber()
+  @Column()
+  userRegDraftId: number;
 
-    @IsString()
-    @Column()
-    heardByOther: string;
+  @IsNumber()
+  @Column()
+  heardByRefId: number;
 
-    @IsNumber()
-    @Column()
-    favouriteTeamRefId: number;
+  @IsString()
+  @Column()
+  heardByOther: string;
 
-    @IsNumber()
-    @Column()
-    personRoleRefId: number;
-    
-    @IsNumber()
-    @Column()
-    registeringYourselfRefId: number;
+  @IsNumber()
+  @Column()
+  favouriteTeamRefId: number;
 
-    @IsString()
-    @Column()
-    favouriteFireBird: string;
+  @IsNumber()
+  @Column()
+  personRoleRefId: number;
 
-    @IsNumber()
-    @Column()
-    isConsentPhotosGiven: number;
+  @IsNumber()
+  @Column()
+  registeringYourselfRefId: number;
 
-    @IsNumber()
-    @Column()
-    isDisability: number;
+  @IsString()
+  @Column()
+  favouriteFireBird: string;
 
-    @IsString()
-    @Column()
-    disabilityCareNumber: string;
+  @IsNumber()
+  @Column()
+  isConsentPhotosGiven: number;
 
-    @IsNumber()
-    @Column()
-    disabilityTypeRefId: number;
+  @IsNumber()
+  @Column()
+  isDisability: number;
 
-    @IsNumber()
-    @Column()
-    countryRefId: number;
+  @IsString()
+  @Column()
+  disabilityCareNumber: string;
 
-    @IsNumber()
-    @Column()
-    identifyRefId: number;
-    
-    @IsString()
-    @Column()
-    injuryInfo: string;
+  @IsNumber()
+  @Column()
+  disabilityTypeRefId: number;
 
-    @IsString()
-    @Column()
-    allergyInfo: string;
+  @IsNumber()
+  @Column()
+  countryRefId: number;
 
-    @IsNumber()
-    @Column()
-    yearsPlayed: number;
-    
-    @IsNumber()
-    @Column()
-    schoolId: number;
-    
-    @IsNumber()
-    @Column()
-    schoolGradeInfo: number;
-    
-    @IsNumber()
-    @Column()
-    isParticipatedInSSP: number;
-    
-    @IsString()
-    @Column()
-    volunteerInfo: string;
-        
-    @IsString()
-    @Column()
-    otherSportsInfo: string;
-                
-    @IsNumber()
-    @Column()
-    walkingNetball: string;
+  @IsNumber()
+  @Column()
+  identifyRefId: number;
 
-    @IsString()
-    @Column()
-    walkingNetballInfo: string;
+  @IsString()
+  @Column()
+  injuryInfo: string;
 
-    @IsNumber()
-    @Column()
-    createdBy: number;
+  @IsString()
+  @Column()
+  allergyInfo: string;
 
-    @IsNumber()
-    @Column({ nullable: true, default: null })
-    updatedBy: number;
+  @IsNumber()
+  @Column()
+  yearsPlayed: number;
 
-    @IsDate()
-    @Column({ nullable: true, default: null })
-    updatedOn: Date;
-    
-    @IsNumber()
-    @Column({ default: 0 })
-    isDeleted: number;
+  @IsNumber()
+  @Column()
+  schoolId: number;
+
+  @IsNumber()
+  @Column()
+  schoolGradeInfo: number;
+
+  @IsNumber()
+  @Column()
+  isParticipatedInSSP: number;
+
+  @IsString()
+  @Column()
+  volunteerInfo: string;
+
+  @IsString()
+  @Column()
+  otherSportsInfo: string;
+
+  @IsNumber()
+  @Column()
+  walkingNetball: string;
+
+  @IsString()
+  @Column()
+  walkingNetballInfo: string;
+
+  @IsNumber()
+  @Column()
+  createdBy: number;
+
+  @IsNumber()
+  @Column({ nullable: true, default: null })
+  updatedBy: number;
+
+  @IsDate()
+  @Column({ nullable: true, default: null })
+  updatedOn: Date;
+
+  @IsNumber()
+  @Column({ default: 0 })
+  isDeleted: number;
 }
