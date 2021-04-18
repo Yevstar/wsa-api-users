@@ -1,5 +1,5 @@
 const EmailConstants = {
-    credentials: '$(user.credentials)'
-}
+  credentials: '$(user.credentials)',
+};
 
 export default EmailConstants;
