@@ -968,11 +968,11 @@ export default class UserService extends BaseService<User> {
 
   public async userPersonalDetails(userId: number, organisationUniqueKey: any) {
     try {
+      console.log(`${userId} and ${organisationUniqueKey}`)
       let result = await this.entityManager.query('call wsa_users.usp_user_personal_details(?,?)', [
         userId,
-        organisationUniqueKey,
+        organisationUniqueKey || null
       ]);
-
       let competitionMap = new Map();
       let teamMap = new Map();
       let userMap = new Map();
