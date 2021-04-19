@@ -166,4 +166,16 @@ export class OrganisationController extends BaseController {
   async allOrganisations() {
     return this.organisationService.getAllOrganisations();
   }
+
+  @Authorized()
+  @Get('/search')
+  async getOrganisationByName(
+    @QueryParam('name') name: string,
+    @Res() response: Response
+  ) {
+    if (!name || (name && !name.trim())) {
+      return [];
+    }
+    return this.organisationService.getOrganisationByName((name || '').trim());
+  }
 }

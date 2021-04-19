@@ -86,4 +86,16 @@ export default class OrganisationService extends BaseService<Organisation> {
       [becsId, id],
     );
   }
+
+  public async getOrganisationByName(name: string) {
+    let result = await this.entityManager.query(
+      `select o.name, o.id, o.organisationTypeRefId, json_object('name', p.name, 'id', p.id, 'suburb', p.suburb, 'postcode', p.postalCode) parent from wsa_users.organisation o
+        inner join wsa_users.affiliate a on a.affiliateOrgId = o.id
+        inner join wsa_users.organisation p on a.affiliatedToOrgId = p.id
+        where o.organisationTypeRefId != 1 ${name === '' ? '' : 'and lower(o.name) like lower(?)'}
+        order by o.name asc`,
+      [`%${name}%`],
+    );
+    return result;
+  }
 }
