@@ -1413,6 +1413,7 @@ export default class UserService extends BaseService<User> {
               // paidBy: item.paidBy,
               // paidByUserId: item.paidByUserId,
               paidByUsers: paidByUsers,
+              paidByThisUser: !!paidByUsers.find(({ paidByUserId }) => paidByUserId === userId)
             };
 
             if (isArrayPopulated(result[2])) {
