@@ -973,6 +973,7 @@ export default class UserService extends BaseService<User> {
         userId,
         organisationUniqueKey || null
       ]);
+
       let competitionMap = new Map();
       let teamMap = new Map();
       let userMap = new Map();
@@ -1413,7 +1414,8 @@ export default class UserService extends BaseService<User> {
               // paidBy: item.paidBy,
               // paidByUserId: item.paidByUserId,
               paidByUsers: paidByUsers,
-              numberOfMatches: item.numberOfMatches
+              numberOfMatches: item.numberOfMatches,
+              paidByThisUser: !!paidByUsers.find(({ paidByUserId }) => paidByUserId === userId)
             };
 
             if (isArrayPopulated(result[2])) {
