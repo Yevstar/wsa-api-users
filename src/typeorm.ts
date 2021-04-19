@@ -35,7 +35,7 @@ async function connect(): Promise<Connection[]> {
       __dirname + '/models/views/*',
     ],
     namingStrategy: new NamingStrategy(),
-    logging: 'all',
+    // logging: 'all',
     logger: 'file',
   });
   const registrationDatabase = Object.assign({
@@ -53,7 +53,7 @@ async function connect(): Promise<Connection[]> {
       __dirname + '/models/views/*',
     ],
     namingStrategy: new NamingStrategy(),
-    logging: 'all',
+    // logging: 'all',
     logger: 'simple-console',
   });
 
