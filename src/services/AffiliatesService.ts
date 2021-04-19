@@ -405,42 +405,16 @@ export default class AffiliateService extends BaseService<Affiliate> {
 
       if (result != null) {
         if (isArrayPopulated(result[0])) {
-          for (let r of result[0]) {
+          result[0].forEach(r => {
             let obj = {};
-            obj['count'] = 0;
             obj['Affiliate Name'] = r.affiliateName;
             obj['Organisation Type'] = r.organisationTypeName;
             obj['Affiliated To'] = r.affiliatedToName;
             obj['Competition'] = r.competitionName;
-            obj['Address Line 1'] = r.street1;
-            obj['Address Line 2'] = r.street2;
             obj['Suburb'] = r.suburb;
-            obj['State'] = r.state;
             obj['Postcode'] = r.postalCode;
-            obj['Phone Number'] = r.phoneNo;
-
-            let res1 = result[1].find(x => x.organisationId == r.affiliateOrgId);
-
-            let contacts = res1 != undefined ? res1.contacts : [];
-
-            if (isArrayPopulated(contacts)) {
-              let i = 1;
-              obj['count'] = contacts.length;
-              for (let c of contacts) {
-                obj['Contact ' + i + ' First Name'] = c.contactFirstName;
-                obj['Contact ' + i + ' Last Name'] = c.contactLastName;
-                obj['Contact ' + i + ' Email'] = c.contactEmail;
-                obj['Contact ' + i + ' Phone Number'] = c.contactPhone;
-                i++;
-              }
-            }
 
             affiliateArray.push(obj);
-          }
-          affiliateArray.sort((a, b) => b.count - a.count);
-
-          affiliateArray.map((item, index) => {
-            delete item.count;
           });
         } else {
           let obj = {
@@ -448,16 +422,8 @@ export default class AffiliateService extends BaseService<Affiliate> {
             'Organisation Type': '',
             'Affiliated To': '',
             Competition: '',
-            'Address Line 1': '',
-            'Address Line 2': '',
             Suburb: '',
-            State: '',
             Postcode: '',
-            'Phone Number': '',
-            'Contact 1 First Name': '',
-            'Contact 1 Last Name': '',
-            'Contact 1 Email': '',
-            'Contact 1 Phone Number': '',
           };
           affiliateArray.push(obj);
         }
