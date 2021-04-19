@@ -1415,7 +1415,7 @@ export default class UserService extends BaseService<User> {
               // paidByUserId: item.paidByUserId,
               paidByUsers: paidByUsers,
               numberOfMatches: item.numberOfMatches,
-              paidByThisUser: !!paidByUsers.find(({ paidByUserId }) => paidByUserId === userId)
+              paidByThisUser: !!paidByUsers.find(({ paidByUserId }) => paidByUserId == userId)
             };
 
             if (isArrayPopulated(result[2])) {
