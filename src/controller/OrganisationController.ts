@@ -168,7 +168,7 @@ export class OrganisationController extends BaseController {
   }
 
   @Authorized()
-  @Get('/search')
+  @Get('/organisation/search')
   async getOrganisationByName(
     @QueryParam('name') name: string,
     @Res() response: Response
