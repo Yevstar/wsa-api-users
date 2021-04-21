@@ -90,7 +90,7 @@ export default class OrganisationService extends BaseService<Organisation> {
   public async getOrganisationByName(name: string) {
     let result = await this.entityManager.query(
       `select o.name, o.id, o.organisationTypeRefId, o.suburb, o.postalCode, oState.name as state,
-        json_object('name', p.name, 'id', p.id, 'suburb', p.suburb, 'state', pState.name, 'postcode', p.postalCode) parent 
+        json_object('name', p.name, 'id', p.id, 'suburb', p.suburb, 'state', pState.name, 'postalCode', p.postalCode) parent 
         from wsa_users.organisation o
         inner join wsa_users.affiliate a on a.affiliateOrgId = o.id
         inner join wsa_users.organisation p on a.affiliatedToOrgId = p.id
