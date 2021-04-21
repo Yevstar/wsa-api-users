@@ -167,7 +167,6 @@ export class OrganisationController extends BaseController {
     return this.organisationService.getAllOrganisations();
   }
 
-  @Authorized()
   @Get('/organisation/search')
   async getOrganisationByName(
     @QueryParam('name') name: string,
