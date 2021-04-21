@@ -573,7 +573,9 @@ export default class UserService extends BaseService<User> {
 
     if (isArrayPopulated(sec.roleIds)) {
       let ids = sec.roleIds;
-      query.innerJoin(Role, 'r', 'r.id = fr.roleId').andWhere('r.id in (:ids)', { ids });
+      query.innerJoin(Role, 'r', 'r.id = fr.roleId')
+        .andWhere('r.id in (:ids)', { ids })
+        .andWhere('ure.entityTypeId in (3,6)');
     }
 
     if (
