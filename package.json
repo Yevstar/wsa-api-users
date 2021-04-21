@@ -40,6 +40,7 @@
     "reflect-metadata": "^0.1.13",
     "routing-controllers": "^0.7.7",
     "routing-controllers-openapi": "^1.7.0",
+    "safe-stable-stringify": "^1.1.1",
     "speakeasy": "^2.0.0",
     "stripe": "^8.44.0",
     "twilio": "^3.55.1",

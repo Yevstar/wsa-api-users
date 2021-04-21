@@ -107,8 +107,6 @@ export default class AffiliateService extends BaseService<Affiliate> {
     ]);
     let res = result[0];
 
-    console.log('****' + JSON.stringify(res));
-
     if (res != null) {
       let affMap = new Map();
       let contactMap = new Map();
@@ -169,8 +167,6 @@ export default class AffiliateService extends BaseService<Affiliate> {
             charityRoundUp: [],
             charity: [],
           };
-
-          console.log('****' + JSON.stringify(aff));
 
           if (aff.charityRoundUp != null) {
             affiliateObj.charityRoundUp = JSON.parse(aff.charityRoundUp);
